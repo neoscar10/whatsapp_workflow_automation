@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\phpunit.xml" tests="7" assertions="12" errors="0" failures="1" skipped="0" time="1.766519">
+    <testsuite name="Unit" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.008393">
+      <testsuite name="Tests\Unit\ExampleTest" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Unit\ExampleTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.008393">
+        <testcase name="test_that_true_is_true" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Unit\ExampleTest.php" line="12" class="Tests\Unit\ExampleTest" classname="Tests.Unit.ExampleTest" assertions="1" time="0.008393"/>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Feature" tests="6" assertions="11" errors="0" failures="1" skipped="0" time="1.758126">
+      <testsuite name="Tests\Feature\ExampleTest" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\ExampleTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.575648">
+        <testcase name="test_the_application_returns_a_successful_response" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\ExampleTest.php" line="13" class="Tests\Feature\ExampleTest" classname="Tests.Feature.ExampleTest" assertions="1" time="0.575648"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\Web\RegisterCompanyPageTest" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" tests="5" assertions="10" errors="0" failures="1" skipped="0" time="1.182478">
+        <testcase name="home_page_loads_successfully" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" line="17" class="Tests\Feature\Web\RegisterCompanyPageTest" classname="Tests.Feature.Web.RegisterCompanyPageTest" assertions="1" time="0.477094"/>
+        <testcase name="can_create_company_manually" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" line="23" class="Tests\Feature\Web\RegisterCompanyPageTest" classname="Tests.Feature.Web.RegisterCompanyPageTest" assertions="1" time="0.157409"/>
+        <testcase name="valid_company_registration_creates_company_and_owner_user" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" line="36" class="Tests\Feature\Web\RegisterCompanyPageTest" classname="Tests.Feature.Web.RegisterCompanyPageTest" assertions="2" time="0.283604">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Feature\Web\RegisterCompanyPageTest::valid_company_registration_creates_company_and_owner_user&#13;
+Session is missing expected key [success].
+Failed asserting that false is true.
+&#13;
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:1443
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\livewire\livewire\src\Features\SupportTesting\Testable.php:417
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php:47</failure>
+        </testcase>
+        <testcase name="duplicate_email_is_rejected" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" line="61" class="Tests\Feature\Web\RegisterCompanyPageTest" classname="Tests.Feature.Web.RegisterCompanyPageTest" assertions="3" time="0.143976"/>
+        <testcase name="agree_to_terms_checkbox_is_required" file="C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\RegisterCompanyPageTest.php" line="75" class="Tests\Feature\Web\RegisterCompanyPageTest" classname="Tests.Feature.Web.RegisterCompanyPageTest" assertions="3" time="0.120396"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
