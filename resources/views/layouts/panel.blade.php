@@ -23,6 +23,11 @@
         <main class="flex flex-1 flex-col overflow-y-auto">
             @include('partials.panel.topbar', [
                 'topbarUser' => $topbarUser ?? null,
+                'topbarMode' => $topbarMode ?? 'default',
+                'topbarTitle' => $topbarTitle ?? null,
+                'topbarSearchPlaceholder' => $topbarSearchPlaceholder ?? 'Search across messages, team, or logs...',
+                'topbarPrimaryActionLabel' => $topbarPrimaryActionLabel ?? null,
+                'topbarBreadcrumbLabel' => $topbarBreadcrumbLabel ?? null,
             ])
 
             <div class="flex-1">

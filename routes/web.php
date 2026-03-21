@@ -16,6 +16,23 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardPage::class)->name('dashboard');
     Route::get('/company/profile', CompanyProfilePage::class)->name('company.profile');
+
+    // WhatsApp Setup
+    Route::group(['prefix' => 'whatsapp/setup'], function () {
+        Route::get('/', function () {
+            return redirect()->route('whatsapp.setup.phone-numbers');
+        });
+        Route::get('/phone-numbers', \App\Livewire\Web\WhatsApp\PhoneNumbersPage::class)->name('whatsapp.setup.phone-numbers');
+        Route::get('/account', \App\Livewire\Web\WhatsApp\AccountSetupPage::class)->name('whatsapp.setup.account');
+    });
+
+    // WhatsApp Templates
+    Route::group(['prefix' => 'whatsapp/templates'], function () {
+        Route::get('/', \App\Livewire\Web\WhatsApp\TemplatesIndexPage::class)->name('whatsapp.templates.index');
+        Route::get('/create', \App\Livewire\Web\WhatsApp\TemplateCreatePage::class)->name('whatsapp.templates.create');
+        Route::get('/{id}', \App\Livewire\Web\WhatsApp\TemplateShowPage::class)->name('whatsapp.templates.show');
+        Route::get('/{id}/edit', \App\Livewire\Web\WhatsApp\TemplateEditPage::class)->name('whatsapp.templates.edit');
+    });
     Route::get('/panel', function () {
         return redirect()->route('dashboard');
     })->name('panel.home');
@@ -24,3 +41,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/debug-route', function () {
     return 'ok';
 });
+
+// Public Webhooks
+Route::get('/webhooks/whatsapp/meta', [\App\Http\Controllers\Webhooks\WhatsAppWebhookController::class, 'verify'])->name('webhooks.whatsapp.meta.verify');
+Route::post('/webhooks/whatsapp/meta', [\App\Http\Controllers\Webhooks\WhatsAppWebhookController::class, 'receive'])->name('webhooks.whatsapp.meta.receive');
+

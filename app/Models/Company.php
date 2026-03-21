@@ -27,4 +27,19 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function whatsappAccount(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\WhatsApp\WhatsAppAccount::class);
+    }
+
+    public function whatsappPhoneNumbers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\WhatsApp\WhatsAppPhoneNumber::class);
+    }
+
+    public function whatsappTemplates(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\WhatsApp\WhatsAppTemplate::class);
+    }
 }

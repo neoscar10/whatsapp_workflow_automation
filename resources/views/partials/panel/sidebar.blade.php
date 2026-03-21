@@ -1,5 +1,5 @@
-<aside class="flex w-72 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm z-20">
-    <div class="flex h-full flex-col gap-8 p-6">
+<aside class="flex w-72 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm z-20 no-scrollbar">
+    <div class="flex h-full flex-col gap-8 p-6 no-scrollbar">
         <div class="flex items-center gap-3">
             <div class="flex size-10 items-center justify-center rounded-lg bg-primary">
                 <span class="material-symbols-outlined text-white">cloud_queue</span>
@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <nav class="flex flex-1 flex-col gap-1.5 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <nav class="flex flex-1 flex-col gap-1.5 overflow-y-auto no-scrollbar">
             <a href="{{ route('dashboard') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'dashboard' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'dashboard' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">dashboard</span>
@@ -23,30 +23,39 @@
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'company-profile' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">business</span>
                 <p class="text-sm font-bold">Company Profile</p>
             </a>
+            <a href="{{ route('whatsapp.templates.index') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 xl:transition-all {{ ($activeNav ?? '') === 'whatsapp-templates' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'whatsapp-templates' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">description</span>
+                <p class="text-sm font-bold">Templates</p>
+            </a>
+
+            <a href="{{ route('whatsapp.setup.phone-numbers') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">settings_suggest</span>
+                <p class="text-sm font-bold">WhatsApp Setup</p>
+            </a>
+
+            <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
 
             <a href="javascript:void(0)"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600 transition-all hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800">
-                <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">group</span>
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed transition-all">
+                <span class="material-symbols-outlined text-[22px]">group</span>
                 <p class="text-sm font-bold">Team Management</p>
             </a>
 
             <a href="javascript:void(0)"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600 transition-all hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800">
-                <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">forum</span>
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed transition-all">
+                <span class="material-symbols-outlined text-[22px]">forum</span>
                 <p class="text-sm font-bold">Message Logs</p>
             </a>
 
-            <a href="javascript:void(0)"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600 transition-all hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800">
-                <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">description</span>
-                <p class="text-sm font-bold">Templates</p>
-            </a>
+            
 
             <div class="my-6 border-t border-slate-100 dark:border-slate-800"></div>
 
             <a href="javascript:void(0)"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600 transition-all hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800">
-                <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-primary transition-colors">settings</span>
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed transition-all">
+                <span class="material-symbols-outlined text-[22px]">settings</span>
                 <p class="text-sm font-bold">Settings</p>
             </a>
         </nav>

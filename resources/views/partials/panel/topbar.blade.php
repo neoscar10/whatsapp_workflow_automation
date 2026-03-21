@@ -4,7 +4,7 @@
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 group-focus-within:text-primary transition-colors">search</span>
             <input
                 type="text"
-                placeholder="Search across messages, team, or logs..."
+                placeholder="{{ $topbarSearchPlaceholder ?? 'Search across messages, team, or logs...' }}"
                 class="w-full h-11 rounded-xl border-none bg-slate-100 pl-12 pr-4 text-sm font-medium placeholder:text-slate-500 focus:ring-4 focus:ring-primary/10 transition-all dark:bg-slate-800"
             />
         </div>

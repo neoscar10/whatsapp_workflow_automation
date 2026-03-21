@@ -1,0 +1,48 @@
+﻿
+   FAIL  Tests\Feature\Livewire\WhatsAppWebhookSetupPageTest
+  Γ¿» can view aΓÇª 1.68s  
+  Γ¿» can open mΓÇª 0.05s  
+  ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ  
+  ΓÇª   QueryException   
+  SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.slug (Connection: sqlite, SQL: insert into "companies" ("name", "updated_at", "created_at") values (Test, 2026-03-21 07:37:39, 2026-03-21 07:37:39))
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:825
+    821Γûò                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    822Γûò                 );
+    823Γûò             }
+    824Γûò 
+  Γ₧£ 825Γûò             throw new QueryException(
+    826Γûò                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    827Γûò             );
+    828Γûò         }
+    829Γûò     }
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:825
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.slug")
+
+  ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ  
+  ΓÇª   QueryException   
+  SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.slug (Connection: sqlite, SQL: insert into "companies" ("name", "updated_at", "created_at") values (Test, 2026-03-21 07:37:39, 2026-03-21 07:37:39))
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:825
+    821Γûò                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    822Γûò                 );
+    823Γûò             }
+    824Γûò 
+  Γ₧£ 825Γûò             throw new QueryException(
+    826Γûò                 $this->getName(), $query, $this->prepareBindings($bindings), $e
+    827Γûò             );
+    828Γûò         }
+    829Γûò     }
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:825
+
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+      NunoMaduro\Collision\Exceptions\TestException::("SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.slug")
+
+
+  Tests:    2 failed (0 assertions)
+  Duration: 2.06s
+
