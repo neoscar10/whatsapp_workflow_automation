@@ -1,185 +1,262 @@
-<div class="mx-auto w-full max-w-[1400px] space-y-8 p-10">
-    {{-- Header Section --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('whatsapp.templates.index') }}" class="group flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors">
-                <svg class="h-5 w-5 text-slate-500 group-hover:text-slate-700" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-            </a>
-            <div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                    {{ $template->display_title }}
-                    @if($template->status === 'approved')
-                        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Approved</span>
-                    @elseif($template->status === 'rejected')
-                        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Rejected</span>
-                    @elseif(in_array($template->status, ['pending', 'in_appeal']))
-                        <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-sm font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">Pending</span>
-                    @else
-                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-sm font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">Draft</span>
-                    @endif
-                </h1>
-                <p class="mt-2 text-sm text-slate-500 font-mono">{{ $template->remote_template_name }} &bull; {{ strtoupper($template->language_code) }} &bull; <span class="capitalize">{{ $template->category }}</span></p>
-            </div>
-        </div>
+<div class="flex-1 overflow-y-auto p-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-sm text-slate-500 mb-6">
+<a href="{{ route('whatsapp.templates.index') }}" class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">Templates</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]" title="{{ $template->display_title }}">{{ $template->display_title }}</span>
+</nav>
 
-        <div class="flex items-center gap-3">
-            @if(in_array($template->status, ['rejected', 'draft']))
-                <a href="{{ route('whatsapp.templates.edit', $template->id) }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                    Edit
-                </a>
-            @else
-                {{-- Meta limits editing approved templates to 1 time per day. The safest workflow is often copying. --}}
-                <button wire:click="duplicateTemplate" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
-                    Duplicate to Edit
-                </button>
-            @endif
-        </div>
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div>
+<div class="flex items-center gap-3 mb-2">
+@if($template->status === 'approved')
+    <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Approved</span>
+@elseif($template->status === 'rejected')
+    <span class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Rejected</span>
+@elseif(in_array($template->status, ['pending', 'in_appeal']))
+    <span class="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Pending</span>
+@else
+    <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Draft</span>
+@endif
+<span class="text-xs text-slate-400">• Updated {{ $template->updated_at ? $template->updated_at->diffForHumans() : 'N/A' }}</span>
+</div>
+<h1 class="text-3xl font-black text-slate-900 dark:text-slate-100">{{ $template->display_title }}</h1>
+<p class="text-slate-500 mt-1 capitalize">{{ $template->category }} • {{ $template->remote_template_name }} • {{ strtoupper($template->language_code) }}</p>
+</div>
+<div class="flex gap-3">
+@if(in_array($template->status, ['rejected', 'draft']))
+    <a href="{{ route('whatsapp.templates.edit', $template->id) }}" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+    <span class="material-symbols-outlined text-lg">edit</span>
+        Edit Template
+    </a>
+@else
+    <button wire:click="duplicateTemplate" class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+    <span class="material-symbols-outlined text-lg">content_copy</span>
+        Duplicate
+    </button>
+@endif
+</div>
+</div>
+
+@if($template->rejection_reason)
+    <div class="rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800/30 mb-8">
+        <h3 class="text-sm font-medium text-red-800 dark:text-red-400 mb-1">Meta Rejection Reason:</h3>
+        <p class="text-sm text-red-700 dark:text-red-300">{{ $template->rejection_reason }}</p>
     </div>
+@endif
 
-    @if($template->rejection_reason)
-        <div class="rounded-xl bg-red-50 p-4 border border-red-200">
-            <h3 class="text-sm font-medium text-red-800 mb-1">Meta Rejection Reason:</h3>
-            <p class="text-sm text-red-700">{{ $template->rejection_reason }}</p>
-        </div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Preview Section -->
+<div class="lg:col-span-1">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col sticky top-0">
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 border-b border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">visibility</span>
+                                    Phone Preview
+                                </h3>
+</div>
+<div class="p-8 flex justify-center bg-slate-100 dark:bg-slate-950">
+<!-- Phone UI Wrapper -->
+<div class="w-full max-w-[280px] bg-[#e5ddd5] dark:bg-slate-900 rounded-[2.5rem] border-[8px] border-slate-800 dark:border-slate-700 aspect-[9/18] overflow-hidden relative shadow-2xl">
+<div class="absolute top-0 w-full h-12 bg-[#075e54] flex items-center px-4 gap-2">
+<div class="w-8 h-8 rounded-full bg-slate-200/20"></div>
+<div class="flex-1">
+<div class="h-2 w-16 bg-white/40 rounded-full mb-1"></div>
+<div class="h-1.5 w-10 bg-white/20 rounded-full"></div>
+</div>
+</div>
+<!-- Message Bubble -->
+<div class="mt-16 p-3">
+    <div class="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm relative text-[11px] leading-snug">
+    <div class="mb-2">
+    @if($template->header_type && $template->header_type !== 'none')
+        @if($template->header_type === 'text')
+            <p class="font-bold mb-1">{{ $template->header_text }}</p>
+        @else
+            <div class="rounded-lg overflow-hidden mb-2">
+            <div class="bg-slate-200 dark:bg-slate-700 aspect-video flex items-center justify-center text-slate-400" data-alt="Abstract minimal geometric background pattern for template header">
+            <span class="material-symbols-outlined">{{ strtolower($template->header_type) === 'video' ? 'videocam' : 'image' }}</span>
+            </div>
+            </div>
+        @endif
     @endif
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-        
-        {{-- Left: Meta Info Read-Only --}}
-        <div class="space-y-8">
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 class="text-lg font-bold text-slate-900 mb-6">Meta Configuration</h3>
-                
-                <dl class="space-y-6 text-sm">
-                    <div class="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                        <dt class="font-medium text-slate-500">Remote ID</dt>
-                        <dd class="col-span-2 text-slate-900 font-mono">{{ $template->remote_template_id ?: 'Pending' }}</dd>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                        <dt class="font-medium text-slate-500">Quality Rating</dt>
-                        <dd class="col-span-2">
-                            @if(strtolower($template->quality_rating) === 'high' || strtolower($template->quality_rating) === 'green')
-                                <span class="text-green-600 font-semibold">{{ $template->quality_rating }}</span>
-                            @elseif(strtolower($template->quality_rating) === 'medium' || strtolower($template->quality_rating) === 'yellow')
-                                <span class="text-yellow-600 font-semibold">{{ $template->quality_rating }}</span>
-                            @elseif(strtolower($template->quality_rating) === 'low' || strtolower($template->quality_rating) === 'red')
-                                <span class="text-red-600 font-semibold">{{ $template->quality_rating }}</span>
-                            @else
-                                <span class="text-slate-500">{{ $template->quality_rating ?: 'N/A' }}</span>
-                            @endif
-                        </dd>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                        <dt class="font-medium text-slate-500">Submitted At</dt>
-                        <dd class="col-span-2 text-slate-900">{{ $template->submitted_at ? $template->submitted_at->format('M j, Y g:i A') : 'N/A' }}</dd>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 pb-2">
-                        <dt class="font-medium text-slate-500">Last Synced</dt>
-                        <dd class="col-span-2 text-slate-900">{{ $template->last_synced_at ? $template->last_synced_at->format('M j, Y g:i A') : 'N/A' }}</dd>
-                    </div>
-                </dl>
-            </div>
-            
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                 <h3 class="text-lg font-bold text-slate-900 mb-4">Payload Elements</h3>
-                 <div class="space-y-4">
-                     <div>
-                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Header</span>
-                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-sm text-slate-700">
-                             @if($template->header_type === 'none')
-                                 <span class="italic text-slate-400">None</span>
-                             @elseif($template->header_type === 'text')
-                                 {{ $template->header_text }}
-                             @else
-                                 [{{ strtoupper($template->header_type) }} MEDIA EXPECTED]
-                             @endif
-                         </div>
-                     </div>
-                     <div>
-                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Body Variables</span>
-                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-sm text-slate-700">
-                             @php $varCount = preg_match_all('/\{\{\d+\}\}/', $template->body_text); @endphp
-                             @if($varCount > 0)
-                                 Found {{ $varCount }} variables required during sending.
-                             @else
-                                 No variables required.
-                             @endif
-                         </div>
-                     </div>
-                 </div>
-            </div>
-        </div>
-
-        {{-- Right: Preview Phone --}}
-        <div class="border-4 border-slate-900/10 rounded-[2.5rem] bg-slate-50 relative h-auto shadow-2xl p-4 overflow-hidden max-w-sm mx-auto w-full">
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900/10 rounded-b-2xl"></div>
-            
-            <div class="bg-[#efeae2] rounded-3xl h-full shadow-inner overflow-hidden flex flex-col pt-12 min-h-[500px]">
-                <div class="bg-[#008069] text-white p-3 flex items-center gap-3 shadow-sm z-10 shrink-0">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-slate-200"></div>
-                        <div class="font-semibold text-sm">Preview</div>
-                    </div>
-                </div>
-
-                <div class="flex-1 p-4 overflow-y-auto space-y-4 pb-6 no-scrollbar">
-                    {{-- User message --}}
-                    <div class="bg-[#d9fdd3] p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm text-slate-800">
-                        Triggered Business Workflow
-                        <div class="text-[10px] text-slate-500 mt-1 text-right">Just now</div>
-                    </div>
-
-                    {{-- Template View --}}
-                    <div class="bg-white p-2 rounded-lg rounded-tl-none shadow-sm max-w-[90%] space-y-2">
-                        @if($template->header_type && $template->header_type !== 'none')
-                            <div class="font-bold text-slate-900 text-sm px-1 pt-1">
-                                @if($template->header_type === 'text')
-                                    {{ $template->header_text }}
-                                @else
-                                    <div class="w-full h-32 bg-slate-200 rounded flex items-center justify-center text-slate-400">
-                                        [{{ strtoupper($template->header_type) }}]
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-                        
-                        <div class="px-1 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{{ $template->body_text }}</div>
-                        
-                        @if($template->footer_text)
-                            <div class="px-1 text-[11px] text-slate-500 mt-1">{{ $template->footer_text }}</div>
-                        @endif
-
-                        @if($template->button_count > 0)
-                            <div class="space-y-1.5 pt-2 mt-2 border-t border-slate-100">
-                                @foreach($template->buttons as $btn)
-                                    <div class="w-full text-center text-[#00a884] font-semibold text-sm py-2">
-                                        @if($btn->type === 'url')
-                                            <svg class="inline-block h-4 w-4 mr-1 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                        @elseif($btn->type === 'phone_number')
-                                            <svg class="inline-block h-4 w-4 mr-1 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                        @elseif($btn->type === 'quick_reply')
-                                            <svg class="inline-block h-4 w-4 mr-1 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                        @endif
-                                        {{ $btn->text }}
-                                    </div>
-                                    @if(!$loop->last)
-                                        <hr class="border-slate-100">
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{{ $template->body_text }}</div>
+    @if($template->footer_text)
+        <p class="text-[10px] text-slate-500 mt-2">{{ $template->footer_text }}</p>
+    @endif
     </div>
+    <div class="flex justify-end items-center gap-1">
+    <span class="text-[9px] text-slate-400">10:42 AM</span>
+    <span class="material-symbols-outlined text-[10px] text-blue-400">done_all</span>
+    </div>
+    @if($template->button_count > 0)
+    <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 flex flex-col gap-2">
+        @foreach($template->buttons as $btn)
+        <div class="bg-slate-50 dark:bg-slate-700/50 py-1.5 rounded text-center text-primary font-bold flex items-center justify-center gap-1">
+            @if($btn->type === 'url')
+                <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+            @elseif($btn->type === 'phone_number')
+                <span class="material-symbols-outlined text-[14px]">call</span>
+            @elseif($btn->type === 'quick_reply')
+                <span class="material-symbols-outlined text-[14px]">reply</span>
+            @endif
+            {{ $btn->text }}
+        </div>
+        @endforeach
+    </div>
+    @endif
+    </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Configuration Details -->
+<div class="lg:col-span-2 space-y-6">
+<!-- Template Structure Card -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg">Template Structure</h3>
+</div>
+<div class="p-6 space-y-6">
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Header</label>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+@if($template->header_type === 'none')
+<div class="flex items-center gap-3">
+    <span class="text-sm font-medium italic text-slate-400">None</span>
+</div>
+@elseif($template->header_type === 'text')
+<div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-slate-400">match_case</span>
+    <span class="text-sm font-medium">Text ({{ $template->header_text }})</span>
+</div>
+@else
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">{{ strtolower($template->header_type) === 'video' ? 'videocam' : 'image' }}</span>
+<span class="text-sm font-medium">Media ({{ ucfirst($template->header_type) }})</span>
+@if(!in_array($template->header_type, ['text', 'none']))
+<span class="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">Optional</span>
+@endif
+</div>
+@endif
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Body Message</label>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 font-mono text-sm leading-relaxed whitespace-pre-wrap">
+{{ $template->body_text }}
+</div>
+<div class="flex flex-wrap gap-4 mt-2">
+@php $varCount = preg_match_all('/\{\{\d+\}\}/', $template->body_text); @endphp
+@if($varCount > 0)
+<div class="text-xs text-slate-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">info</span>
+Found {{ $varCount }} variables required during sending.
+</div>
+@else
+<div class="text-xs text-slate-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">info</span>
+No variables required.
+</div>
+@endif
+</div>
+</div>
+
+@if($template->button_count > 0)
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Buttons</label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+@foreach($template->buttons as $btn)
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs text-slate-400">
+    @if($btn->type === 'url') Call to Action
+    @elseif($btn->type === 'phone_number') Call to Action
+    @elseif($btn->type === 'quick_reply') Quick Reply
+    @endif
+</span>
+<span class="text-sm font-bold">{{ $btn->text }}</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">
+    @if($btn->type === 'url') link
+    @elseif($btn->type === 'phone_number') call
+    @elseif($btn->type === 'quick_reply') open_in_new
+    @endif
+</span>
+</div>
+@endforeach
+</div>
+</div>
+@endif
+
+</div>
+</div>
+<!-- Meta Data Card -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg">Platform Metadata</h3>
+</div>
+<div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold mb-1">Namespace</p>
+<p class="text-sm font-medium">{{ optional(optional($template)->whatsappAccount)->whatsapp_business_namespace ?? 'N/A' }}</p>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold mb-1">Template ID</p>
+<p class="text-sm font-medium">{{ $template->remote_template_id ?: 'Pending' }}</p>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold mb-1">Quality Rating</p>
+<div class="flex items-center gap-1">
+@if(strtolower($template->quality_rating) === 'high' || strtolower($template->quality_rating) === 'green')
+    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+    <p class="text-sm font-medium text-emerald-600">{{ $template->quality_rating }}</p>
+@elseif(strtolower($template->quality_rating) === 'medium' || strtolower($template->quality_rating) === 'yellow')
+    <div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+    <p class="text-sm font-medium text-yellow-600">{{ $template->quality_rating }}</p>
+@elseif(strtolower($template->quality_rating) === 'low' || strtolower($template->quality_rating) === 'red')
+    <div class="w-2 h-2 rounded-full bg-red-500"></div>
+    <p class="text-sm font-medium text-red-600">{{ $template->quality_rating }}</p>
+@else
+    <p class="text-sm font-medium">{{ $template->quality_rating ?: 'N/A' }}</p>
+@endif
+</div>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold mb-1">Language</p>
+<p class="text-sm font-medium">{{ strtoupper($template->language_code) }}</p>
+</div>
+</div>
+</div>
+
+<!-- Statistics Card -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">Total Sent</p>
+<div class="flex items-end justify-between">
+<span class="text-2xl font-black">--</span>
+<span class="text-emerald-500 text-xs font-bold flex items-center"></span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">Read Rate</p>
+<div class="flex items-end justify-between">
+<span class="text-2xl font-black">--</span>
+<span class="text-emerald-500 text-xs font-bold flex items-center"></span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">CTR</p>
+<div class="flex items-end justify-between">
+<span class="text-2xl font-black">--</span>
+<span class="text-emerald-500 text-xs font-bold flex items-center"></span>
+</div>
+</div>
+</div>
+
+</div>
+</div>
 </div>
