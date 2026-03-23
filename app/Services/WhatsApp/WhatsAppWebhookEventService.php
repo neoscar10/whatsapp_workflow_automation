@@ -2,12 +2,17 @@
 
 namespace App\Services\WhatsApp;
 
-use App\Models\WhatsAppAccount;
+use App\Models\WhatsApp\WhatsAppAccount;
+use App\Models\WhatsApp\WhatsAppPhoneNumber;
+use App\Services\Chat\ChatConversationResolverService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookEventService
 {
+    public function __construct(
+        protected ChatConversationResolverService $resolverService
+    ) {}
     /**
      * Process the incoming POST webhook payload from Meta.
      *
@@ -83,15 +88,44 @@ class WhatsAppWebhookEventService
 
     protected function processMessagesEvent(WhatsAppAccount $account, array $value): void
     {
-        // Placeholders for future Phase
-        if (isset($value['messages'])) {
-            // Incoming message
-            Log::info('Received incoming WhatsApp message', ['account_id' => $account->id]);
+        $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
+        if (!$phoneNumberId) return;
+
+        $localNumber = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)->first();
+        if (!$localNumber) {
+            Log::warning("WhatsApp Webhook: Inbound message for phone_number_id {$phoneNumberId} not found in local DB.");
+            return;
         }
 
-        if (isset($value['statuses'])) {
-            // Message status update (sent, delivered, read, failed)
-            Log::info('Received WhatsApp message status update', ['account_id' => $account->id]);
+        // Handle incoming messages
+        if (!empty($value['messages'])) {
+            $contacts = $value['contacts'] ?? [];
+            
+            foreach ($value['messages'] as $index => $message) {
+                // Find contact profile if available (Meta sends it once in the payload)
+                $contact = null;
+                $from = $message['from'] ?? null;
+                foreach ($contacts as $c) {
+                    if (($c['wa_id'] ?? null) === $from) {
+                        $contact = $c;
+                        break;
+                    }
+                }
+
+                Log::info("Processing inbound WhatsApp message", [
+                    'message_id' => $message['id'],
+                    'from' => $from
+                ]);
+
+                $this->resolverService->resolveAndProcessInboundMessage($localNumber, $message, $contact ?? []);
+            }
+        }
+
+        if (!empty($value['statuses'])) {
+            // Placeholder for status updates (sent, delivered, read, failed)
+            Log::info("Processing WhatsApp message status updates", [
+                'count' => count($value['statuses'])
+            ]);
         }
     }
 

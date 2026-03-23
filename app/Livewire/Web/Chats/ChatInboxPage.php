@@ -37,6 +37,8 @@ class ChatInboxPage extends Component
     public ?string $templateModalError = null;
     public ?string $templateModalMessage = null;
 
+    public array $channelAvailability = [];
+
     protected $queryString = [
         'selectedConversationId' => ['except' => null, 'as' => 'conversation'],
     ];
@@ -300,11 +302,14 @@ class ChatInboxPage extends Component
             'selected_conversation_id' => $this->selectedConversationId,
         ]);
 
+        $this->channelAvailability = $data['channel_availability'];
+
         return view('livewire.web.chats.chat-inbox-page', [
             'conversationList' => $data['conversations'],
             'activeConversation' => $data['activeConversation'],
             'messages' => $data['messages'],
             'sidebarData' => $data['sidebarData'],
+            'hasAvailableChannels' => $data['channel_availability']['has_available_channels'],
             'agentInitials' => strtoupper(substr($user->name, 0, 2)),
             'agentName' => $user->name,
             'agentStatusLabel' => 'Online',

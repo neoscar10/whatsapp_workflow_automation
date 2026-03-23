@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 
 class ChatInboxService
 {
+    public function __construct(
+        protected ChatChannelAvailabilityService $availabilityService
+    ) {}
     /**
      * Get inbox data for user.
      */
@@ -52,6 +55,11 @@ class ChatInboxService
             'sidebarData' => $sidebarData,
             'has_conversations' => $conversations->isNotEmpty(),
             'show_empty_state' => $activeConversation === null,
+            'channel_availability' => [
+                'has_available_channels' => $this->availabilityService->getAvailableWhatsAppNumbersForUser($user)->isNotEmpty(),
+                'available_count' => $this->availabilityService->getAvailableWhatsAppNumbersForUser($user)->count(),
+                'default_channel' => $this->availabilityService->getDefaultWhatsAppNumberForUser($user),
+            ],
         ];
     }
 
