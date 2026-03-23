@@ -60,6 +60,41 @@ class WhatsAppGraphClient
     }
 
     /**
+     * Get apps subscribed to a WABA's webhooks.
+     */
+    public function getSubscribedApps(string $wabaId, string $accessToken): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$wabaId}/subscribed_apps";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(10)
+                ->get($url);
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'Unknown Meta API error');
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'status' => $response->status()
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => $response->json('data', [])
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("WhatsApp API Exception (getSubscribedApps): " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => "Network error while checking subscription."
+            ];
+        }
+    }
+
+    /**
      * Debug an access token to verify permissions (Optional helper).
      */
     public function debugToken(string $inputToken, string $accessToken): array

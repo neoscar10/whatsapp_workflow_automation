@@ -98,6 +98,10 @@ class AccountSetupPage extends Component
 
     public function openWebhookModal(\App\Services\WhatsApp\WhatsAppWebhookSetupService $service)
     {
+        // Automatically attempt a refresh from Meta when opening the modal
+        // to ensure the user sees the most up-to-date status.
+        $service->refreshWebhookHealthForUser(Auth::user());
+        
         $this->refreshWebhookData($service);
         $this->showWebhookModal = true;
     }
@@ -141,6 +145,8 @@ class AccountSetupPage extends Component
         $this->refreshWebhookData($service);
     }
 
+    public $webhookSubscribedAt = null;
+
     public function refreshWebhookData(\App\Services\WhatsApp\WhatsAppWebhookSetupService $service)
     {
         $data = $service->getSetupDataForUser(\Illuminate\Support\Facades\Auth::user());
@@ -151,6 +157,7 @@ class AccountSetupPage extends Component
         $this->webhookCallbackUrl = $data['callback_url'];
         $this->webhookVerifyToken = $data['verify_token'];
         $this->webhookVerifiedAt = $data['webhook_verified_at'];
+        $this->webhookSubscribedAt = $data['webhook_subscribed_at'] ?? null;
         $this->webhookLastCheckedAt = $data['webhook_last_checked_at'];
         $this->webhookLastError = $data['webhook_last_error'];
     }

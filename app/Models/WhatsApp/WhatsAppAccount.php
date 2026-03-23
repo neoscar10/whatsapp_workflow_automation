@@ -18,6 +18,13 @@ class WhatsAppAccount extends Model
         'business_id',
         'connection_status',
         'webhook_status',
+        'webhook_callback_url',
+        'webhook_verify_token',
+        'webhook_verified_at',
+        'webhook_last_checked_at',
+        'webhook_last_error',
+        'webhook_subscription_status',
+        'webhook_subscribed_at',
         'connected_at',
         'last_verified_at',
         'last_synced_at',
@@ -29,6 +36,9 @@ class WhatsAppAccount extends Model
         'connected_at' => 'datetime',
         'last_verified_at' => 'datetime',
         'last_synced_at' => 'datetime',
+        'webhook_verified_at' => 'datetime',
+        'webhook_last_checked_at' => 'datetime',
+        'webhook_subscribed_at' => 'datetime',
     ];
 
     public function company(): BelongsTo

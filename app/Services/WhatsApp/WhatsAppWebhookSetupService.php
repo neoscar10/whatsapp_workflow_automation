@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookSetupService
 {
+    public function __construct(
+        protected WhatsAppGraphClient $graphClient
+    ) {}
     /**
      * Retrieve webhook setup data for the user.
      */
@@ -25,6 +28,7 @@ class WhatsAppWebhookSetupService
             'webhook_status' => $status,
             'webhook_subscription_status' => $subStatus,
             'webhook_verified_at' => $account?->webhook_verified_at,
+            'webhook_subscribed_at' => $account?->webhook_subscribed_at,
             'webhook_last_checked_at' => $account?->webhook_last_checked_at,
             'webhook_last_error' => $account?->webhook_last_error,
             'has_connected_account' => $account && $account->waba_id && $account->access_token,
@@ -57,6 +61,7 @@ class WhatsAppWebhookSetupService
 
             if ($response->successful()) {
                 $account->update([
+                    'webhook_status' => 'verified',
                     'webhook_subscription_status' => 'subscribed',
                     'webhook_subscribed_at' => now(),
                     'webhook_last_error' => null,
@@ -96,20 +101,65 @@ class WhatsAppWebhookSetupService
     }
 
     /**
-     * Mark locally configured based on standard checks
+     * Refresh webhook and subscription status from Meta.
      */
     public function refreshWebhookHealthForUser(User $user): array
     {
         $account = $user->company->whatsappAccount;
-        if (!$account) return ['success' => false];
+        if (!$account || !$account->waba_id || !$account->access_token) {
+            return [
+                'success' => false,
+                'message' => 'WhatsApp account not fully connected.'
+            ];
+        }
 
-        // This is a placeholder local health check to refresh the 'verified' status manually.
-        // In real cases, Meta hits us. We can just mark this account as 'verified' if we detect valid events.
+        Log::info("Refreshing Webhook Health for Account {$account->id}");
+
+        $response = $this->graphClient->getSubscribedApps($account->waba_id, $account->access_token);
+
+        if (!$response['success']) {
+            $account->update([
+                'webhook_last_checked_at' => now(),
+                'webhook_last_error' => "Meta API Check Failed: " . $response['error']
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to check status from Meta: ' . $response['error']
+            ];
+        }
+
+        $apps = $response['data'];
+        $myAppId = config('services.whatsapp.app_id');
         
-        $account->update([
-            'webhook_last_checked_at' => now(),
-        ]);
+        $isSubscribed = false;
+        foreach ($apps as $app) {
+            // Meta returns 'whatsapp_business_api_data' or similar fields in the list
+            if (isset($app['whatsapp_business_api_data']) || (isset($app['id']) && $app['id'] == $myAppId)) {
+                $isSubscribed = true;
+                break;
+            }
+        }
 
-        return ['success' => true, 'message' => 'Status refreshed.'];
+        // Logic: if we have settings locally (callback/token) and we see it's subscribed in Meta,
+        // we can marked 'verified' and 'subscribed'.
+        $updateData = [
+            'webhook_last_checked_at' => now(),
+            'webhook_last_error' => null,
+            'webhook_subscription_status' => $isSubscribed ? 'subscribed' : 'not_subscribed',
+        ];
+
+        if ($isSubscribed) {
+            $updateData['webhook_status'] = 'verified'; // Inference: if subscribed, it must be verified
+            $updateData['webhook_subscribed_at'] = $account->webhook_subscribed_at ?? now();
+        }
+
+        $account->update($updateData);
+
+        return [
+            'success' => true,
+            'message' => $isSubscribed ? 'App is correctly subscribed to webhooks.' : 'App is not currently subscribed according to Meta.',
+            'is_subscribed' => $isSubscribed
+        ];
     }
 }

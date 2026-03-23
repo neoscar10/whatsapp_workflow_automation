@@ -56,6 +56,9 @@
                                         {{ str_replace('_', ' ', $webhookStatus) }}
                                     </p>
                                 </div>
+                                @if($webhookVerifiedAt)
+                                    <p class="text-[10px] text-slate-500">Verified: {{ $webhookVerifiedAt->format('M j, H:i') }}</p>
+                                @endif
                             </div>
 
                             <div class="flex-1 space-y-1 border-l pl-4 border-slate-200 dark:border-slate-700">
@@ -66,8 +69,26 @@
                                         {{ str_replace('_', ' ', $webhookSubscriptionStatus) }}
                                     </p>
                                 </div>
+                                @if($webhookSubscribedAt)
+                                    <p class="text-[10px] text-slate-500">Subscribed: {{ $webhookSubscribedAt->format('M j, H:i') }}</p>
+                                @endif
                             </div>
                         </div>
+
+                        @if($webhookLastCheckedAt)
+                            <div class="flex items-center justify-between px-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">history</span>
+                                    Last Checked: {{ $webhookLastCheckedAt->diffForHumans() }}
+                                </p>
+                                @if($webhookLastError)
+                                     <p class="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1" title="{{ $webhookLastError }}">
+                                        <span class="material-symbols-outlined text-[14px]">error</span>
+                                        Check Failed
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
 
                         <div class="space-y-4">
                             <div>
