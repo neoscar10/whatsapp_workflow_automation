@@ -6,7 +6,9 @@ use App\Livewire\Web\Company\CompanyProfilePage;
 use App\Livewire\Web\Dashboard\DashboardPage;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', RegisterCompanyPage::class)->name('home');
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
 Route::get('/register', RegisterCompanyPage::class)->name('company.register');
 
 Route::middleware('guest')->group(function () {
@@ -16,6 +18,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardPage::class)->name('dashboard');
     Route::get('/company/profile', CompanyProfilePage::class)->name('company.profile');
+    Route::get('/chats', \App\Livewire\Web\Chats\ChatInboxPage::class)->name('chats.index');
 
     // WhatsApp Setup
     Route::group(['prefix' => 'whatsapp/setup'], function () {

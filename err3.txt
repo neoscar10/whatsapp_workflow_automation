@@ -1,0 +1,68 @@
+PHPUnit 10.5.63 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\Users\USER\Desktop\projects\WhatsApp workflow automation\phpunit.xml
+
+E                                                                   1 / 1 (100%)
+
+Time: 00:01.233, Memory: 42.00 MB
+
+There was 1 error:
+
+1) Tests\Feature\Web\ChatInboxPageTest::test_renders_empty_state_when_no_conversations_exist
+Illuminate\Database\QueryException: SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.primary_email (Connection: sqlite, SQL: insert into "companies" ("name", "slug", "updated_at", "created_at") values (Test Company, test-company-69c1a5558444f, 2026-03-23 20:40:53, 2026-03-23 20:40:53))
+
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:825
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:779
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:560
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:524
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Query\Processors\Processor.php:32
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3766
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2120
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1359
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1324
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1163
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1128
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\helpers.php:399
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1127
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2372
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1152
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:155
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1151
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2372
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2384
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\ChatInboxPageTest.php:19
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\ChatInboxPageTest.php:114
+
+Caused by
+PDOException: SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: companies.primary_email
+
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:571
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:812
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:779
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:560
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Connection.php:524
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Query\Processors\Processor.php:32
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3766
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2120
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1359
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1324
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1163
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1128
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\helpers.php:399
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1127
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2372
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1152
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:155
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1151
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2372
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2384
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\ChatInboxPageTest.php:19
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\tests\Feature\Web\ChatInboxPageTest.php:114
+
+ERRORS!
+Tests: 1, Assertions: 0, Errors: 1.

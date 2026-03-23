@@ -30,7 +30,7 @@
                 'topbarBreadcrumbLabel' => $topbarBreadcrumbLabel ?? null,
             ])
 
-            <div class="flex-1">
+            <div class="flex-1 flex flex-col relative w-full h-full min-h-0">
                 {{ $slot }}
             </div>
         </main>
