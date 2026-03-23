@@ -38,7 +38,7 @@ class WhatsAppPhoneNumberService
             'all_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->count(),
             'active_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->where('status', 'active')->count(),
             'inactive_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->where('status', 'inactive')->count(),
-            'has_connected_account' => $account ? $account->connection_status === 'connected' : false,
+            'has_connected_account' => $account ? in_array($account->connection_status, ['connected', 'pending-sync', 'error']) : false,
             'connected_account_id' => $account->id ?? null,
             'account_status' => $account->connection_status ?? 'not_connected',
         ];

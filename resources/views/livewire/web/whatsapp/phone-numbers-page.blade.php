@@ -22,7 +22,7 @@
                 <button type="button"
                         wire:click="syncFromMeta"
                         wire:loading.attr="disabled"
-                        class="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-5 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/10 active:scale-95 disabled:opacity-50">
+                        class="flex items-center gap-2 whitespace-nowrap rounded-xl border border-primary/20 bg-primary/5 px-5 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/10 active:scale-95 disabled:opacity-50">
                     <span class="material-symbols-outlined text-lg" wire:loading.remove wire:target="syncFromMeta">sync</span>
                     <span class="animate-spin material-symbols-outlined text-lg" wire:loading wire:target="syncFromMeta">sync</span>
                     <span wire:loading.remove wire:target="syncFromMeta">Sync from Meta</span>
@@ -31,14 +31,14 @@
 
                 <button type="button"
                         wire:click="openCreateModal"
-                        class="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 active:scale-95">
+                        class="flex items-center gap-2 whitespace-nowrap rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 active:scale-95">
                     <span class="material-symbols-outlined text-lg">add</span>
                     Add Number
                 </button>
             @endif
 
             <a href="{{ route('whatsapp.setup.account') }}"
-               class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
+               class="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
                 <span class="material-symbols-outlined text-lg">settings_suggest</span>
                 Account Setup
             </a>
@@ -123,7 +123,7 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="font-medium text-slate-900 dark:text-white">
-                                            {{ $number->phone_number ?: 'Pending sync from Meta' }}
+                                            {{ $number->phone_number ?: ($number->last_sync_error ? 'Sync Error' : 'Pending sync from Meta') }}
                                         </span>
                                         <span class="text-xs text-slate-400">
                                             ID: {{ $number->phone_number_id }}

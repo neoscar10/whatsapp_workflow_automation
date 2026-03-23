@@ -36,6 +36,11 @@ class WhatsAppPhoneNumberSyncService
         }
 
         $metaNumbers = $response['data'];
+        
+        Log::info("Meta API returned " . count($metaNumbers) . " numbers", [
+            'data_snapshot' => !empty($metaNumbers) ? $metaNumbers[0] : 'empty'
+        ]);
+
         $results = $this->matchAndProcessNumbers($account, $metaNumbers);
 
         $account->update([
@@ -117,7 +122,7 @@ class WhatsAppPhoneNumberSyncService
             'phone_number_id' => $metaData['id'], // Ensure ID is correct
             'display_name' => $metaData['verified_name'] ?? $number->display_name,
             'verified_name' => $metaData['verified_name'] ?? null,
-            'phone_number' => $metaData['display_phone_number'] ?? $number->phone_number,
+            'phone_number' => $metaData['display_phone_number'] ?? ($metaData['phone_number'] ?? $number->phone_number),
             'quality_rating' => $metaData['quality_rating'] ?? null,
             'code_verification_status' => $metaData['code_verification_status'] ?? null,
             'status' => strtolower($metaData['status'] ?? 'active'),
@@ -137,7 +142,7 @@ class WhatsAppPhoneNumberSyncService
             'display_name' => $metaData['verified_name'] ?? $metaData['display_phone_number'],
             'verified_name' => $metaData['verified_name'] ?? null,
             'phone_number_id' => $metaData['id'],
-            'phone_number' => $metaData['display_phone_number'] ?? null,
+            'phone_number' => $metaData['display_phone_number'] ?? ($metaData['phone_number'] ?? null),
             'quality_rating' => $metaData['quality_rating'] ?? null,
             'code_verification_status' => $metaData['code_verification_status'] ?? null,
             'status' => strtolower($metaData['status'] ?? 'active'),
