@@ -115,6 +115,25 @@ class PhoneNumbersPage extends Component
         }
     }
 
+    public function syncFromMeta(\App\Services\WhatsApp\WhatsAppPhoneNumberSyncService $syncService)
+    {
+        $user = Auth::user();
+        $account = $user->company->whatsappAccount;
+
+        if (!$account || $account->connection_status !== 'connected') {
+            session()->flash('error', 'Please connect your WhatsApp account first.');
+            return;
+        }
+
+        $result = $syncService->syncForAccount($account);
+
+        if ($result['success']) {
+            session()->flash('success', $result['message']);
+        } else {
+            session()->flash('error', $result['message']);
+        }
+    }
+
     public function toggleNumberStatus($numberId, WhatsAppPhoneNumberService $service)
     {
         $service->toggleStatusForUser(Auth::user(), $numberId);

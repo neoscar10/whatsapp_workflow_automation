@@ -20,6 +20,16 @@
         <div class="flex items-center gap-3">
             @if($hasConnectedAccount)
                 <button type="button"
+                        wire:click="syncFromMeta"
+                        wire:loading.attr="disabled"
+                        class="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-5 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/10 active:scale-95 disabled:opacity-50">
+                    <span class="material-symbols-outlined text-lg" wire:loading.remove wire:target="syncFromMeta">sync</span>
+                    <span class="animate-spin material-symbols-outlined text-lg" wire:loading wire:target="syncFromMeta">sync</span>
+                    <span wire:loading.remove wire:target="syncFromMeta">Sync from Meta</span>
+                    <span wire:loading wire:target="syncFromMeta">Syncing...</span>
+                </button>
+
+                <button type="button"
                         wire:click="openCreateModal"
                         class="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 active:scale-95">
                     <span class="material-symbols-outlined text-lg">add</span>
@@ -38,6 +48,12 @@
     @if (session()->has('success'))
         <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -91,9 +107,9 @@
                 <thead class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                     <tr>
                         <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Phone Number</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Display Name</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Created</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Verified Name</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status / Quality</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Last Synced</th>
                         <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>
                     </tr>
                 </thead>
@@ -115,24 +131,45 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-5 text-slate-600 dark:text-slate-300">
-                                {{ $number->display_name }}
+                             <td class="whitespace-nowrap px-6 py-5 text-slate-600 dark:text-slate-300">
+                                <div class="flex flex-col">
+                                    <span class="font-medium">{{ $number->verified_name ?: $number->display_name }}</span>
+                                    @if($number->verified_name && $number->verified_name !== $number->display_name)
+                                        <span class="text-[10px] text-slate-400">Local: {{ $number->display_name }}</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-5">
-                                @if ($number->status === 'active')
-                                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                        <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        Active
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-400">
-                                        <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                                        Inactive
-                                    </span>
-                                @endif
+                                <div class="flex flex-col gap-1.5">
+                                    @if ($number->status === 'active')
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                            <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            Active
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-400">
+                                            <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                            {{ ucfirst($number->status) }}
+                                        </span>
+                                    @endif
+
+                                    @if($number->quality_rating)
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quality:</span>
+                                            <span class="text-[10px] font-bold {{ $number->quality_rating === 'GREEN' ? 'text-emerald-500' : ($number->quality_rating === 'YELLOW' ? 'text-amber-500' : 'text-red-500') }}">
+                                                {{ $number->quality_rating }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-500 dark:text-slate-400">
-                                {{ $number->created_at->format('M d, Y') }}
+                                <div class="flex flex-col">
+                                    <span>{{ $number->synced_at ? $number->synced_at->diffForHumans() : 'Never' }}</span>
+                                    @if($number->last_sync_error)
+                                        <span class="text-[10px] text-red-500 truncate max-w-[150px]" title="{{ $number->last_sync_error }}">Sync Error</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-5 text-right space-x-3">
                                 <button type="button"

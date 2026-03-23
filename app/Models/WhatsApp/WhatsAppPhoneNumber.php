@@ -18,7 +18,16 @@ class WhatsAppPhoneNumber extends Model
         'phone_number_id',
         'phone_number',
         'status',
+        'verified_name',
+        'quality_rating',
+        'code_verification_status',
+        'synced_at',
+        'last_sync_error',
         'created_by_user_id',
+    ];
+
+    protected $casts = [
+        'synced_at' => 'datetime',
     ];
 
     public function company(): BelongsTo

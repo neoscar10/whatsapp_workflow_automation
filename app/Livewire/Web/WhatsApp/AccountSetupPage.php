@@ -26,6 +26,8 @@ class AccountSetupPage extends Component
     public $webhookSetupError = null;
     public $showWebhookModal = false;
     public $has_connected_account = false;
+    public $lastSyncedAt = null;
+    public $lastSyncError = null;
 
     public function mount(WhatsAppAccountSetupService $service, \App\Services\WhatsApp\WhatsAppWebhookSetupService $webhookService)
     {
@@ -41,6 +43,8 @@ class AccountSetupPage extends Component
         $this->waba_id = $data['waba_id'];
         $this->business_id = $data['business_id'];
         $this->webhookStatus = $data['webhook_status'];
+        $this->lastSyncedAt = $data['last_synced_at'] ?? null;
+        $this->lastSyncError = $data['last_sync_error'] ?? null;
         $this->access_token = ''; // Never prefill stored token
     }
 

@@ -20,12 +20,15 @@ class WhatsAppAccount extends Model
         'webhook_status',
         'connected_at',
         'last_verified_at',
+        'last_synced_at',
+        'last_sync_error',
     ];
 
     protected $casts = [
         'access_token' => 'encrypted',
         'connected_at' => 'datetime',
         'last_verified_at' => 'datetime',
+        'last_synced_at' => 'datetime',
     ];
 
     public function company(): BelongsTo

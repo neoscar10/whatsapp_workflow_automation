@@ -7,10 +7,14 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-3 rounded-lg border px-4 py-2 {{ $isConnected ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800/30 dark:bg-emerald-900/20' : 'border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20' }}">
-            <div class="h-2 w-2 rounded-full {{ $isConnected ? 'bg-emerald-500' : 'animate-pulse bg-red-500' }}"></div>
-            <span class="text-sm font-semibold {{ $isConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
-                {{ $isConnected ? 'Connected' : 'Not Connected' }}
+        <div class="flex items-center gap-3 rounded-lg border px-4 py-2 {{ $isConnected ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800/30 dark:bg-emerald-900/20' : ($connectionStatus === 'pending-sync' ? 'border-amber-200 bg-amber-50 dark:border-amber-800/30 dark:bg-amber-900/20' : 'border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20') }}">
+            <div class="h-2 w-2 rounded-full {{ $isConnected ? 'bg-emerald-500' : ($connectionStatus === 'pending-sync' ? 'animate-pulse bg-amber-500' : 'animate-pulse bg-red-500') }}"></div>
+            <span class="text-sm font-semibold {{ $isConnected ? 'text-emerald-600 dark:text-emerald-400' : ($connectionStatus === 'pending-sync' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                @if($connectionStatus === 'pending-sync')
+                    Syncing...
+                @else
+                    {{ $isConnected ? 'Connected' : 'Not Connected' }}
+                @endif
             </span>
         </div>
     </div>
@@ -18,6 +22,16 @@
     @if (session()->has('success'))
         <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if ($lastSyncError)
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-start gap-3">
+             <span class="material-symbols-outlined text-lg">error</span>
+             <div>
+                 <p class="font-bold">Last Sync Error</p>
+                 <p>{{ $lastSyncError }}</p>
+             </div>
         </div>
     @endif
 
@@ -168,10 +182,10 @@
                         </div>
                     </li>
                     <li class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-lg text-green-500">check_circle</span>
+                        <span class="material-symbols-outlined text-lg {{ $lastSyncedAt ? 'text-green-500' : 'text-slate-300' }}">sync</span>
                         <div class="flex-1">
-                            <p class="text-xs font-bold">Business Manager</p>
-                            <p class="text-[10px] text-slate-500">Operational</p>
+                            <p class="text-xs font-bold">Last Account Sync</p>
+                            <p class="text-[10px] text-slate-500">{{ $lastSyncedAt ? $lastSyncedAt->diffForHumans() : 'Never' }}</p>
                         </div>
                     </li>
                 </ul>
