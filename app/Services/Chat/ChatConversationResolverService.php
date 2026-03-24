@@ -80,10 +80,21 @@ class ChatConversationResolverService
             // Unread count tracking could go here
         ]);
 
+        Log::debug('Realtime: Inbound message saved', [
+            'conversation_id' => $conversation->id,
+            'message_id' => $msg->id,
+            'company_id' => $conversation->company_id,
+        ]);
+
         // Broadcast events
         broadcast(new ChatMessageReceived($msg));
         broadcast(new ChatConversationUpdated($conversation));
         
+        Log::debug('Realtime: Dispatching InboundMessageReceived event', [
+            'channel' => "company.{$conversation->company_id}.chats",
+            'event' => 'chat.inbound.received'
+        ]);
+
         broadcast(new InboundMessageReceived(
             companyId: $conversation->company_id,
             conversationId: $conversation->id,
@@ -92,5 +103,7 @@ class ChatConversationResolverService
             createdAt: $msg->created_at->toDateTimeString(),
             direction: 'inbound'
         ));
+
+        Log::debug('Realtime: Broadcast call finished');
     }
 }

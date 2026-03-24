@@ -9,9 +9,11 @@
                 })
                 .listen('.chat.inbound.received', (e) => {
                     console.log('Realtime INBOUND message received:', e);
+                    $wire.dispatch('refresh-chat-data', e);
                 })
                 .listen('.conversation.updated', (e) => {
                     console.log('Realtime CONVERSATION update received:', e);
+                    $wire.dispatch('refresh-chat-data', e);
                 });
         } else {
             console.error('Laravel Echo is NOT initialized on this page!');
