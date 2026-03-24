@@ -119,10 +119,41 @@ class WhatsAppWebhookEventService
         }
 
         if (!empty($value['statuses'])) {
-            // Placeholder for status updates (sent, delivered, read, failed)
-            Log::info("Processing WhatsApp message status updates", [
-                'count' => count($value['statuses'])
-            ]);
+            $this->processStatusUpdates($account, $value['statuses']);
+        }
+    }
+
+    protected function processStatusUpdates(WhatsAppAccount $account, array $statuses): void
+    {
+        foreach ($statuses as $statusData) {
+            $externalId = $statusData['id'] ?? null;
+            $status = $statusData['status'] ?? null;
+            $timestamp = $statusData['timestamp'] ?? null;
+
+            if (!$externalId || !$status) continue;
+
+            $message = \App\Models\Chat\ConversationMessage::where('external_message_id', $externalId)->first();
+            
+            if (!$message) {
+                // Could be a message sent from another platform or before our sync, ignore or log
+                continue;
+            }
+
+            $updateData = ['status' => $status];
+
+            if ($status === 'delivered') {
+                $updateData['delivered_at'] = $timestamp ? \Illuminate\Support\Carbon::createFromTimestamp($timestamp) : now();
+            } elseif ($status === 'read') {
+                $updateData['read_at'] = $timestamp ? \Illuminate\Support\Carbon::createFromTimestamp($timestamp) : now();
+            } elseif ($status === 'failed') {
+                $errors = $statusData['errors'] ?? [];
+                $updateData['meta_payload'] = array_merge($message->meta_payload ?? [], ['errors' => $errors]);
+            }
+
+            $message->update($updateData);
+
+            // Notify UI of update if needed
+            broadcast(new \App\Events\Chat\ChatMessageReceived($message));
         }
     }
 

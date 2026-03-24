@@ -9,12 +9,10 @@ use App\Events\Chat\ChatConversationUpdated;
 
 class ChatMessageService
 {
-    private ChatInboxService $inboxService;
-
-    public function __construct(ChatInboxService $inboxService)
-    {
-        $this->inboxService = $inboxService;
-    }
+    public function __construct(
+        protected ChatInboxService $inboxService,
+        protected \App\Services\WhatsApp\WhatsAppOutboundMessageService $outboundService
+    ) {}
 
     /**
      * Send a text message and persist local record.
@@ -43,9 +41,8 @@ class ChatMessageService
             'unread_count' => 0, // usually we clear unread if we reply
         ]);
 
-        // TODO: Here, dispatch the WhatsApp outbound sending logic
-
-        $msg->update(['status' => 'sent']); // Optimistic update for now
+        // Dispatch the WhatsApp outbound sending logic
+        $this->outboundService->sendConversationMessage($msg);
 
         // Broadcast events
         broadcast(new ChatMessageReceived($msg));

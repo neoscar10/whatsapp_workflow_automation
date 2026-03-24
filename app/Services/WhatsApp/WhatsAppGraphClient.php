@@ -95,6 +95,117 @@ class WhatsAppGraphClient
     }
 
     /**
+     * Send a text message via WhatsApp Cloud API.
+     */
+    public function sendTextMessage(string $phoneNumberId, string $accessToken, string $to, string $text): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(15)
+                ->post($url, [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $to,
+                    'type' => 'text',
+                    'text' => ['body' => $text]
+                ]);
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'Unknown Meta API error');
+                Log::error("WhatsApp API Error (sendTextMessage): {$error}", [
+                    'phone_id' => $phoneNumberId,
+                    'to' => $to,
+                    'status' => $response->status(),
+                    'response' => $response->json()
+                ]);
+
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'status' => $response->status()
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message_id' => $response->json('messages.0.id'),
+                'data' => $response->json()
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("WhatsApp API Exception (sendTextMessage): " . $e->getMessage(), [
+                'phone_id' => $phoneNumberId,
+                'to' => $to
+            ]);
+
+            return [
+                'success' => false,
+                'error' => "Network or connection error while sending message."
+            ];
+        }
+    }
+
+    /**
+     * Send a template message via WhatsApp Cloud API.
+     */
+    public function sendTemplate(string $phoneNumberId, string $accessToken, string $to, string $templateName, string $languageCode = 'en_US', array $components = []): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(15)
+                ->post($url, [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $to,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => $templateName,
+                        'language' => ['code' => $languageCode],
+                        'components' => $components
+                    ]
+                ]);
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'Unknown Meta API error');
+                Log::error("WhatsApp API Error (sendTemplate): {$error}", [
+                    'phone_id' => $phoneNumberId,
+                    'to' => $to,
+                    'template' => $templateName,
+                    'status' => $response->status(),
+                    'response' => $response->json()
+                ]);
+
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'status' => $response->status()
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message_id' => $response->json('messages.0.id'),
+                'data' => $response->json()
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("WhatsApp API Exception (sendTemplate): " . $e->getMessage(), [
+                'phone_id' => $phoneNumberId,
+                'to' => $to
+            ]);
+
+            return [
+                'success' => false,
+                'error' => "Network or connection error while sending template."
+            ];
+        }
+    }
+
+    /**
      * Debug an access token to verify permissions (Optional helper).
      */
     public function debugToken(string $inputToken, string $accessToken): array
