@@ -15,6 +15,11 @@ class WhatsAppWebhookController extends Controller
      */
     public function verify(Request $request, WhatsAppWebhookVerificationService $verificationService)
     {
+        \Illuminate\Support\Facades\Log::info('WhatsApp Webhook: RECEIVED HANDSHAKE (GET)', [
+            'query' => $request->query(),
+            'ip' => $request->ip(),
+        ]);
+
         if ($verificationService->isValidVerificationRequest($request)) {
             $challenge = $verificationService->resolveChallenge($request);
             return response((string) $challenge, 200)->header('Content-Type', 'text/plain');

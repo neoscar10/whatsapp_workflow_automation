@@ -41,9 +41,12 @@ Route::middleware('auth')->group(function () {
     })->name('panel.home');
 });
 
-Route::get('/debug-route', function () {
-    return 'ok';
+Route::get('/debug-log', function () {
+    \Illuminate\Support\Facades\Log::info('DIAGNOSTIC LOG: This confirms logs are working on this server.');
+    return 'Log entry created. Please check storage/logs/laravel.log';
 });
+
+Route::get('/debug-route', function () {
 
 // Public Webhooks
 Route::get('/webhooks/whatsapp/meta', [\App\Http\Controllers\Webhooks\WhatsAppWebhookController::class, 'verify'])->name('webhooks.whatsapp.meta.verify');
