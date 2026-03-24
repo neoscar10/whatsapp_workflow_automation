@@ -29,9 +29,15 @@ class WhatsAppWebhookController extends Controller
     public function receive(Request $request, WhatsAppWebhookEventService $eventService)
     {
         $payload = $request->all();
+        
+        \Illuminate\Support\Facades\Log::info('WhatsApp Webhook: Received POST payload', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'ip' => $request->ip(),
+            'payload' => $payload
+        ]);
 
         // Pass payload to event service for async or fast processing.
-        // We do not await heavy processing here to ensure Meta receives a 200 OK within timeout constraints.
         $eventService->handle($payload);
 
         return response()->json(['status' => 'ok'], 200);
