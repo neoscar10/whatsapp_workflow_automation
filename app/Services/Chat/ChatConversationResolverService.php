@@ -62,7 +62,7 @@ class ChatConversationResolverService
         }
 
         // 4. Create the message
-        $conversation->messages()->create([
+        $message = $conversation->messages()->create([
             'external_message_id' => $messageId,
             'direction' => 'inbound',
             'message_type' => $type === 'text' ? 'text' : 'other',
