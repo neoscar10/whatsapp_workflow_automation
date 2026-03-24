@@ -304,9 +304,16 @@ class ChatInboxPage extends Component
     #[On('realtime-message-received')]
     public function handleRealtimeMessage($payload)
     {
-        // If the message belongs to the active thread, we implicitly re-render.
-        // If it's for another thread, the sidebar will update on the next render pass.
-        // Just calling this method triggers a component refresh in Livewire v3.
+        // For backward compatibility if other parts of the app use this event
+    }
+
+    #[On('refresh-chat-data')]
+    public function refreshChatDataAfterRealtimeEvent($payload = null)
+    {
+        // Triggers a component refresh. Data is re-fetched in render().
+        if ($payload && isset($payload['conversation_id'])) {
+            // Optional: log or handle specific logic if needed
+        }
     }
 
     #[On('realtime-conversation-updated')]

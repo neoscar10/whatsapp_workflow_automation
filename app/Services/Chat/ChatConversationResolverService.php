@@ -7,6 +7,7 @@ use App\Models\Chat\ConversationMessage;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Events\Chat\ChatMessageReceived;
 use App\Events\Chat\ChatConversationUpdated;
+use App\Events\Chat\InboundMessageReceived;
 use Illuminate\Support\Facades\Log;
 
 class ChatConversationResolverService
@@ -62,7 +63,7 @@ class ChatConversationResolverService
         }
 
         // 4. Create the message
-        $conversation->messages()->create([
+        $msg = $conversation->messages()->create([
             'external_message_id' => $messageId,
             'direction' => 'inbound',
             'message_type' => $type === 'text' ? 'text' : 'other',
@@ -80,7 +81,16 @@ class ChatConversationResolverService
         ]);
 
         // Broadcast events
-        broadcast(new ChatMessageReceived($message));
+        broadcast(new ChatMessageReceived($msg));
         broadcast(new ChatConversationUpdated($conversation));
+        
+        broadcast(new InboundMessageReceived(
+            companyId: $conversation->company_id,
+            conversationId: $conversation->id,
+            messageId: $msg->id,
+            preview: $body,
+            createdAt: $msg->created_at->toDateTimeString(),
+            direction: 'inbound'
+        ));
     }
 }

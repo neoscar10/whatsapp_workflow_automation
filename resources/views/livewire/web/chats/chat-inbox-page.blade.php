@@ -1,4 +1,16 @@
-<div x-data="{ showLeftSidebar: true, showRightSidebar: true }" class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]">
+<div 
+    x-data="{ showLeftSidebar: true, showRightSidebar: true }" 
+    x-init="
+        if (window.Echo) {
+            window.Echo.private('company.{{ auth()->user()->company_id }}.chats')
+                .listen('.chat.inbound.received', (e) => {
+                    console.log('Realtime inbound message received', e);
+                    $wire.dispatch('refresh-chat-data', e);
+                });
+        }
+    "
+    class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
+>
     <div class="flex min-w-0 flex-1 flex-col">
         {{-- Chat Area --}}
         <main class="flex flex-1 overflow-hidden">
