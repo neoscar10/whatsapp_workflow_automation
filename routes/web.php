@@ -56,3 +56,4 @@ Route::get('/privacy-policy', function () {
     return view('pages.privacy');
 })->name('privacy-policy');
 
+});
