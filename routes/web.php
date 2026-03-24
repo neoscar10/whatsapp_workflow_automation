@@ -47,6 +47,8 @@ Route::get('/debug-log', function () {
 });
 
 Route::get('/debug-route', function () {
+    return 'ok';
+});
 
 // Public Webhooks
 Route::get('/webhooks/whatsapp/meta', [\App\Http\Controllers\Webhooks\WhatsAppWebhookController::class, 'verify'])->name('webhooks.whatsapp.meta.verify');
@@ -55,5 +57,3 @@ Route::post('/webhooks/whatsapp/meta', [\App\Http\Controllers\Webhooks\WhatsAppW
 Route::get('/privacy-policy', function () {
     return view('pages.privacy');
 })->name('privacy-policy');
-
-});
