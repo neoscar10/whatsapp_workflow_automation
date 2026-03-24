@@ -50,17 +50,13 @@ Route::get('/debug-db', function () {
         'accounts_count' => \App\Models\WhatsApp\WhatsAppAccount::count(),
         'latest_events' => \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function($e) {
-                return [
-                    'id' => $e->id,
-                    'event_type' => $e->event_type,
-                    'processing_status' => $e->processing_status,
-                    'payload' => json_decode($e->payload, true),
-                    'created_at' => $e->created_at,
-                ];
-            }),
+            ->limit(5)
+            ->get(),
+        'accounts_list' => \Illuminate\Support\Facades\DB::table('whatsapp_accounts')
+            ->get(['id', 'company_id', 'waba_id']),
+        'phone_numbers_list' => \Illuminate\Support\Facades\DB::table('whatsapp_phone_numbers')
+            ->get(['id', 'whatsapp_account_id', 'phone_number_id', 'phone_number']),
+        'user_company_id' => auth()->check() ? auth()->user()->company_id : 'guest',
     ];
 });
 
