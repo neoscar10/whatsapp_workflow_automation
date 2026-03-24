@@ -39,6 +39,7 @@ class WhatsAppWebhookController extends Controller
             'url' => $request->fullUrl(),
             'method' => $request->method(),
             'ip' => $request->ip(),
+            'headers' => $request->headers->all(),
             'payload' => $payload
         ]);
 

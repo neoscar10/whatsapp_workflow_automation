@@ -41,9 +41,14 @@ Route::middleware('auth')->group(function () {
     })->name('panel.home');
 });
 
-Route::get('/debug-log', function () {
-    \Illuminate\Support\Facades\Log::info('DIAGNOSTIC LOG: This confirms logs are working on this server.');
-    return 'Log entry created. Please check storage/logs/laravel.log';
+Route::get('/debug-db', function () {
+    return [
+        'webhook_events' => \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')->count(),
+        'conversations' => \Illuminate\Support\Facades\DB::table('conversations')->count(),
+        'messages' => \Illuminate\Support\Facades\DB::table('conversation_messages')->count(),
+        'phone_numbers' => \App\Models\WhatsApp\WhatsAppPhoneNumber::count(),
+        'accounts' => \App\Models\WhatsApp\WhatsAppAccount::count(),
+    ];
 });
 
 Route::get('/debug-route', function () {
