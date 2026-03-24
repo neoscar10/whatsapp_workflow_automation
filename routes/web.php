@@ -57,6 +57,41 @@ Route::get('/debug-db', function () {
         'phone_numbers_list' => \Illuminate\Support\Facades\DB::table('whatsapp_phone_numbers')
             ->get(['id', 'whatsapp_account_id', 'phone_number_id', 'phone_number']),
         'user_company_id' => auth()->check() ? auth()->user()->company_id : 'guest',
+        'identification_test' => (function() {
+            $event = \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')
+                ->where('processing_status', 'pending')
+                ->where('event_type', 'whatsapp_business_account')
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if (!$event) return 'No pending event found';
+            
+            $payload = json_decode($event->payload, true);
+            $entry = $payload['entry'][0] ?? [];
+            $wabaId = $entry['id'] ?? null;
+            $value = $entry['changes'][0]['value'] ?? [];
+            $pnId = $value['metadata']['phone_number_id'] ?? null;
+            
+            $service = app(\App\Services\WhatsApp\WhatsAppWebhookEventService::class);
+            
+            // We need a reflection or just copy the logic since it's protected
+            $query = \App\Models\WhatsApp\WhatsAppAccount::query();
+            if ($pnId) {
+                $query->whereHas('phoneNumbers', function ($q) use ($pnId) {
+                    $q->where('phone_number_id', $pnId);
+                });
+            } elseif ($wabaId) {
+                $query->where('waba_id', $wabaId);
+            }
+            $account = $query->first();
+            
+            return [
+                'extracted_waba_id' => $wabaId,
+                'extracted_pn_id' => $pnId,
+                'found_account_id' => $account->id ?? 'NOT FOUND',
+                'found_account_company' => $account->company_id ?? 'N/A',
+            ];
+        })(),
     ];
 });
 
