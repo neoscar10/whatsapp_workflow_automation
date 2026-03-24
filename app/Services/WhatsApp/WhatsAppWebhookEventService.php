@@ -41,9 +41,10 @@ class WhatsAppWebhookEventService
                     $account = $this->identifyAccountFromPayload($wabaId, $value);
                     
                     if (!$account) {
-                        Log::warning('WhatsApp Webhook: Could not match incoming payload to a local account.', [
-                            'waba_id' => $wabaId,
-                            'phone_number_id' => $value['metadata']['phone_number_id'] ?? null,
+                        Log::error('WhatsApp Webhook: Account identification failed.', [
+                            'provided_waba_id' => $wabaId,
+                            'provided_phone_number_id' => $phoneNumberId = $value['metadata']['phone_number_id'] ?? null,
+                            'payload_metadata' => $value['metadata'] ?? []
                         ]);
                         continue;
                     }
@@ -89,11 +90,17 @@ class WhatsAppWebhookEventService
     protected function processMessagesEvent(WhatsAppAccount $account, array $value): void
     {
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
-        if (!$phoneNumberId) return;
+        if (!$phoneNumberId) {
+            Log::error("WhatsApp Webhook: Missing phone_number_id in metadata", ['value' => $value]);
+            return;
+        }
 
         $localNumber = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)->first();
         if (!$localNumber) {
-            Log::warning("WhatsApp Webhook: Inbound message for phone_number_id {$phoneNumberId} not found in local DB.");
+            Log::error("WhatsApp Webhook: Local number not found", [
+                'phone_number_id' => $phoneNumberId,
+                'account_id' => $account->id
+            ]);
             return;
         }
 
@@ -136,7 +143,7 @@ class WhatsAppWebhookEventService
 
     protected function logUnhandledEvent(WhatsAppAccount $account, ?string $field, array $value): void
     {
-        Log::debug("WhatsApp Webhook: unhandled field [{$field}]", ['account_id' => $account->id]);
+        Log::info("WhatsApp Webhook: Ignoring unhandled field [{$field}]", ['account_id' => $account->id]);
     }
 
     /**
