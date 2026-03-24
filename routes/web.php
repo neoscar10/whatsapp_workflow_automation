@@ -43,11 +43,24 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/debug-db', function () {
     return [
-        'webhook_events' => \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')->count(),
-        'conversations' => \Illuminate\Support\Facades\DB::table('conversations')->count(),
-        'messages' => \Illuminate\Support\Facades\DB::table('conversation_messages')->count(),
-        'phone_numbers' => \App\Models\WhatsApp\WhatsAppPhoneNumber::count(),
-        'accounts' => \App\Models\WhatsApp\WhatsAppAccount::count(),
+        'webhook_events_count' => \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')->count(),
+        'conversations_count' => \Illuminate\Support\Facades\DB::table('conversations')->count(),
+        'messages_count' => \Illuminate\Support\Facades\DB::table('conversation_messages')->count(),
+        'phone_numbers_count' => \App\Models\WhatsApp\WhatsAppPhoneNumber::count(),
+        'accounts_count' => \App\Models\WhatsApp\WhatsAppAccount::count(),
+        'latest_events' => \Illuminate\Support\Facades\DB::table('whatsapp_webhook_events')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($e) {
+                return [
+                    'id' => $e->id,
+                    'event_type' => $e->event_type,
+                    'processing_status' => $e->processing_status,
+                    'payload' => json_decode($e->payload, true),
+                    'created_at' => $e->created_at,
+                ];
+            }),
     ];
 });
 
