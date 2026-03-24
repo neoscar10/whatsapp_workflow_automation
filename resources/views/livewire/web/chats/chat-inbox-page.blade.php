@@ -1,5 +1,15 @@
 <div 
-    x-data="{ showLeftSidebar: true, showRightSidebar: true }" 
+    x-data="{ 
+        showLeftSidebar: true, 
+        showRightSidebar: true,
+        showScrollButton: false,
+        scrollToBottom() {
+            const container = this.$refs.messageContainer;
+            if (container) {
+                container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+            }
+        }
+    }" 
     x-init="
         console.log('ChatInbox initialized. Listening for company {{ auth()->user()->company_id }} chats...');
         if (window.Echo) {
@@ -29,11 +39,11 @@
                 x-show="showLeftSidebar" 
                 x-transition:enter="transition-all ease-out duration-300 origin-left"
                 x-transition:enter-start="opacity-0 -translate-x-4 w-0"
-                x-transition:enter-end="opacity-100 translate-x-0 w-80 md:w-96"
+                x-transition:enter-end="opacity-100 translate-x-0 w-64 md:w-80"
                 x-transition:leave="transition-all ease-in duration-200 origin-left"
-                x-transition:leave-start="opacity-100 translate-x-0 w-80 md:w-96"
+                x-transition:leave-start="opacity-100 translate-x-0 w-64 md:w-80"
                 x-transition:leave-end="opacity-0 -translate-x-4 w-0"
-                class="flex w-80 flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-96 override-transition"
+                class="flex w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 override-transition"
             >
                 <div class="border-b border-slate-200 p-4 dark:border-slate-800">
                     <div class="mb-4 flex gap-2">
@@ -172,7 +182,20 @@
                         </div>
                     </header>
 
-                    <div class="custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40">
+                    <div 
+                        x-ref="messageContainer"
+                        @scroll="showScrollButton = $el.scrollTop < ($el.scrollHeight - $el.clientHeight - 150)"
+                        x-init="
+                            $nextTick(() => { $el.scrollTop = $el.scrollHeight });
+                            const observer = new MutationObserver(() => {
+                                if (!showScrollButton) {
+                                    $el.scrollTo({ top: $el.scrollHeight, behavior: 'smooth' });
+                                }
+                            });
+                            observer.observe($el, { childList: true, subtree: true });
+                        "
+                        class="custom-scrollbar relative flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40"
+                    >
                         @foreach($messages as $message)
                             @if($message['message_type'] === 'card')
                                 <div class="my-2 flex justify-center">
@@ -229,6 +252,25 @@
                                 </div>
                             @endif
                         @endforeach
+
+                        {{-- Scroll to bottom button --}}
+                        <div 
+                            x-show="showScrollButton"
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-y-4"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-4"
+                            class="sticky bottom-4 right-4 z-20 flex justify-end pr-4"
+                        >
+                            <button 
+                                @click="scrollToBottom()"
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-lg ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 dark:bg-slate-800 dark:text-primary dark:ring-slate-700"
+                            >
+                                <span class="material-symbols-outlined">keyboard_double_arrow_down</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="border-t border-slate-100 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -284,11 +326,11 @@
                     x-show="showRightSidebar"
                     x-transition:enter="transition-all ease-out duration-300 origin-right"
                     x-transition:enter-start="opacity-0 translate-x-4 w-0"
-                    x-transition:enter-end="opacity-100 translate-x-0 w-80 md:w-96"
+                    x-transition:enter-end="opacity-100 translate-x-0 w-64 md:w-80"
                     x-transition:leave="transition-all ease-in duration-200 origin-right"
-                    x-transition:leave-start="opacity-100 translate-x-0 w-80 md:w-96"
+                    x-transition:leave-start="opacity-100 translate-x-0 w-64 md:w-80"
                     x-transition:leave-end="opacity-0 translate-x-4 w-0"
-                    class="custom-scrollbar w-80 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-96 flex flex-col override-transition"
+                    class="custom-scrollbar w-64 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 flex flex-col override-transition"
                 >
                     <div class="border-b border-slate-200 p-10 text-center dark:border-slate-800">
                         <div class="mb-6 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-xl dark:border-slate-800 mx-auto h-28 w-28">
