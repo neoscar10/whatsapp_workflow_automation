@@ -5,6 +5,8 @@ namespace App\Services\Chat;
 use App\Models\User;
 use App\Models\WhatsApp\WhatsAppTemplate;
 use App\Models\Chat\Conversation;
+use App\Events\Chat\ChatMessageReceived;
+use App\Events\Chat\ChatConversationUpdated;
 use Exception;
 
 class ChatTemplateSendService
@@ -62,6 +64,10 @@ class ChatTemplateSendService
             'last_message_preview' => 'Template: ' . ($template->display_title ?? $template->remote_template_name),
             'last_message_at' => now(),
         ]);
+
+        // Broadcast events
+        broadcast(new ChatMessageReceived($message));
+        broadcast(new ChatConversationUpdated($conversation));
 
         return [
             'success' => true,

@@ -4,6 +4,8 @@ namespace App\Services\Chat;
 
 use App\Models\Chat\ConversationMessage;
 use App\Models\User;
+use App\Events\Chat\ChatMessageReceived;
+use App\Events\Chat\ChatConversationUpdated;
 
 class ChatMessageService
 {
@@ -44,6 +46,10 @@ class ChatMessageService
         // TODO: Here, dispatch the WhatsApp outbound sending logic
 
         $msg->update(['status' => 'sent']); // Optimistic update for now
+
+        // Broadcast events
+        broadcast(new ChatMessageReceived($msg));
+        broadcast(new ChatConversationUpdated($conversation));
 
         return $msg;
     }

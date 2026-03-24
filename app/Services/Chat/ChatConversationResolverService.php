@@ -5,6 +5,8 @@ namespace App\Services\Chat;
 use App\Models\Chat\Conversation;
 use App\Models\Chat\ConversationMessage;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
+use App\Events\Chat\ChatMessageReceived;
+use App\Events\Chat\ChatConversationUpdated;
 use Illuminate\Support\Facades\Log;
 
 class ChatConversationResolverService
@@ -76,5 +78,9 @@ class ChatConversationResolverService
             'last_message_at' => now(),
             // Unread count tracking could go here
         ]);
+
+        // Broadcast events
+        broadcast(new ChatMessageReceived($message));
+        broadcast(new ChatConversationUpdated($conversation));
     }
 }

@@ -6,6 +6,7 @@ use App\Services\Chat\ChatConversationActionService;
 use App\Services\Chat\ChatInboxService;
 use App\Services\Chat\ChatMessageService;
 use Exception;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ChatInboxPage extends Component
@@ -47,6 +48,14 @@ class ChatInboxPage extends Component
     {
         // Don't auto-select the first conversation anymore to support empty states.
         $this->selectedConversationId = $this->selectedConversationId ?? null;
+
+        if ($this->selectedConversationId) {
+            $this->syncNoteText();
+            $this->dispatch('conversation-selected', [
+                'conversation_id' => $this->selectedConversationId,
+                'company_id' => auth()->user()->company_id,
+            ]);
+        }
     }
 
     public function updatedSearch()
@@ -63,6 +72,12 @@ class ChatInboxPage extends Component
     {
         $this->selectedConversationId = $id;
         $this->resetMessages();
+        $this->syncNoteText();
+
+        $this->dispatch('conversation-selected', [
+            'conversation_id' => $id,
+            'company_id' => auth()->user()->company_id,
+        ]);
     }
 
     public function sendMessage(ChatMessageService $messageService)
@@ -109,7 +124,7 @@ class ChatInboxPage extends Component
         try {
             $result = $actionService->savePrivateNote(auth()->user(), $this->selectedConversationId, $text);
             if ($result) {
-                $this->noteText = '';
+                // Keep the text in the textarea instead of clearing it as per user request
                 $this->successMessage = 'Note saved successfully.';
             } else {
                 $this->errorMessage = 'Failed to save note.';
@@ -284,6 +299,32 @@ class ChatInboxPage extends Component
         $this->selectedTemplatePreview = null;
         $this->availableTemplates = [];
         $this->templateModalError = null;
+    }
+
+    #[On('realtime-message-received')]
+    public function handleRealtimeMessage($payload)
+    {
+        // If the message belongs to the active thread, we implicitly re-render.
+        // If it's for another thread, the sidebar will update on the next render pass.
+        // Just calling this method triggers a component refresh in Livewire v3.
+    }
+
+    #[On('realtime-conversation-updated')]
+    public function handleRealtimeConversationUpdate($payload)
+    {
+        // Triggers a component refresh to update the sidebar.
+    }
+
+    private function syncNoteText()
+    {
+        if (!$this->selectedConversationId) {
+            $this->noteText = '';
+            return;
+        }
+
+        $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+        $latestNote = $conversation?->notes()->latest()->first();
+        $this->noteText = $latestNote?->note ?? '';
     }
 
     private function resetMessages()

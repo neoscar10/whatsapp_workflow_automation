@@ -41,12 +41,7 @@ class WhatsAppWebhookEventService
                     $account = $this->identifyAccountFromPayload($wabaId, $value);
                     
                     if (!$account) {
-                        Log::error('WhatsApp Webhook: Account identification failed.', [
-                            'provided_waba_id' => $wabaId,
-                            'provided_phone_number_id' => $phoneNumberId = $value['metadata']['phone_number_id'] ?? null,
-                            'payload_metadata' => $value['metadata'] ?? []
-                        ]);
-                        continue;
+                        return;
                     }
 
                     // Dispatch specific processing based on field
@@ -118,11 +113,6 @@ class WhatsAppWebhookEventService
                         break;
                     }
                 }
-
-                Log::info("Processing inbound WhatsApp message", [
-                    'message_id' => $message['id'],
-                    'from' => $from
-                ]);
 
                 $this->resolverService->resolveAndProcessInboundMessage($localNumber, $message, $contact ?? []);
             }

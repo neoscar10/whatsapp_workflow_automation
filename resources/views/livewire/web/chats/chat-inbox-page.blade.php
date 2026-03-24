@@ -150,7 +150,7 @@
                         </div>
                     </header>
 
-                    <div class="custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-50/50 p-8 dark:bg-slate-950/20">
+                    <div class="custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40">
                         @foreach($messages as $message)
                             @if($message['message_type'] === 'card')
                                 <div class="my-2 flex justify-center">
@@ -266,7 +266,7 @@
                     x-transition:leave="transition-all ease-in duration-200 origin-right"
                     x-transition:leave-start="opacity-100 translate-x-0 w-80 md:w-96"
                     x-transition:leave-end="opacity-0 translate-x-4 w-0"
-                    class="custom-scrollbar w-80 shrink-0 overflow-y-auto border-l border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:w-96 flex flex-col override-transition"
+                    class="custom-scrollbar w-80 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-96 flex flex-col override-transition"
                 >
                     <div class="border-b border-slate-200 p-10 text-center dark:border-slate-800">
                         <div class="mb-6 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-xl dark:border-slate-800 mx-auto h-28 w-28">
@@ -279,7 +279,7 @@
                         <p class="mb-3 text-sm text-slate-500">{{ $activeConversation['phone'] }}</p>
 
                         @if(!empty($activeConversation['location']))
-                            <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                            <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                                 <span class="material-symbols-outlined text-[14px]">location_on</span>
                                 {{ $activeConversation['location'] }}
                             </div>
@@ -294,10 +294,10 @@
                                     <button
                                         type="button"
                                         wire:click="openAssignAgentModal"
-                                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm transition-all hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+                                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:bg-slate-800"
                                     >
                                         <div class="flex items-center gap-3">
-                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary dark:bg-slate-700">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary dark:bg-slate-700">
                                                 {{ \Illuminate\Support\Str::substr($sidebarData['assignment']['name'], 0, 1) }}
                                             </div>
                                             <div class="text-left">
@@ -329,29 +329,34 @@
                                         </div>
                                     @endforeach
 
-                                    <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-400 transition-all hover:border-primary hover:text-primary dark:border-slate-600">
-                                        <span class="material-symbols-outlined text-[18px]">add</span>
-                                    </button>
+                                    @if(!empty($sidebarData['labels']) && count($sidebarData['labels']) > 0)
+                                        <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-400 transition-all hover:border-primary hover:text-primary dark:border-slate-600">
+                                            <span class="material-symbols-outlined text-[18px]">add</span>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
 
                         <div>
                             <h4 class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Team Notes</h4>
-                            <div class="relative">
+                            <div class="flex flex-col gap-3">
                                 <textarea
                                     wire:model.defer="noteText"
                                     placeholder="Add a private note for the team..."
-                                    class="h-36 w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-xs focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800"
+                                    class="h-32 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs focus:border-primary focus:ring-primary dark:border-slate-800 dark:bg-slate-800/50"
                                 ></textarea>
 
-                                <button
-                                    type="button"
-                                    wire:click="saveNote"
-                                    class="absolute bottom-3 right-3 rounded-lg bg-primary p-1.5 text-white shadow-sm transition-colors hover:bg-primary/90"
-                                >
-                                    <span class="material-symbols-outlined text-[16px]">save</span>
-                                </button>
+                                <div class="flex justify-end">
+                                    <button
+                                        type="button"
+                                        wire:click="saveNote"
+                                        class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-primary/90 active:scale-95"
+                                    >
+                                        <span class="material-symbols-outlined text-[18px]">save</span>
+                                        Save Note
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -359,7 +364,7 @@
                             <button
                                 type="button"
                                 wire:click="closeChat"
-                                class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-200 px-4 py-3.5 text-sm font-bold text-slate-600 transition-all hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                                class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-600 transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50"
                             >
                                 <span class="material-symbols-outlined">check_circle</span>
                                 Close Chat
