@@ -14,6 +14,7 @@ class ChatInboxPage extends Component
     public string $search = '';
     public string $tab = 'all';
     public ?int $selectedConversationId = null;
+    public int $companyId;
     
     public string $messageText = '';
     public string $noteText = '';
@@ -56,6 +57,8 @@ class ChatInboxPage extends Component
                 'company_id' => auth()->user()->company_id,
             ]);
         }
+
+        $this->companyId = auth()->user()->company_id;
     }
 
     public function updatedSearch()
@@ -307,13 +310,12 @@ class ChatInboxPage extends Component
         // For backward compatibility if other parts of the app use this event
     }
 
+    #[On('echo-private:company.{companyId}.chats,.chat.inbound.received')]
+    #[On('echo-private:company.{companyId}.chats,.conversation.updated')]
     #[On('refresh-chat-data')]
     public function refreshChatDataAfterRealtimeEvent($payload = null)
     {
         // Triggers a component refresh. Data is re-fetched in render().
-        if ($payload && isset($payload['conversation_id'])) {
-            // Optional: log or handle specific logic if needed
-        }
     }
 
     #[On('realtime-conversation-updated')]

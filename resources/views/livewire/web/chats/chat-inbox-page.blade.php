@@ -1,12 +1,20 @@
 <div 
     x-data="{ showLeftSidebar: true, showRightSidebar: true }" 
     x-init="
+        console.log('ChatInbox initialized. Listening for company {{ auth()->user()->company_id }} chats...');
         if (window.Echo) {
             window.Echo.private('company.{{ auth()->user()->company_id }}.chats')
+                .subscribed(() => {
+                    console.log('Successfully subscribed to company chats channel');
+                })
                 .listen('.chat.inbound.received', (e) => {
-                    console.log('Realtime inbound message received', e);
-                    $wire.dispatch('refresh-chat-data', e);
+                    console.log('Realtime INBOUND message received:', e);
+                })
+                .listen('.conversation.updated', (e) => {
+                    console.log('Realtime CONVERSATION update received:', e);
                 });
+        } else {
+            console.error('Laravel Echo is NOT initialized on this page!');
         }
     "
     class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
