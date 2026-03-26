@@ -85,11 +85,12 @@ class WhatsAppOutboundMessageService
         }
 
         if ($message->message_type === 'template') {
-            // Template logic requires standard components structure or a builder
-            // For now, assume body contains template name for basic check, 
-            // but real template sends should use a specialized method.
-            $templateName = $message->body; 
-            return $this->graphClient->sendTemplate($phoneNumberId, $accessToken, $to, $templateName);
+            $payload = $message->meta_payload ?? [];
+            $templateName = $payload['template_name'] ?? $message->body;
+            $languageCode = $payload['language_code'] ?? 'en_US';
+            $components = $payload['components'] ?? [];
+
+            return $this->graphClient->sendTemplate($phoneNumberId, $accessToken, $to, $templateName, $languageCode, $components);
         }
 
         return [

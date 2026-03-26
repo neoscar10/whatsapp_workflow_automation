@@ -13,11 +13,16 @@ class ChatTemplateSendService
 {
     private ChatInboxService $inboxService;
     private ChatMessageService $messageService;
+    private \App\Services\WhatsApp\WhatsAppOutboundMessageService $outboundService;
 
-    public function __construct(ChatInboxService $inboxService, ChatMessageService $messageService)
-    {
+    public function __construct(
+        ChatInboxService $inboxService, 
+        ChatMessageService $messageService,
+        \App\Services\WhatsApp\WhatsAppOutboundMessageService $outboundService
+    ) {
         $this->inboxService = $inboxService;
         $this->messageService = $messageService;
+        $this->outboundService = $outboundService;
     }
 
     /**
@@ -40,21 +45,19 @@ class ChatTemplateSendService
              // throw new Exception('Only approved templates can be sent.');
         }
 
-        // In a real app, we would call Meta API here.
-        // For this phase, we persist the outbound record and update the thread.
-        
         $messageBody = $this->resolveTemplatePreview($template);
 
         $message = $conversation->messages()->create([
             'direction' => 'outbound',
             'message_type' => 'template',
             'body' => $messageBody,
-            'status' => 'sent',
+            'status' => 'pending',
             'sent_by_user_id' => $actor->id,
             'sent_at' => now(),
             'meta_payload' => [
                 'template_id' => $template->id,
                 'template_name' => $template->remote_template_name,
+                'language_code' => $template->language_code,
                 'variables' => $payload['variables'] ?? [],
             ]
         ]);
@@ -64,6 +67,9 @@ class ChatTemplateSendService
             'last_message_preview' => 'Template: ' . ($template->display_title ?? $template->remote_template_name),
             'last_message_at' => now(),
         ]);
+
+        // Dispatch the WhatsApp outbound sending logic
+        $this->outboundService->sendConversationMessage($message);
 
         // Broadcast events
         broadcast(new ChatMessageReceived($message));

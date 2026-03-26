@@ -167,17 +167,8 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <button class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <span class="material-symbols-outlined">call</span>
-                            </button>
-                            <button class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <span class="material-symbols-outlined">videocam</span>
-                            </button>
-                            <button @click="showRightSidebar = !showRightSidebar" class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <span class="material-symbols-outlined">info</span>
-                            </button>
-                            <button class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                                <span class="material-symbols-outlined">more_vert</span>
+                            <button @click="showRightSidebar = !showRightSidebar" class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Toggle Sidebar">
+                                <span class="material-symbols-outlined">view_sidebar</span>
                             </button>
                         </div>
                     </header>
