@@ -1,0 +1,17 @@
+﻿C:\Users\USER\Desktop\projects\corporate-procurement\artisan
+C:\Users\USER\Desktop\projects\Corporate-Procurement-Backend\artisan
+C:\Users\USER\Desktop\projects\empowerEdTech\artisan
+C:\Users\USER\Desktop\projects\exams_system\artisan
+C:\Users\USER\Desktop\projects\Executive Cricket Club\artisan
+C:\Users\USER\Desktop\projects\filament_project\artisan
+C:\Users\USER\Desktop\projects\gadget_store\artisan
+C:\Users\USER\Desktop\projects\gadjo\artisan
+C:\Users\USER\Desktop\projects\ggani_worldwide\artisan
+C:\Users\USER\Desktop\projects\giftos\artisan
+C:\Users\USER\Desktop\projects\graymart\artisan
+C:\Users\USER\Desktop\projects\gray_mart\artisan
+C:\Users\USER\Desktop\projects\HMS\artisan
+C:\Users\USER\Desktop\projects\laravel_permission_and_roles\artisan
+C:\Users\USER\Desktop\projects\neopital\artisan
+C:\Users\USER\Desktop\projects\subeb-project\subeb-project\artisan
+C:\Users\USER\Desktop\projects\WhatsApp workflow automation\artisan
