@@ -181,26 +181,26 @@
                                                         <button 
                                                             type="button"
                                                             wire:click="$set('templateVariables.{{ $name }}.type', 'system')"
-                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? 'system') === 'system' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$name]['type'] ?? 'system') === 'system' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
                                                         >
                                                             <span>System Variable</span>
-                                                            @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
+                                                            @if(($templateVariables[$name]['type'] ?? 'system') === 'system')
                                                                 <span class="material-symbols-outlined text-sm">check_circle</span>
                                                             @endif
                                                         </button>
                                                         <button 
                                                             type="button"
                                                             wire:click="$set('templateVariables.{{ $name }}.type', 'manual')"
-                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? '') === 'manual' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$name]['type'] ?? '') === 'manual' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
                                                         >
                                                             <span>Manual Input</span>
-                                                            @if(($templateVariables[$variable]['type'] ?? '') === 'manual')
+                                                            @if(($templateVariables[$name]['type'] ?? '') === 'manual')
                                                                 <span class="material-symbols-outlined text-sm">check_circle</span>
                                                             @endif
                                                         </button>
                                                     </div>
 
-                                                    @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
+                                                    @if(($templateVariables[$name]['type'] ?? 'system') === 'system')
                                                         <div class="relative group">
                                                             <select 
                                                                 wire:model.live="templateVariables.{{ $name }}.value"
@@ -215,7 +215,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            $currentKey = $templateVariables[$variable]['value'] ?? '';
+                                                            $currentKey = $templateVariables[$name]['value'] ?? '';
                                                             $currentOption = collect($systemVariableOptions)->firstWhere('key', $currentKey);
                                                         @endphp
                                                         @if($currentOption)
