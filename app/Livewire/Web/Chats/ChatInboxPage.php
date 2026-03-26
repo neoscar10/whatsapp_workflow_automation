@@ -312,6 +312,7 @@ class ChatInboxPage extends Component
 
     #[On('echo-private:company.{companyId}.chats,.chat.inbound.received')]
     #[On('echo-private:company.{companyId}.chats,.conversation.updated')]
+    #[On('echo-private:company.{companyId}.conversation.{selectedConversationId},message.received')]
     #[On('refresh-chat-data')]
     public function refreshChatDataAfterRealtimeEvent($payload = null)
     {

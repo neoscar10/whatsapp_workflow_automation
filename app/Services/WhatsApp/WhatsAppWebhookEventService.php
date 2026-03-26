@@ -127,33 +127,57 @@ class WhatsAppWebhookEventService
     {
         foreach ($statuses as $statusData) {
             $externalId = $statusData['id'] ?? null;
-            $status = $statusData['status'] ?? null;
+            $newStatus = $statusData['status'] ?? null;
             $timestamp = $statusData['timestamp'] ?? null;
 
-            if (!$externalId || !$status) continue;
+            if (!$externalId || !$newStatus) continue;
 
             $message = \App\Models\Chat\ConversationMessage::where('external_message_id', $externalId)->first();
             
-            if (!$message) {
-                // Could be a message sent from another platform or before our sync, ignore or log
+            if (!$message) continue;
+
+            // Status Progression: pending -> sent -> delivered -> read
+            $statusOrder = ['pending' => 0, 'sent' => 1, 'delivered' => 2, 'read' => 3];
+            $currentStatusRank = $statusOrder[$message->status] ?? 0;
+            $newStatusRank = $statusOrder[$newStatus] ?? ($newStatus === 'failed' ? 99 : 0);
+
+            // Don't regress from read back to delivered, but allow 'failed' anytime
+            if ($newStatusRank <= $currentStatusRank && $newStatus !== 'failed') {
                 continue;
             }
 
-            $updateData = ['status' => $status];
+            $updateData = ['status' => $newStatus];
+            $dt = $timestamp ? \Illuminate\Support\Carbon::createFromTimestamp($timestamp) : now();
 
-            if ($status === 'delivered') {
-                $updateData['delivered_at'] = $timestamp ? \Illuminate\Support\Carbon::createFromTimestamp($timestamp) : now();
-            } elseif ($status === 'read') {
-                $updateData['read_at'] = $timestamp ? \Illuminate\Support\Carbon::createFromTimestamp($timestamp) : now();
-            } elseif ($status === 'failed') {
+            if ($newStatus === 'sent') {
+                $updateData['sent_at'] = $message->sent_at ?? $dt;
+            } elseif ($newStatus === 'delivered') {
+                $updateData['delivered_at'] = $message->delivered_at ?? $dt;
+                $updateData['sent_at'] = $message->sent_at ?? $dt; // Ensure sent_at exists
+            } elseif ($newStatus === 'read') {
+                $updateData['read_at'] = $message->read_at ?? $dt;
+                $updateData['delivered_at'] = $message->delivered_at ?? $dt;
+                $updateData['sent_at'] = $message->sent_at ?? $dt;
+            } elseif ($newStatus === 'failed') {
                 $errors = $statusData['errors'] ?? [];
+                $firstError = $errors[0] ?? [];
+                $updateData['failed_at'] = $dt;
+                $updateData['failure_code'] = $firstError['code'] ?? 'unknown';
+                $updateData['failure_message'] = $firstError['message'] ?? 'Unknown WhatsApp error';
                 $updateData['meta_payload'] = array_merge($message->meta_payload ?? [], ['errors' => $errors]);
             }
 
             $message->update($updateData);
 
-            // Notify UI of update if needed
+            // Update conversation last message timestamp if this is the newest
+            $conversation = $message->conversation;
+            if ($conversation && ($conversation->last_message_at ?? now()->subYear())->lte($message->created_at)) {
+                $conversation->update(['last_message_at' => $message->created_at]);
+            }
+
+            // Broadcast events to update UI
             broadcast(new \App\Events\Chat\ChatMessageReceived($message));
+            broadcast(new \App\Events\Chat\ChatConversationUpdated($conversation));
         }
     }
 

@@ -237,7 +237,12 @@
                                     <div class="mt-1 {{ $message['direction'] === 'outbound' ? 'mr-1 flex items-center gap-1' : 'ml-1' }}">
                                         <span class="text-[10px] text-slate-400">{{ $message['time_label'] }}</span>
                                         @if($message['direction'] === 'outbound' && !empty($message['status_icon']))
-                                            <span class="material-symbols-outlined text-[14px] text-primary">{{ $message['status_icon'] }}</span>
+                                            <span 
+                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] ?? 'text-slate-400' }}"
+                                                @if(!empty($message['failure_message'])) title="{{ $message['failure_message'] }}" @endif
+                                            >
+                                                {{ $message['status_icon'] }}
+                                            </span>
                                         @endif
                                     </div>
                                 </div>

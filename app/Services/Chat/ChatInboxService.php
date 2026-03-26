@@ -123,7 +123,10 @@ class ChatInboxService
                 'message_type' => $m->message_type,
                 'body' => $m->body,
                 'media_url' => $m->media_url,
+                'status' => $m->status,
                 'status_icon' => $this->getStatusIcon($m->status),
+                'status_color' => $this->getStatusColor($m->status),
+                'failure_message' => $m->failure_message,
                 'time_label' => $m->sent_at ? $m->sent_at->format('H:i') : $m->created_at->format('H:i'),
                 'card_title' => $m->media_meta['title'] ?? null,
                 'card_heading' => $m->media_meta['heading'] ?? null,
@@ -160,10 +163,23 @@ class ChatInboxService
     {
         return match($status) {
             'read' => 'done_all',
-            'delivered' => 'done',
+            'delivered' => 'done_all',
             'sent' => 'check',
             'failed' => 'error',
+            'pending' => 'schedule',
             default => 'schedule',
+        };
+    }
+
+    private function getStatusColor(?string $status): string
+    {
+        return match($status) {
+            'read' => 'text-blue-500',
+            'delivered' => 'text-slate-400',
+            'sent' => 'text-slate-400',
+            'failed' => 'text-red-500',
+            'pending' => 'text-slate-400',
+            default => 'text-slate-400',
         };
     }
 }
