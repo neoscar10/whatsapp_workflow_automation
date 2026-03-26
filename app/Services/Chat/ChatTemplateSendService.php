@@ -40,12 +40,9 @@ class ChatTemplateSendService
             throw new Exception('Template not found or access denied.');
         }
 
-        if ($template->status !== 'approved') {
-             // For production we usually only send approved, but let's allow it for now if requested
-             // throw new Exception('Only approved templates can be sent.');
-        }
-
-        $messageBody = $this->resolveTemplatePreview($template);
+        // Resolve body with actual values for local persistence/preview
+        $components = $payload['components'] ?? [];
+        $messageBody = $this->resolveTemplateBody($template, $components);
 
         $message = $conversation->messages()->create([
             'direction' => 'outbound',
@@ -58,7 +55,7 @@ class ChatTemplateSendService
                 'template_id' => $template->id,
                 'template_name' => $template->remote_template_name,
                 'language_code' => $template->language_code,
-                'variables' => $payload['variables'] ?? [],
+                'components' => $components, // WhatsApp Cloud API payload structure
             ]
         ]);
 
@@ -82,14 +79,21 @@ class ChatTemplateSendService
     }
 
     /**
-     * Minimal template variable resolution for preview/sending.
+     * Resolve template variable placeholders in body for local storage.
      */
-    protected function resolveTemplatePreview(WhatsAppTemplate $template): string
+    protected function resolveTemplateBody(WhatsAppTemplate $template, array $components): string
     {
         $body = $template->body_text;
         
-        // Simple placeholder resolution for preview if no variables provided
-        // Future phases will add real variable substitution
+        foreach ($components as $component) {
+            if ($component['type'] === 'body' && isset($component['parameters'])) {
+                foreach ($component['parameters'] as $index => $param) {
+                    $placeholder = '{{' . ($index + 1) . '}}';
+                    $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
+                }
+            }
+        }
+        
         return $body;
     }
 }

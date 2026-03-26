@@ -38,6 +38,8 @@ class ChatInboxPage extends Component
     public ?array $selectedTemplatePreview = null;
     public ?string $templateModalError = null;
     public ?string $templateModalMessage = null;
+    public array $templateVariables = [];
+    public array $systemVariableOptions = [];
 
     public array $channelAvailability = [];
 
@@ -233,6 +235,8 @@ class ChatInboxPage extends Component
         
         $this->loadTemplates($directoryService);
         
+        $this->systemVariableOptions = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class)->getAvailableSystemVariables();
+        
         // Auto-select first if available
         if (!empty($this->availableTemplates)) {
             $this->selectTemplate($this->availableTemplates[0]['id'], $directoryService);
@@ -267,6 +271,44 @@ class ChatInboxPage extends Component
     {
         $this->selectedTemplateId = $templateId;
         $this->selectedTemplatePreview = $directoryService->getTemplatePreview(auth()->user(), $templateId);
+        
+        // Initialize variables mapping
+        $this->templateVariables = [];
+        if (!empty($this->selectedTemplatePreview['variables'])) {
+            foreach ($this->selectedTemplatePreview['variables'] as $variable) {
+                $this->templateVariables[$variable] = [
+                    'type' => 'system',
+                    'value' => 'contact_name', // Default to contact name if possible
+                ];
+            }
+        }
+
+        $this->refreshTemplatePreview();
+    }
+
+    public function updatedTemplateVariables()
+    {
+        $this->refreshTemplatePreview();
+    }
+
+    protected function refreshTemplatePreview()
+    {
+        if (!$this->selectedTemplatePreview || empty($this->templateVariables)) {
+            return;
+        }
+
+        $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
+        $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+        
+        $body = $this->selectedTemplatePreview['original_body_text'] ?? implode("\n", $this->selectedTemplatePreview['preview_paragraphs']);
+        
+        // Save original if not already there
+        if (!isset($this->selectedTemplatePreview['original_body_text'])) {
+            $this->selectedTemplatePreview['original_body_text'] = $body;
+        }
+
+        $resolvedBody = $resolver->resolveAllForPreview($body, $this->templateVariables, $conversation, auth()->user());
+        $this->selectedTemplatePreview['preview_paragraphs'] = explode("\n", $resolvedBody);
     }
 
     public function sendSelectedTemplate(\App\Services\Chat\ChatTemplateSendService $sendService)
@@ -278,11 +320,39 @@ class ChatInboxPage extends Component
             return;
         }
 
+        // Build WhatsApp components payload
+        $components = [];
+        if (!empty($this->templateVariables)) {
+            $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
+            $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+            $parameters = [];
+
+            foreach ($this->templateVariables as $variable => $config) {
+                $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
+                
+                if (empty(trim((string)$value))) {
+                    $this->templateModalError = "Please provide a value for Variable {{ $variable }}";
+                    return;
+                }
+
+                $parameters[] = [
+                    'type' => 'text',
+                    'text' => $value,
+                ];
+            }
+
+            $components[] = [
+                'type' => 'body',
+                'parameters' => $parameters,
+            ];
+        }
+
         try {
             $result = $sendService->sendTemplateToConversation(
                 auth()->user(), 
                 $this->selectedConversationId, 
-                $this->selectedTemplateId
+                $this->selectedTemplateId,
+                ['components' => $components]
             );
 
             if ($result['success']) {

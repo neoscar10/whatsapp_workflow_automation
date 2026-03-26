@@ -85,6 +85,7 @@ class ChatTemplateDirectoryService
             'variables' => $variables,
             'category_label' => ucfirst($template->category),
             'button_text' => $buttonText,
+            'original_body_text' => $template->body_text,
             'time_label' => now()->format('h:i A'),
         ];
     }
