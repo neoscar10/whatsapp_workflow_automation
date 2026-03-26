@@ -174,7 +174,7 @@ class ChatInboxService
     private function getStatusColor(?string $status): string
     {
         return match($status) {
-            'read' => 'text-blue-500',
+            'read' => 'text-sky-400',
             'delivered' => 'text-slate-400',
             'sent' => 'text-slate-400',
             'failed' => 'text-red-500',
