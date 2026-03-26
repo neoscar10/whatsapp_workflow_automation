@@ -380,16 +380,34 @@ class ChatInboxPage extends Component
         // For backward compatibility if other parts of the app use this event
     }
 
-    #[On('echo-private:company.{companyId}.chats,.chat.inbound.received')]
-    #[On('echo-private:company.{companyId}.chats,.conversation.updated')]
-    #[On('echo-private:company.{companyId}.conversation.{selectedConversationId},message.received')]
-    #[On('refresh-chat-data')]
+    public function getListeners()
+    {
+        $userId = auth()->id();
+        $listeners = [
+            "echo-private:company.{$this->companyId}.chats,.chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$this->companyId}.chats,.conversation.updated" => 'refreshChatDataAfterRealtimeEvent',
+            "refresh-chat-data" => 'refreshChatDataAfterRealtimeEvent',
+            "realtime-conversation-updated" => 'handleRealtimeConversationUpdate',
+        ];
+
+        if ($this->selectedConversationId) {
+            $listeners["echo-private:company.{$this->companyId}.conversation.{$this->selectedConversationId},message.received"] = 'refreshChatDataAfterRealtimeEvent';
+            $listeners["echo-private:conversations.{$this->selectedConversationId},WhatsApp\\MessageStatusUpdated"] = 'onMessageStatusUpdated';
+        }
+
+        return $listeners;
+    }
+
+    public function onMessageStatusUpdated($data)
+    {
+        // Simply refresh the component to pick up status changes
+    }
+
     public function refreshChatDataAfterRealtimeEvent($payload = null)
     {
         // Triggers a component refresh. Data is re-fetched in render().
     }
 
-    #[On('realtime-conversation-updated')]
     public function handleRealtimeConversationUpdate($payload)
     {
         // Triggers a component refresh to update the sidebar.

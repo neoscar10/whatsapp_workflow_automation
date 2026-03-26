@@ -173,23 +173,27 @@
                                                     </div>
 
                                                     {{-- Mapping Selector: On its own row --}}
-                                                    <div class="mb-4">
-                                                        <div class="flex w-full rounded-2xl bg-slate-100 p-1 dark:bg-slate-800/80">
-                                                            <button 
-                                                                type="button"
-                                                                wire:click="$set('templateVariables.{{ $variable }}.type', 'system')"
-                                                                class="flex-1 rounded-xl py-2 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? 'system') === 'system' ? 'bg-white text-primary shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-400 hover:text-slate-600' }}"
-                                                            >
-                                                                System Variable
-                                                            </button>
-                                                            <button 
-                                                                type="button"
-                                                                wire:click="$set('templateVariables.{{ $variable }}.type', 'manual')"
-                                                                class="flex-1 rounded-xl py-2 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? '') === 'manual' ? 'bg-white text-primary shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-400 hover:text-slate-600' }}"
-                                                            >
-                                                                Manual Input
-                                                            </button>
-                                                        </div>
+                                                    <div class="mb-4 space-y-2">
+                                                        <button 
+                                                            type="button"
+                                                            wire:click="$set('templateVariables.{{ $variable }}.type', 'system')"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? 'system') === 'system' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                        >
+                                                            <span>System Variable</span>
+                                                            @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
+                                                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                                            @endif
+                                                        </button>
+                                                        <button 
+                                                            type="button"
+                                                            wire:click="$set('templateVariables.{{ $variable }}.type', 'manual')"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? '') === 'manual' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                        >
+                                                            <span>Manual Input</span>
+                                                            @if(($templateVariables[$variable]['type'] ?? '') === 'manual')
+                                                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                                            @endif
+                                                        </button>
                                                     </div>
 
                                                     @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
