@@ -165,45 +165,41 @@
 
                                         <div class="space-y-4">
                                             @foreach($selectedTemplatePreview['variables'] as $variable)
-                                                @php $name = $variable['name']; @endphp
                                                 <div class="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900/50">
                                                     {{-- Header: Placeholder Tag & Title --}}
-                                                    <div class="mb-4 flex items-center justify-between">
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="text-[10px] font-black text-primary uppercase bg-primary/10 px-2 py-0.5 rounded tracking-widest">#{{ $name }}</span>
-                                                            <h5 class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter opacity-80">Placeholder {{ $name }}</h5>
-                                                        </div>
-                                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ $variable['component'] }}</span>
+                                                    <div class="mb-4 flex items-center gap-2">
+                                                        <span class="text-[10px] font-black text-primary uppercase bg-primary/10 px-2 py-0.5 rounded tracking-widest">#{{ $variable }}</span>
+                                                        <h5 class="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter opacity-80">Placeholder {{ $variable }}</h5>
                                                     </div>
 
                                                     {{-- Mapping Selector: On its own row --}}
                                                     <div class="mb-4 space-y-2">
                                                         <button 
                                                             type="button"
-                                                            wire:click="$set('templateVariables.{{ $name }}.type', 'system')"
-                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$name]['type'] ?? 'system') === 'system' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                            wire:click="$set('templateVariables.{{ $variable }}.type', 'system')"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? 'system') === 'system' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
                                                         >
                                                             <span>System Variable</span>
-                                                            @if(($templateVariables[$name]['type'] ?? 'system') === 'system')
+                                                            @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
                                                                 <span class="material-symbols-outlined text-sm">check_circle</span>
                                                             @endif
                                                         </button>
                                                         <button 
                                                             type="button"
-                                                            wire:click="$set('templateVariables.{{ $name }}.type', 'manual')"
-                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$name]['type'] ?? '') === 'manual' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
+                                                            wire:click="$set('templateVariables.{{ $variable }}.type', 'manual')"
+                                                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all {{ ($templateVariables[$variable]['type'] ?? '') === 'manual' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 text-slate-400 border border-transparent hover:bg-slate-200 dark:bg-slate-800/50' }}"
                                                         >
                                                             <span>Manual Input</span>
-                                                            @if(($templateVariables[$name]['type'] ?? '') === 'manual')
+                                                            @if(($templateVariables[$variable]['type'] ?? '') === 'manual')
                                                                 <span class="material-symbols-outlined text-sm">check_circle</span>
                                                             @endif
                                                         </button>
                                                     </div>
 
-                                                    @if(($templateVariables[$name]['type'] ?? 'system') === 'system')
+                                                    @if(($templateVariables[$variable]['type'] ?? 'system') === 'system')
                                                         <div class="relative group">
                                                             <select 
-                                                                wire:model.live="templateVariables.{{ $name }}.value"
+                                                                wire:model.live="templateVariables.{{ $variable }}.value"
                                                                 class="w-full appearance-none rounded-xl border-none bg-slate-50 border border-slate-100 px-4 py-3 text-[11px] font-bold text-slate-900 focus:ring-2 focus:ring-primary/20 dark:bg-slate-950/50 dark:border-slate-800 dark:text-white"
                                                             >
                                                                 @foreach($systemVariableOptions as $option)
@@ -215,7 +211,7 @@
                                                             </div>
                                                         </div>
                                                         @php
-                                                            $currentKey = $templateVariables[$name]['value'] ?? '';
+                                                            $currentKey = $templateVariables[$variable]['value'] ?? '';
                                                             $currentOption = collect($systemVariableOptions)->firstWhere('key', $currentKey);
                                                         @endphp
                                                         @if($currentOption)
@@ -226,7 +222,7 @@
                                                         @endif
                                                     @else
                                                         <input 
-                                                            wire:model.live.debounce.250ms="templateVariables.{{ $name }}.value"
+                                                            wire:model.live.debounce.250ms="templateVariables.{{ $variable }}.value"
                                                             type="text"
                                                             placeholder="Type value..."
                                                             class="w-full rounded-xl border-none bg-slate-50/50 px-4 py-3 text-[11px] font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 dark:bg-slate-950/50 dark:text-white"

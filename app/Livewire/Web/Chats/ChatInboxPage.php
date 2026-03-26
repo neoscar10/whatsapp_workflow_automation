@@ -276,8 +276,7 @@ class ChatInboxPage extends Component
         $this->templateVariables = [];
         if (!empty($this->selectedTemplatePreview['variables'])) {
             foreach ($this->selectedTemplatePreview['variables'] as $variable) {
-                $name = $variable['name'];
-                $this->templateVariables[$name] = [
+                $this->templateVariables[$variable] = [
                     'type' => 'system',
                     'value' => 'contact_name', // Default to contact name if possible
                 ];
@@ -312,10 +311,8 @@ class ChatInboxPage extends Component
         $this->selectedTemplatePreview['preview_paragraphs'] = explode("\n", $resolvedBody);
     }
 
-    public function sendSelectedTemplate(
-        \App\Services\Chat\ChatTemplateSendService $sendService,
-        \App\Services\WhatsApp\WhatsAppTemplatePayloadService $payloadService
-    ) {
+    public function sendSelectedTemplate(\App\Services\Chat\ChatTemplateSendService $sendService)
+    {
         $this->templateModalError = null;
 
         if (!$this->selectedTemplateId) {
@@ -323,32 +320,34 @@ class ChatInboxPage extends Component
             return;
         }
 
-        $template = \App\Models\WhatsApp\WhatsAppTemplate::find($this->selectedTemplateId);
-        if (!$template) {
-            $this->templateModalError = 'Template not found.';
-            return;
-        }
+        // Build WhatsApp components payload
+        $components = [];
+        if (!empty($this->templateVariables)) {
+            $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
+            $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+            $parameters = [];
 
-        // 1. Resolve values for ALL variables
-        $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
-        $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
-        $resolvedValues = [];
+            foreach ($this->templateVariables as $variable => $config) {
+                $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
+                
+                if (empty(trim((string)$value))) {
+                    $this->templateModalError = "Please provide a value for Variable {{ $variable }}";
+                    return;
+                }
 
-        foreach ($this->templateVariables as $variableName => $config) {
-            $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
-            
-            if (empty(trim((string)$value))) {
-                $this->templateModalError = "Please provide a value for Variable {{ $variableName }}";
-                return;
+                $parameters[] = [
+                    'type' => 'text',
+                    'text' => $value,
+                ];
             }
 
-            $resolvedValues[$variableName] = $value;
+            $components[] = [
+                'type' => 'body',
+                'parameters' => $parameters,
+            ];
         }
 
-        // 2. Build structured WhatsApp components payload via centralized service
         try {
-            $components = $payloadService->buildSendPayload($template, $this->templateVariables, $resolvedValues);
-
             $result = $sendService->sendTemplateToConversation(
                 auth()->user(), 
                 $this->selectedConversationId, 

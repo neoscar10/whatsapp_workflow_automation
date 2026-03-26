@@ -86,21 +86,10 @@ class ChatTemplateSendService
         $body = $template->body_text;
         
         foreach ($components as $component) {
-            // We search for all parameters in all components (body, header, etc)
-            // and try to replace their placeholders in the body text if they exist there.
-            if (isset($component['parameters'])) {
+            if ($component['type'] === 'body' && isset($component['parameters'])) {
                 foreach ($component['parameters'] as $index => $param) {
-                    // This assumes positional numbered placeholders in the body
-                    // but we can also use named ones if we have them.
-                    // For now, let's keep it simple: replace all {{1}}, {{2}}...
-                    // and also any named ones that match the parameters if we were using named.
-                    
-                    // In sending payload, component parameters are positional.
-                    // If this is the 'body' component, we map index+1 to {{index+1}}
-                    if ($component['type'] === 'body') {
-                        $placeholder = '{{' . ($index + 1) . '}}';
-                        $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
-                    }
+                    $placeholder = '{{' . ($index + 1) . '}}';
+                    $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
                 }
             }
         }

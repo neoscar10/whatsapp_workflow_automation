@@ -68,57 +68,13 @@ class ChatTemplateDirectoryService
             return null;
         }
 
-        $meta = $template->meta_payload ?? [];
-        $components = $meta['components'] ?? [];
-        
-        $variables = [];
-        $bodyText = $template->body_text;
-        $headerText = $template->header_text;
-        
-        // Extract variables from all relevant components
-        foreach ($components as $component) {
-            $type = strtolower($component['type']);
-            
-            if ($type === 'header' && isset($component['text'])) {
-                preg_match_all('/\{\{([^}]+)\}\}/', $component['text'], $matches);
-                foreach ($matches[1] ?? [] as $var) {
-                    $variables[] = ['name' => $var, 'component' => 'header'];
-                }
-            } elseif ($type === 'body' && isset($component['text'])) {
-                preg_match_all('/\{\{([^}]+)\}\}/', $component['text'], $matches);
-                foreach ($matches[1] ?? [] as $var) {
-                    $variables[] = ['name' => $var, 'component' => 'body'];
-                }
-            } elseif ($type === 'buttons' && isset($component['buttons'])) {
-                foreach ($component['buttons'] as $index => $button) {
-                    if (isset($button['url'])) {
-                        preg_match_all('/\{\{([^}]+)\}\}/', $button['url'], $matches);
-                        foreach ($matches[1] ?? [] as $var) {
-                            $variables[] = [
-                                'name' => $var, 
-                                'component' => 'button', 
-                                'sub_type' => 'url', 
-                                'index' => $index
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        // De-duplicate while preserving component info (first occurrence wins)
-        $uniqueVariables = [];
-        $seen = [];
-        foreach ($variables as $v) {
-            if (!isset($seen[$v['name']])) {
-                $uniqueVariables[] = $v;
-                $seen[$v['name']] = true;
-            }
-        }
-
         // Split body text into paragraphs for cleaner rendering
-        $paragraphs = explode("\n", $bodyText);
+        $paragraphs = explode("\n", $template->body_text);
         
+        // Simpler variable extraction (positional {{1}} or named {{name}})
+        preg_match_all('/\{\{([^}]+)\}\}/', $template->body_text, $matches);
+        $variables = array_unique($matches[1] ?? []);
+
         // Find buttons text
         $buttonText = $template->buttons->first()?->text;
 
@@ -126,12 +82,10 @@ class ChatTemplateDirectoryService
             'id' => $template->id,
             'name' => $template->display_title ?? $template->remote_template_name,
             'preview_paragraphs' => array_filter(array_map('trim', $paragraphs)),
-            'variables' => $uniqueVariables,
+            'variables' => $variables,
             'category_label' => ucfirst($template->category),
             'button_text' => $buttonText,
-            'header_text' => $headerText,
-            'header_type' => $template->header_type,
-            'original_body_text' => $bodyText,
+            'original_body_text' => $template->body_text,
             'time_label' => now()->format('h:i A'),
         ];
     }
