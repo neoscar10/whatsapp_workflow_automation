@@ -112,14 +112,52 @@
                                     @endif
                                 </div>
                             @elseif($headerType !== 'none')
-                                <div class="rounded-lg bg-orange-50 dark:bg-orange-900/20 p-4 border border-orange-200 dark:border-orange-900/30">
-                                    <div class="flex">
-                                        <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                                        </svg>
-                                        <div class="ml-3">
-                                            <p class="text-sm text-orange-800 dark:text-orange-300">Media headers require a valid Resumable Upload API handle during creation per Meta's API rules. For this demo, a placeholder will be submitted.</p>
+                                 <div class="space-y-4">
+                                    <div class="flex items-center justify-center w-full">
+                                        <label for="headerSampleFile" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <svg class="w-8 h-8 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                </svg>
+                                                <p class="mb-2 text-sm text-slate-500 dark:text-slate-400"><span class="font-semibold">Click to upload</span> sample {{ $headerType }}</p>
+                                                <p class="text-xs text-slate-400">Meta requires a sample for review</p>
+                                            </div>
+                                            <input wire:model="headerSampleFile" id="headerSampleFile" type="file" class="hidden" 
+                                                @if($headerType === 'image') accept="image/*" 
+                                                @elseif($headerType === 'video') accept="video/*" 
+                                                @elseif($headerType === 'document') accept=".pdf,.doc,.docx" @endif />
+                                        </label>
+                                    </div>
+
+                                    @if($headerSampleFile)
+                                        <div class="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                            <div class="flex items-center gap-3">
+                                                @if($headerType === 'image' && !is_string($headerSampleFile))
+                                                    <img src="{{ $headerSampleFile->temporaryUrl() }}" class="h-10 w-10 rounded object-cover">
+                                                @else
+                                                    <div class="flex h-10 w-10 items-center justify-center rounded bg-slate-100 dark:bg-slate-700 text-slate-500">
+                                                        <span class="material-symbols-outlined text-[20px]">
+                                                            {{ $headerType === 'video' ? 'movie' : 'description' }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[200px]">{{ is_string($headerSampleFile) ? $headerSampleFile : $headerSampleFile->getClientOriginalName() }}</p>
+                                                    <p class="text-[10px] text-slate-500 uppercase">{{ $headerType }} handle ready</p>
+                                                </div>
+                                            </div>
+                                            <button type="button" wire:click="$set('headerSampleFile', null)" class="text-slate-400 hover:text-red-500 transition-colors">
+                                                <span class="material-symbols-outlined text-[20px]">close</span>
+                                            </button>
                                         </div>
+                                    @endif
+
+                                    @error('headerSampleFile') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+                                    
+                                    <div class="rounded-lg bg-primary-50 dark:bg-primary-900/10 p-3 border border-primary-100 dark:border-primary-900/20">
+                                        <p class="text-[11px] text-primary-700 dark:text-primary-400 leading-tight">
+                                            <strong>Meta Review Requirement:</strong> You must upload a sample {{ $headerType }} that represents the content you will send. Meta uses this to approve your template.
+                                        </p>
                                     </div>
                                 </div>
                             @endif

@@ -248,4 +248,82 @@ class WhatsAppGraphClient
 
         return $response->json();
     }
+
+    /**
+     * Initialize a resumable upload session for template-review headers.
+     * Returns an upload session ID.
+     */
+    public function createResumableUpload(string $accessToken, string $appId, int $fileSize, string $fileType): array
+    {
+        $url = "https://graph.facebook.com/{$this->apiVersion}/{$appId}/uploads";
+        
+        $response = Http::withToken($accessToken)->post($url, [
+            'file_length' => $fileSize,
+            'file_type' => $fileType,
+        ]);
+
+        if ($response->failed()) {
+            return [
+                'success' => false,
+                'error' => $response->json('error.message', 'Failed to create upload session')
+            ];
+        }
+
+        return [
+            'success' => true,
+            'upload_session_id' => $response->json('id')
+        ];
+    }
+
+    /**
+     * Upload the actual file data to a resumable upload session.
+     * Returns a 'h' handle for template creation.
+     */
+    public function uploadFileToSession(string $accessToken, string $uploadSessionId, $fileContents): array
+    {
+        $url = "https://graph.facebook.com/{$this->apiVersion}/{$uploadSessionId}";
+        
+        $response = Http::withToken($accessToken)
+            ->withBody($fileContents, 'application/octet-stream')
+            ->post($url);
+
+        if ($response->failed()) {
+            return [
+                'success' => false,
+                'error' => $response->json('error.message', 'Failed to upload file data')
+            ];
+        }
+
+        return [
+            'success' => true,
+            'h' => $response->json('h')
+        ];
+    }
+
+    /**
+     * Upload media for a message (simple upload).
+     * Returns a media ID.
+     */
+    public function uploadMessageMedia(string $phoneNumberId, string $accessToken, $fileContents, string $filename, string $mimeType): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/media";
+        
+        $response = Http::withToken($accessToken)
+            ->attach('file', $fileContents, $filename, ['Content-Type' => $mimeType])
+            ->post($url, [
+                'messaging_product' => 'whatsapp',
+            ]);
+
+        if ($response->failed()) {
+            return [
+                'success' => false,
+                'error' => $response->json('error.message', 'Failed to upload message media')
+            ];
+        }
+
+        return [
+            'success' => true,
+            'media_id' => $response->json('id')
+        ];
+    }
 }

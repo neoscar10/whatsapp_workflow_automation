@@ -157,8 +157,78 @@
 
                             {{-- Column 3: Variable Management (NARROWER) --}}
                             <div class="flex w-[35%] min-w-[340px] flex-col overflow-hidden shrink-0">
-                                @if(!empty($selectedTemplatePreview['variables']))
-                                    <div class="flex flex-1 flex-col overflow-y-auto custom-scrollbar p-8">
+                                <div class="flex flex-1 flex-col overflow-y-auto custom-scrollbar p-8">
+                                    {{-- NEW: Media Header Upload Section --}}
+                                    @php $hType = $selectedTemplatePreview['header_type'] ?? 'none'; @endphp
+                                    @if(in_array($hType, ['image', 'video', 'document']))
+                                        <div class="mb-10">
+                                            <div class="mb-6 flex items-center gap-3">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                                    <span class="material-symbols-outlined text-[20px]">
+                                                        {{ $hType === 'image' ? 'image' : ($hType === 'video' ? 'movie' : 'description') }}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-[11px] font-black uppercase tracking-widest text-slate-500">Header Media</span>
+                                                    <p class="text-[10px] text-slate-400">Upload required {{ $hType }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-4">
+                                                <div class="flex items-center justify-center w-full">
+                                                    <label for="templateHeaderMedia" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-100 border-dashed rounded-[2rem] cursor-pointer bg-slate-50/50 hover:bg-slate-100 dark:bg-slate-900/30 dark:border-slate-800 dark:hover:bg-slate-900/50 transition-all group">
+                                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                            <div class="mb-2 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span class="material-symbols-outlined text-primary text-[24px]">cloud_upload</span>
+                                                            </div>
+                                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><span class="text-primary">Click to upload</span> {{ $hType }}</p>
+                                                        </div>
+                                                        <input wire:model="templateHeaderMedia" id="templateHeaderMedia" type="file" class="hidden" 
+                                                            @if($hType === 'image') accept="image/*" 
+                                                            @elseif($hType === 'video') accept="video/*" 
+                                                            @elseif($hType === 'document') accept=".pdf,.doc,.docx" @endif />
+                                                    </label>
+                                                </div>
+
+                                                <div wire:loading wire:target="templateHeaderMedia" class="w-full">
+                                                    <div class="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                                        <div class="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-primary animate-[shimmer_2s_infinite] w-full"></div>
+                                                        </div>
+                                                        <span class="text-[9px] font-black uppercase text-slate-500 shrink-0">Processing</span>
+                                                    </div>
+                                                </div>
+
+                                                @if($templateHeaderMedia && !$errors->has('templateHeaderMedia'))
+                                                    <div class="flex items-center justify-between p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                                                        <div class="flex items-center gap-4">
+                                                            @if($hType === 'image' && !is_string($templateHeaderMedia))
+                                                                <img src="{{ $templateHeaderMedia->temporaryUrl() }}" class="h-10 w-10 rounded-xl object-cover ring-2 ring-primary/10">
+                                                            @else
+                                                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-primary">
+                                                                    <span class="material-symbols-outlined text-[20px]">
+                                                                        {{ $hType === 'video' ? 'movie' : 'description' }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
+                                                            <div class="overflow-hidden">
+                                                                <p class="text-[10px] font-black text-slate-700 dark:text-slate-200 truncate max-w-[150px] uppercase tracking-tight">{{ is_string($templateHeaderMedia) ? (str_contains($templateHeaderMedia, '/') ? basename($templateHeaderMedia) : $templateHeaderMedia) : $templateHeaderMedia->getClientOriginalName() }}</p>
+                                                                <p class="text-[9px] font-bold text-primary uppercase tracking-widest opacity-70">Ready to send</p>
+                                                            </div>
+                                                        </div>
+                                                        <button type="button" wire:click="$set('templateHeaderMedia', null)" class="h-8 w-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                                                            <span class="material-symbols-outlined text-[18px]">close</span>
+                                                        </button>
+                                                    </div>
+                                                @endif
+
+                                                @error('templateHeaderMedia') <p class="px-2 text-[10px] font-bold text-red-500 uppercase tracking-widest">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <hr class="mb-10 border-slate-100 dark:border-slate-800">
+                                    @endif
+
+                                    @if(!empty($selectedTemplatePreview['variables']))
                                         <div class="mb-8 flex items-center gap-3">
                                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
                                                 <span class="material-symbols-outlined text-[20px]">data_object</span>
@@ -237,7 +307,7 @@
                                                         @endif
                                                     @else
                                                         <input 
-                                                            wire:model.live.debounce.250ms="templateVariables.{{ $variable }}.value"
+                                                            wire:model.live.debounce.250ms="templateVariables.{{ $varKey }}.value"
                                                             type="text"
                                                             placeholder="Type value..."
                                                             class="w-full rounded-xl border-none bg-slate-50/50 px-4 py-3 text-[11px] font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 dark:bg-slate-950/50 dark:text-white"

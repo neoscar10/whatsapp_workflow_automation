@@ -8,16 +8,19 @@ use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Title('Create Template')]
 class TemplateCreatePage extends Component
 {
+    use WithFileUploads;
     public string $name = '';
     public string $category = 'marketing';
     public string $language = 'en_US';
     
     public string $headerType = 'none';
     public ?string $headerText = null;
+    public $headerSampleFile;
     
     public string $bodyText = '';
     public ?string $footerText = null;
@@ -108,6 +111,11 @@ class TemplateCreatePage extends Component
 
         if ($this->headerType === 'text') {
             $rules['headerText'] = 'required|string|max:60';
+        } elseif (in_array($this->headerType, ['image', 'video', 'document'])) {
+            $rules['headerSampleFile'] = 'required|file|max:16384'; // Max 16MB per Meta limits
+            if ($this->headerType === 'image') $rules['headerSampleFile'] .= '|image';
+            if ($this->headerType === 'video') $rules['headerSampleFile'] .= '|mimetypes:video/mp4,video/3gpp';
+            if ($this->headerType === 'document') $rules['headerSampleFile'] .= '|mimetypes:application/pdf';
         }
 
         foreach ($this->buttons as $index => $button) {
@@ -151,11 +159,6 @@ class TemplateCreatePage extends Component
         
         if ($this->headerType === 'text' && preg_match('/\{\{1\}\}/', $this->headerText ?? '')) {
              $examplePayload['header_text'] = [$this->exampleHeaderValues[0] ?? 'Example'];
-        } elseif (in_array($this->headerType, ['image', 'video', 'document'])) {
-             // Hardcode dummy handle for creation since we don't have an upload UI yet
-             // Meta requires a valid Resumable Upload API handle for media examples. 
-             // We will pass a standard dummy string; if Meta rejects, we'd need file upload logic here.
-             $examplePayload['header_handle'] = ['dummy_handle_for_review']; 
         }
 
         if (count($this->exampleBodyValues) > 0) {
@@ -173,7 +176,7 @@ class TemplateCreatePage extends Component
         }
 
         try {
-            $templateService->createTemplate($accountModel, $data, $this->buttons, auth()->id());
+            $templateService->createTemplate($accountModel, $data, $this->buttons, auth()->id(), $this->headerSampleFile);
             session()->flash('status', 'Template created successfully and submitted for review.');
             return redirect()->route('whatsapp.templates.index');
         } catch (\Exception $e) {

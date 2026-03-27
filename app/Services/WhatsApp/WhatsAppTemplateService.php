@@ -118,13 +118,26 @@ class WhatsAppTemplateService
     /**
      * Creates a new template locally and attempts to push to Meta.
      */
-    public function createTemplate(WhatsAppAccount $account, array $data, array $buttons = [], int $userId = null): WhatsAppTemplate
+    public function createTemplate(WhatsAppAccount $account, array $data, array $buttons = [], int $userId = null, $headerSampleFile = null): WhatsAppTemplate
     {
         // 1. Validate name format (lowercase alphanumeric and underscores only)
         $data['remote_template_name'] = strtolower(preg_replace('/[^a-z0-9_]/i', '_', $data['remote_template_name']));
 
         DB::beginTransaction();
         try {
+            // Handle Media Header Upload to Meta if sample provided
+            if ($headerSampleFile && in_array($data['header_type'] ?? '', ['image', 'video', 'document'])) {
+                $mediaService = app(MetaMediaUploadService::class);
+                $appId = config('services.whatsapp.app_id');
+                
+                if (!$appId) {
+                    throw new \Exception("WhatsApp App ID is not configured in services.php. Required for media handles.");
+                }
+
+                $handle = $mediaService->uploadTemplateSample($account->access_token, $appId, $headerSampleFile);
+                $data['example_payload']['header_handle'] = [$handle];
+            }
+
             // 2. Create local draft
             $template = WhatsAppTemplate::create([
                 'company_id' => $account->company_id,
@@ -148,7 +161,7 @@ class WhatsAppTemplateService
             }
 
             // 3. Build Payload
-            $payload = $this->payloadBuilder->build($template->toArray(), $buttons);
+            $payload = $this->payloadBuilder->build($template->toArray() + ['example_payload' => $data['example_payload'] ?? []], $buttons);
 
             // 4. Push to Meta
             $metaResponse = $this->apiService->createTemplate($account, $payload);
@@ -175,10 +188,18 @@ class WhatsAppTemplateService
         }
     }
 
-    public function updateTemplateRecord(WhatsAppTemplate $template, WhatsAppAccount $account, array $data, array $buttons = [], int $userId = null): WhatsAppTemplate
+    public function updateTemplateRecord(WhatsAppTemplate $template, WhatsAppAccount $account, array $data, array $buttons = [], int $userId = null, $headerSampleFile = null): WhatsAppTemplate
     {
         DB::beginTransaction();
         try {
+            // Handle Media Header Upload if updated
+            if ($headerSampleFile && in_array($data['header_type'] ?? '', ['image', 'video', 'document'])) {
+                $mediaService = app(MetaMediaUploadService::class);
+                $appId = config('services.whatsapp.app_id');
+                $handle = $mediaService->uploadTemplateSample($account->access_token, $appId, $headerSampleFile);
+                $data['example_payload']['header_handle'] = [$handle];
+            }
+
             // Meta API Update Flow requires identical payload builder logic
             $payloadData = array_merge($template->toArray(), $data); // Merge existing with new for builder safety
             $payload = $this->payloadBuilder->build($payloadData, $buttons);

@@ -9,8 +9,11 @@ use Exception;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+use Livewire\WithFileUploads;
+
 class ChatInboxPage extends Component
 {
+    use WithFileUploads;
     public string $search = '';
     public string $tab = 'all';
     public ?int $selectedConversationId = null;
@@ -36,6 +39,7 @@ class ChatInboxPage extends Component
     public ?int $selectedTemplateId = null;
     public array $availableTemplates = [];
     public ?array $selectedTemplatePreview = null;
+    public $templateHeaderMedia;
     public ?string $templateModalError = null;
     public ?string $templateModalMessage = null;
     public array $templateVariables = [];
@@ -327,63 +331,101 @@ class ChatInboxPage extends Component
             return;
         }
 
-        // Build WhatsApp components payload
-        $apiComponents = [];
-        if (!empty($this->templateVariables)) {
-            $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
-            $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+        try {
+            $apiComponents = [];
             
-            // Group parameters by component
-            $groupedParams = ['header' => [], 'body' => []];
-
-            foreach ($this->templateVariables as $key => $config) {
-                $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
-                
-                if (empty(trim((string)$value))) {
-                    $this->templateModalError = "Please provide a value for Variable {{ {$config['name']} }}";
+            // 1. Handle Media Header if required
+            $headerType = $this->selectedTemplatePreview['header_type'] ?? 'none';
+            if (in_array($headerType, ['image', 'video', 'document'])) {
+                if (!$this->templateHeaderMedia) {
+                    $this->templateModalError = "Please upload an " . ucfirst($headerType) . " for the header.";
                     return;
                 }
 
-                $componentType = $config['component'] ?? 'body';
-                $groupedParams[$componentType][] = [
-                    'type' => 'text',
-                    'text' => $value,
-                ];
+                $mediaId = null;
+                if ($this->templateHeaderMedia instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                    $mediaService = app(\App\Services\WhatsApp\MetaMediaUploadService::class);
+                    $account = \App\Models\WhatsApp\WhatsAppAccount::where('company_id', auth()->user()->company_id)->first();
+                    $phoneNumber = \App\Models\WhatsApp\WhatsAppPhoneNumber::where('whatsapp_account_id', $account->id)->first();
+                    
+                    if (!$phoneNumber) {
+                        throw new Exception("WhatsApp Phone Number not found for this account.");
+                    }
+
+                    $mediaId = $mediaService->uploadMessageMedia($phoneNumber->phone_number_id, $account->access_token, $this->templateHeaderMedia);
+                }
+
+                if ($mediaId) {
+                    $apiComponents[] = [
+                        'type' => 'header',
+                        'parameters' => [
+                            [
+                                'type' => strtolower($headerType),
+                                strtolower($headerType) => ['id' => $mediaId]
+                            ]
+                        ]
+                    ];
+                }
             }
 
-            // Build Header Component
-            if (!empty($groupedParams['header'])) {
-                $apiComponents[] = [
-                    'type' => 'header',
-                    'parameters' => $groupedParams['header'],
-                ];
+            // 2. Resolve Variables (Header Text & Body)
+            if (!empty($this->templateVariables)) {
+                $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
+                $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+                
+                $groupedParams = ['header' => [], 'body' => []];
+
+                foreach ($this->templateVariables as $key => $config) {
+                    $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
+                    
+                    if (empty(trim((string)$value))) {
+                        $this->templateModalError = "Please provide a value for Variable {{ {$config['name']} }}";
+                        return;
+                    }
+
+                    $componentType = $config['component'] ?? 'body';
+                    $groupedParams[$componentType][] = [
+                        'type' => 'text',
+                        'text' => (string)$value,
+                    ];
+                }
+
+                // Add Text Header parameters if any
+                if (!empty($groupedParams['header'])) {
+                    $apiComponents[] = [
+                        'type' => 'header',
+                        'parameters' => $groupedParams['header'],
+                    ];
+                }
+
+                // Add Body parameters if any
+                if (!empty($groupedParams['body'])) {
+                    $apiComponents[] = [
+                        'type' => 'body',
+                        'parameters' => $groupedParams['body'],
+                    ];
+                }
             }
 
-            // Build Body Component
-            if (!empty($groupedParams['body'])) {
-                $apiComponents[] = [
-                    'type' => 'body',
-                    'parameters' => $groupedParams['body'],
-                ];
-            }
-        }
-
-        try {
-            // Omit 'components' completely if empty to satisfy Meta API requirements for simple templates
+            // 3. Dispatch Send
             $options = !empty($apiComponents) ? ['components' => $apiComponents] : [];
-
             $result = $sendService->sendTemplateToConversation(
-                auth()->user(), 
-                $this->selectedConversationId, 
+                auth()->user(),
+                $this->selectedConversationId,
                 $this->selectedTemplateId,
                 $options
             );
 
             if ($result['success']) {
                 $this->closeTemplateSendModal();
-                $this->successMessage = 'Template sent successfully.';
+                $this->templateHeaderMedia = null; // Reset media state
+                $this->successMessage = "Template sent successfully.";
+            } else {
+                $this->templateModalError = $result['error'] ?? 'Failed to send template.';
             }
-        } catch (Exception $e) {
+            
+        } catch (\Exception $e) {
+            Log::error('Template Send Error', ['message' => $e->getMessage()]);
             $this->templateModalError = $e->getMessage();
         }
     }
