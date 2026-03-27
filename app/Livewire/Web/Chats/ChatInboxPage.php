@@ -104,17 +104,21 @@ class ChatInboxPage extends Component
             ]);
 
             // Capture metadata safely while file is definitely there
-            $filename = time() . '_' . $this->composerMedia->getClientOriginalName();
+            $originalName = $this->composerMedia->getClientOriginalName();
+            $fileSize = $this->composerMedia->getSize();
+            $fileMime = $this->composerMedia->getMimeType();
+            $tempUrl = str_starts_with($fileMime, 'image/') ? $this->composerMedia->temporaryUrl() : null;
+
+            // Now move it (this might invalidate the temporary file handle)
+            $filename = time() . '_' . $originalName;
             $stagedPath = $this->composerMedia->storeAs('public/staging_media', $filename);
             
             $this->composerMediaMetadata = [
-                'name' => $this->composerMedia->getClientOriginalName(),
-                'size' => $this->composerMedia->getSize(),
-                'mime' => $this->composerMedia->getMimeType(),
+                'name' => $originalName,
+                'size' => $fileSize,
+                'mime' => $fileMime,
                 'staged_path' => $stagedPath,
-                'preview_url' => str_starts_with($this->composerMedia->getMimeType(), 'image/') 
-                    ? $this->composerMedia->temporaryUrl() 
-                    : null,
+                'preview_url' => $tempUrl,
             ];
 
             // CRITICAL: We nulled this to avoid Livewire trying to track a file that might be deleted/moved
