@@ -40,16 +40,17 @@ class WhatsAppTemplateVariableResolver
     }
 
     /**
-     * Resolve all placeholders in a template body for preview purposes.
+     * Resolve all placeholders in a template component (body/header) for preview purposes.
      */
-    public function resolveAllForPreview(string $body, array $mappings, ?Conversation $conversation = null, ?User $actor = null): string
+    public function resolveAllForPreview(string $text, array $mappings, ?Conversation $conversation = null, ?User $actor = null): string
     {
-        foreach ($mappings as $placeholder => $config) {
+        foreach ($mappings as $key => $config) {
             $value = $this->getValueFromMapping($config, $conversation, $actor);
-            $body = str_replace("{{{$placeholder}}}", $value ?: "{{{$placeholder}}}", $body);
+            $placeholder = $config['name'] ?? $key;
+            $text = str_replace("{{{$placeholder}}}", $value ?: "{{{$placeholder}}}", $text);
         }
 
-        return $body;
+        return $text;
     }
 
     /**

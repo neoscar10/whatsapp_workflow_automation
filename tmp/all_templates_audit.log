@@ -1,0 +1,25 @@
+TOTAL TEMPLATES: 5
+
+NAME: black_friday
+BODY: Get the best deals this Friday with up to 89% off
+VARS: []
+-----------------------------------
+NAME: welcome_message
+BODY: Hello *{{user_name}}*,
+
+Welcome on board with us.
+Please feel free to reply to this chat to get help on any service.
+VARS: ["user_name"]
+-----------------------------------
+NAME: hello_world
+BODY: Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us.
+VARS: []
+-----------------------------------
+NAME: apple_template
+BODY: A
+VARS: []
+-----------------------------------
+NAME: banana_template
+BODY: B
+VARS: []
+-----------------------------------

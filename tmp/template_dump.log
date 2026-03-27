@@ -1,0 +1,38 @@
+TEMPLATE: black_friday
+BODY: Get the best deals this Friday with up to 89% off
+HEADER: Black Friday
+FOOTER: thank you
+META: {
+    "name": "black_friday",
+    "parameter_format": "POSITIONAL",
+    "components": [
+        {
+            "type": "HEADER",
+            "format": "TEXT",
+            "text": "Black Friday"
+        },
+        {
+            "type": "BODY",
+            "text": "Get the best deals this Friday with up to 89% off"
+        },
+        {
+            "type": "FOOTER",
+            "text": "thank you"
+        },
+        {
+            "type": "BUTTONS",
+            "buttons": [
+                {
+                    "type": "URL",
+                    "text": "Shop now",
+                    "url": "https:\/\/www.neo.com\/"
+                }
+            ]
+        }
+    ],
+    "language": "en_US",
+    "status": "APPROVED",
+    "category": "MARKETING",
+    "is_primary_device_delivery_only": false,
+    "id": "1511050543718547"
+}

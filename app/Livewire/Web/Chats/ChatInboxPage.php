@@ -275,8 +275,11 @@ class ChatInboxPage extends Component
         // Initialize variables mapping
         $this->templateVariables = [];
         if (!empty($this->selectedTemplatePreview['variables'])) {
-            foreach ($this->selectedTemplatePreview['variables'] as $variable) {
-                $this->templateVariables[$variable] = [
+            foreach ($this->selectedTemplatePreview['variables'] as $varData) {
+                $key = "{$varData['component']}:{$varData['name']}";
+                $this->templateVariables[$key] = [
+                    'component' => $varData['component'],
+                    'name' => $varData['name'],
                     'type' => 'system',
                     'value' => 'contact_name', // Default to contact name if possible
                 ];
@@ -301,14 +304,18 @@ class ChatInboxPage extends Component
         $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
         
         $body = $this->selectedTemplatePreview['original_body_text'] ?? implode("\n", $this->selectedTemplatePreview['preview_paragraphs']);
+        $header = $this->selectedTemplatePreview['original_header_text'] ?? ($this->selectedTemplatePreview['header_text'] ?? '');
         
-        // Save original if not already there
+        // Save originals if not already there
         if (!isset($this->selectedTemplatePreview['original_body_text'])) {
             $this->selectedTemplatePreview['original_body_text'] = $body;
         }
+        if (!isset($this->selectedTemplatePreview['original_header_text'])) {
+            $this->selectedTemplatePreview['original_header_text'] = $header;
+        }
 
-        $resolvedBody = $resolver->resolveAllForPreview($body, $this->templateVariables, $conversation, auth()->user());
-        $this->selectedTemplatePreview['preview_paragraphs'] = explode("\n", $resolvedBody);
+        $this->selectedTemplatePreview['preview_paragraphs'] = explode("\n", $resolver->resolveAllForPreview($body, $this->templateVariables, $conversation, auth()->user()));
+        $this->selectedTemplatePreview['preview_header'] = $resolver->resolveAllForPreview($header, $this->templateVariables, $conversation, auth()->user());
     }
 
     public function sendSelectedTemplate(\App\Services\Chat\ChatTemplateSendService $sendService)
@@ -321,38 +328,55 @@ class ChatInboxPage extends Component
         }
 
         // Build WhatsApp components payload
-        $components = [];
+        $apiComponents = [];
         if (!empty($this->templateVariables)) {
             $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
             $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
-            $parameters = [];
+            
+            // Group parameters by component
+            $groupedParams = ['header' => [], 'body' => []];
 
-            foreach ($this->templateVariables as $variable => $config) {
+            foreach ($this->templateVariables as $key => $config) {
                 $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
                 
                 if (empty(trim((string)$value))) {
-                    $this->templateModalError = "Please provide a value for Variable {{ $variable }}";
+                    $this->templateModalError = "Please provide a value for Variable {{ {$config['name']} }}";
                     return;
                 }
 
-                $parameters[] = [
+                $componentType = $config['component'] ?? 'body';
+                $groupedParams[$componentType][] = [
                     'type' => 'text',
                     'text' => $value,
                 ];
             }
 
-            $components[] = [
-                'type' => 'body',
-                'parameters' => $parameters,
-            ];
+            // Build Header Component
+            if (!empty($groupedParams['header'])) {
+                $apiComponents[] = [
+                    'type' => 'header',
+                    'parameters' => $groupedParams['header'],
+                ];
+            }
+
+            // Build Body Component
+            if (!empty($groupedParams['body'])) {
+                $apiComponents[] = [
+                    'type' => 'body',
+                    'parameters' => $groupedParams['body'],
+                ];
+            }
         }
 
         try {
+            // Omit 'components' completely if empty to satisfy Meta API requirements for simple templates
+            $options = !empty($apiComponents) ? ['components' => $apiComponents] : [];
+
             $result = $sendService->sendTemplateToConversation(
                 auth()->user(), 
                 $this->selectedConversationId, 
                 $this->selectedTemplateId,
-                ['components' => $components]
+                $options
             );
 
             if ($result['success']) {

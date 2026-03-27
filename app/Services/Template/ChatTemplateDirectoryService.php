@@ -71,9 +71,21 @@ class ChatTemplateDirectoryService
         // Split body text into paragraphs for cleaner rendering
         $paragraphs = explode("\n", $template->body_text);
         
-        // Simpler variable extraction (positional {{1}} or named {{name}})
-        preg_match_all('/\{\{([^}]+)\}\}/', $template->body_text, $matches);
-        $variables = array_unique($matches[1] ?? []);
+        $variables = [];
+        
+        // Extract Header variables
+        if ($template->header_text) {
+            preg_match_all('/\{\{([^}]+)\}\}/', $template->header_text, $hMatches);
+            foreach (array_unique($hMatches[1] ?? []) as $var) {
+                $variables[] = ['name' => $var, 'component' => 'header'];
+            }
+        }
+
+        // Extract Body variables
+        preg_match_all('/\{\{([^}]+)\}\}/', $template->body_text, $bMatches);
+        foreach (array_unique($bMatches[1] ?? []) as $var) {
+            $variables[] = ['name' => $var, 'component' => 'body'];
+        }
 
         // Find buttons text
         $buttonText = $template->buttons->first()?->text;
@@ -82,10 +94,11 @@ class ChatTemplateDirectoryService
             'id' => $template->id,
             'name' => $template->display_title ?? $template->remote_template_name,
             'preview_paragraphs' => array_filter(array_map('trim', $paragraphs)),
-            'variables' => $variables,
+            'variables' => $variables, // Array of ['name' => '...', 'component' => '...']
             'category_label' => ucfirst($template->category),
             'button_text' => $buttonText,
             'original_body_text' => $template->body_text,
+            'original_header_text' => $template->header_text,
             'time_label' => now()->format('h:i A'),
         ];
     }
