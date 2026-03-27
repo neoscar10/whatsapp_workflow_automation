@@ -22,6 +22,10 @@ class ChatInboxPage extends Component
     public string $messageText = '';
     public string $noteText = '';
     
+    // Media Composer State
+    public $composerMedia;
+    public string $composerCaption = '';
+
     public ?string $errorMessage = null;
     public ?string $successMessage = null;
 
@@ -89,11 +93,57 @@ class ChatInboxPage extends Component
         ]);
     }
 
+    public function updatedComposerMedia()
+    {
+        $this->errorMessage = null;
+        
+        try {
+            $this->validate([
+                'composerMedia' => 'required|file|max:65536', // 64MB max for WhatsApp
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->composerMedia = null;
+            $this->errorMessage = $e->getMessage();
+        }
+    }
+
+    public function removeComposerMedia()
+    {
+        $this->composerMedia = null;
+        $this->composerCaption = '';
+    }
+
     public function sendMessage(ChatMessageService $messageService)
     {
         $this->resetMessages();
         
         $text = trim($this->messageText);
+        
+        // Handle Media Send
+        if ($this->composerMedia) {
+            if (!$this->selectedConversationId) {
+                $this->errorMessage = 'No active conversation selected to send media to.';
+                return;
+            }
+
+            try {
+                $caption = trim($this->messageText) ?: null;
+                $result = $messageService->sendMediaMessage(auth()->user(), $this->selectedConversationId, $this->composerMedia, $caption);
+                
+                if ($result) {
+                    $this->messageText = '';
+                    $this->composerMedia = null;
+                    $this->successMessage = "Media sent successfully.";
+                } else {
+                    $this->errorMessage = 'Failed to send media.';
+                }
+            } catch (Exception $e) {
+                $this->errorMessage = 'Error sending media: ' . $e->getMessage();
+            }
+            return;
+        }
+
+        // Handle Text Send
         if (empty($text)) {
             return;
         }

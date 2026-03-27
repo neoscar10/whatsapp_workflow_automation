@@ -124,6 +124,27 @@ class WhatsAppOutboundMessageService
             return $this->graphClient->sendTemplate($phoneNumberId, $accessToken, $to, $templateName, $languageCode, $components, $correlationId);
         }
 
+        if (in_array($message->message_type, ['image', 'video', 'audio', 'document'])) {
+            $mediaMeta = $message->media_meta ?? [];
+            $mediaId = $mediaMeta['media_id'] ?? null;
+            $caption = $message->body; // Using body as caption for direct media
+            
+            if (!$mediaId) {
+                return [
+                    'success' => false,
+                    'error' => "Media ID missing for {$message->message_type} message"
+                ];
+            }
+
+            return match($message->message_type) {
+                'image' => $this->graphClient->sendImage($phoneNumberId, $accessToken, $to, $mediaId, $caption, $correlationId),
+                'video' => $this->graphClient->sendVideo($phoneNumberId, $accessToken, $to, $mediaId, $caption, $correlationId),
+                'audio' => $this->graphClient->sendAudio($phoneNumberId, $accessToken, $to, $mediaId, $correlationId),
+                'document' => $this->graphClient->sendDocument($phoneNumberId, $accessToken, $to, $mediaId, $mediaMeta['filename'] ?? null, $caption, $correlationId),
+                default => ['success' => false, 'error' => "Unsupported media type: {$message->message_type}"]
+            };
+        }
+
         return [
             'success' => false,
             'error' => "Unsupported message type: {$message->message_type}"

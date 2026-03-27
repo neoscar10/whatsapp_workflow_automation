@@ -52,6 +52,90 @@ class ChatMessageService
     }
 
     /**
+     * Send a media message (upload then send).
+     */
+    public function sendMediaMessage(User $user, int $conversationId, $file, ?string $caption = null): ?ConversationMessage
+    {
+        $conversation = $this->inboxService->getActiveConversationForUser($user, $conversationId);
+        if (!$conversation) {
+            return null;
+        }
+
+        // 1. Identify media type
+        $mime = $file->getMimeType();
+        $type = 'document';
+        if (str_starts_with($mime, 'image/')) $type = 'image';
+        elseif (str_starts_with($mime, 'video/')) $type = 'video';
+        elseif (str_starts_with($mime, 'audio/')) $type = 'audio';
+
+        // 2. Store file locally for UI persistence
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('public/chat_media', $filename);
+        $publicUrl = \Illuminate\Support\Facades\Storage::url($path);
+
+        // 3. Persist local message as pending
+        $msg = $conversation->messages()->create([
+            'direction' => 'outbound',
+            'message_type' => $type,
+            'body' => $caption,
+            'status' => 'pending',
+            'media_url' => $publicUrl,
+            'sent_by_user_id' => $user->id,
+            'sent_at' => now(),
+            'media_meta' => [
+                'filename' => $file->getClientOriginalName(),
+                'mime_type' => $mime,
+                'size' => $file->getSize(),
+                'local_path' => $path,
+            ]
+        ]);
+
+        // Update conversation summary
+        $conversation->update([
+            'last_message_at' => now(),
+            'last_message_preview' => ucfirst($type) . ($caption ? ': ' . substr($caption, 0, 30) : ''),
+            'unread_count' => 0,
+        ]);
+
+        // Broadcast early "pending" message
+        broadcast(new ChatMessageReceived($msg));
+        broadcast(new ChatConversationUpdated($conversation));
+
+        // 3. Perform Upload & Send in background (synchronous here for reliability in this flow)
+        try {
+            $account = $conversation->whatsappPhoneNumber->account;
+            $mediaService = app(\App\Services\WhatsApp\MetaMediaUploadService::class);
+            
+            $mediaId = $mediaService->uploadMessageMedia(
+                $conversation->whatsappPhoneNumber->phone_number_id,
+                $account->access_token,
+                $file
+            );
+
+            if ($mediaId) {
+                $msg->update([
+                    'media_meta' => array_merge($msg->media_meta, ['media_id' => $mediaId])
+                ]);
+
+                // 4. Dispatch the WhatsApp outbound sending logic
+                $this->outboundService->sendConversationMessage($msg);
+            } else {
+                throw new \Exception("Media upload failed to return an ID.");
+            }
+
+        } catch (\Exception $e) {
+            \Log::error("Media Send Flow Failed", ['message' => $e->getMessage()]);
+            $msg->update([
+                'status' => 'failed',
+                'meta_payload' => array_merge($msg->meta_payload ?? [], ['error' => $e->getMessage()])
+            ]);
+            broadcast(new ChatMessageReceived($msg));
+        }
+
+        return $msg;
+    }
+
+    /**
      * Mark conversation as read.
      */
     public function markConversationRead(User $user, int $conversationId): void

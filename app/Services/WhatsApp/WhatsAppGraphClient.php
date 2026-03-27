@@ -308,22 +308,113 @@ class WhatsAppGraphClient
     {
         $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/media";
         
-        $response = Http::withToken($accessToken)
-            ->attach('file', $fileContents, $filename, ['Content-Type' => $mimeType])
-            ->post($url, [
-                'messaging_product' => 'whatsapp',
-            ]);
+        try {
+            $response = Http::withToken($accessToken)
+                ->attach('file', $fileContents, $filename, ['Content-Type' => $mimeType])
+                ->post($url, [
+                    'messaging_product' => 'whatsapp',
+                ]);
 
-        if ($response->failed()) {
+            if ($response->failed()) {
+                Log::error("WhatsApp Media Upload Failure", [
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                    'phone_id' => $phoneNumberId
+                ]);
+                return [
+                    'success' => false,
+                    'error' => $response->json('error.message', 'Failed to upload message media')
+                ];
+            }
+
+            return [
+                'success' => true,
+                'media_id' => $response->json('id')
+            ];
+        } catch (\Exception $e) {
+            Log::error("WhatsApp Media Upload Exception: " . $e->getMessage());
             return [
                 'success' => false,
-                'error' => $response->json('error.message', 'Failed to upload message media')
+                'error' => "Network error during media upload: " . $e->getMessage()
             ];
         }
+    }
 
-        return [
-            'success' => true,
-            'media_id' => $response->json('id')
-        ];
+    /**
+     * Send an image message.
+     */
+    public function sendImage(string $phoneNumberId, string $accessToken, string $to, string $mediaId, ?string $caption = null, string $correlationId = 'N/A'): array
+    {
+        return $this->sendMediaMessage($phoneNumberId, $accessToken, $to, 'image', ['id' => $mediaId, 'caption' => $caption], $correlationId);
+    }
+
+    /**
+     * Send a video message.
+     */
+    public function sendVideo(string $phoneNumberId, string $accessToken, string $to, string $mediaId, ?string $caption = null, string $correlationId = 'N/A'): array
+    {
+        return $this->sendMediaMessage($phoneNumberId, $accessToken, $to, 'video', ['id' => $mediaId, 'caption' => $caption], $correlationId);
+    }
+
+    /**
+     * Send an audio message.
+     */
+    public function sendAudio(string $phoneNumberId, string $accessToken, string $to, string $mediaId, string $correlationId = 'N/A'): array
+    {
+        return $this->sendMediaMessage($phoneNumberId, $accessToken, $to, 'audio', ['id' => $mediaId], $correlationId);
+    }
+
+    /**
+     * Send a document message.
+     */
+    public function sendDocument(string $phoneNumberId, string $accessToken, string $to, string $mediaId, ?string $filename = null, ?string $caption = null, string $correlationId = 'N/A'): array
+    {
+        $payload = ['id' => $mediaId, 'caption' => $caption];
+        if ($filename) {
+            $payload['filename'] = $filename;
+        }
+        return $this->sendMediaMessage($phoneNumberId, $accessToken, $to, 'document', $payload, $correlationId);
+    }
+
+    /**
+     * Internal helper to send media messages.
+     */
+    protected function sendMediaMessage(string $phoneNumberId, string $accessToken, string $to, string $type, array $mediaData, string $correlationId): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(15)
+                ->post($url, [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $to,
+                    'type' => $type,
+                    $type => $mediaData
+                ]);
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'Unknown Meta API error');
+                return [
+                    'success' => false,
+                    'error' => $error,
+                    'status' => $response->status(),
+                    'data' => $response->json()
+                ];
+            }
+
+            return [
+                'success' => true,
+                'message_id' => $response->json('messages.0.id'),
+                'data' => $response->json()
+            ];
+        } catch (\Exception $e) {
+            Log::error("[{$correlationId}] WHATSAPP_MEDIA_SEND_EXCEPTION: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => "Network or connection error while sending {$type} message."
+            ];
+        }
     }
 }

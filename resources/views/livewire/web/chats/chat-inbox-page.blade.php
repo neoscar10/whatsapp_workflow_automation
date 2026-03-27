@@ -208,19 +208,70 @@
                                         </div>
                                     </div>
                                 </div>
-                            @elseif($message['message_type'] === 'image')
-                                <div class="flex max-w-[80%] flex-col items-start">
-                                    <div class="rounded-2xl rounded-tl-none border border-slate-100 bg-white p-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                                        <div class="w-72 overflow-hidden rounded-xl bg-slate-100 aspect-video">
-                                            <img src="{{ $message['media_url'] }}" alt="Message image" class="h-full w-full object-cover">
-                                        </div>
+                            @elseif(in_array($message['message_type'], ['image', 'video', 'audio', 'document']))
+                                <div class="flex max-w-[80%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
+                                    <div class="rounded-2xl {{ $message['direction'] === 'outbound' ? 'rounded-tr-none' : 'rounded-tl-none' }} border border-slate-100 bg-white p-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                        
+                                        @if($message['message_type'] === 'image')
+                                            <div class="w-72 overflow-hidden rounded-xl bg-slate-100 aspect-video group relative">
+                                                <img src="{{ $message['media_url'] ?? '#' }}" alt="Message image" class="h-full w-full object-cover">
+                                                <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span class="material-symbols-outlined text-white">open_in_new</span>
+                                                </a>
+                                            </div>
+                                        @elseif($message['message_type'] === 'video')
+                                            <div class="w-72 overflow-hidden rounded-xl bg-slate-900 aspect-video relative group flex items-center justify-center">
+                                                <video class="h-full w-full object-cover opacity-60">
+                                                    <source src="{{ $message['media_url'] ?? '#' }}">
+                                                </video>
+                                                <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="absolute inset-0 flex items-center justify-center transition-transform hover:scale-110">
+                                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg">
+                                                        <span class="material-symbols-outlined text-3xl">play_arrow</span>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        @elseif($message['message_type'] === 'audio')
+                                            <div class="w-72 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                                    <span class="material-symbols-outlined">audiotrack</span>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">Voice Memo / Audio</p>
+                                                    <audio controls class="mt-2 h-8 w-full scale-90 -ml-[5%]">
+                                                        <source src="{{ $message['media_url'] ?? '#' }}">
+                                                    </audio>
+                                                </div>
+                                            </div>
+                                        @elseif($message['message_type'] === 'document')
+                                            <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="w-72 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-primary shadow-sm border border-slate-100 dark:border-slate-700">
+                                                    <span class="material-symbols-outlined text-3xl">description</span>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate pr-4">{{ $message['media_meta']['filename'] ?? 'document.pdf' }}</p>
+                                                    <p class="text-[10px] font-bold text-slate-400 mt-0.5">{{ strtoupper(isset($message['media_meta']['filename']) ? pathinfo($message['media_meta']['filename'], PATHINFO_EXTENSION) : 'PDF') }}</p>
+                                                </div>
+                                                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors pr-2">download</span>
+                                            </a>
+                                        @endif
+
                                         @if(!empty($message['body']))
                                             <div class="px-2.5 py-2">
-                                                <p class="text-xs text-slate-500">{{ $message['body'] }}</p>
+                                                <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{{ $message['body'] }}</p>
                                             </div>
                                         @endif
                                     </div>
-                                    <span class="ml-1 mt-1 text-[10px] text-slate-400">{{ $message['time_label'] }}</span>
+                                    <div class="mt-1 {{ $message['direction'] === 'outbound' ? 'mr-1 flex items-center gap-1' : 'ml-1' }}">
+                                        <span class="text-[10px] text-slate-400">{{ $message['time_label'] }}</span>
+                                        @if($message['direction'] === 'outbound' && !empty($message['status_icon']))
+                                            <span 
+                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] ?? 'text-slate-400' }}"
+                                                @if(!empty($message['failure_message'])) title="{{ $message['failure_message'] }}" @endif
+                                            >
+                                                {{ $message['status_icon'] }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             @else
                                 <div class="flex max-w-[80%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
@@ -282,13 +333,77 @@
                             </div>
                         @endif
 
+                        {{-- Media Preview Tray --}}
+                        @if($composerMedia)
+                            <div class="mb-4 animate-in fade-in slide-in-from-bottom-2">
+                                <div class="relative flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                    {{-- Preview Image/Icon --}}
+                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-800">
+                                        @if(str_starts_with($composerMedia->getMimeType(), 'image/'))
+                                            <img src="{{ $composerMedia->temporaryUrl() }}" class="h-full w-full object-cover">
+                                        @else
+                                            <span class="material-symbols-outlined text-primary text-[32px]">
+                                                {{ str_starts_with($composerMedia->getMimeType(), 'video/') ? 'movie' : (str_starts_with($composerMedia->getMimeType(), 'audio/') ? 'audiotrack' : 'description') }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    {{-- File Info --}}
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-[11px] font-black uppercase tracking-tight text-slate-700 dark:text-slate-200">
+                                            {{ $composerMedia->getClientOriginalName() }}
+                                        </p>
+                                        <div class="mt-1 flex items-center gap-2">
+                                            <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:bg-slate-800">
+                                                {{ explode('/', $composerMedia->getMimeType())[1] ?? 'File' }}
+                                            </span>
+                                            <span class="text-[10px] font-bold text-slate-400">
+                                                {{ number_format($composerMedia->getSize() / 1024, 1) }} KB
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Note: Main input acts as caption --}}
+                                    <div class="absolute -top-2 -right-2 transform translate-x-1/4 -translate-y-1/4">
+                                        <div class="rounded-full bg-primary px-2 py-0.5 text-[8px] font-black uppercase text-white shadow-lg">
+                                            Adding Caption Below
+                                        </div>
+                                    </div>
+
+                                    {{-- Remove Button --}}
+                                    <button 
+                                        type="button" 
+                                        wire:click="removeComposerMedia"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all hover:bg-red-50 hover:text-red-500 dark:bg-slate-800 dark:hover:bg-red-900/30"
+                                    >
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="flex items-center gap-3 rounded-xl bg-slate-100 p-2 dark:bg-slate-800">
                             <button type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
                                 <span class="material-symbols-outlined">sentiment_satisfied</span>
                             </button>
-                            <button type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
+                            
+                            {{-- Hidden File Input --}}
+                            <input 
+                                type="file" 
+                                id="composerMediaInput" 
+                                class="hidden" 
+                                wire:model="composerMedia"
+                                accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            >
+                            <button 
+                                type="button" 
+                                onclick="document.getElementById('composerMediaInput').click()"
+                                class="p-2 text-slate-500 transition-colors hover:text-primary {{ $composerMedia ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
+                                title="Attach File"
+                            >
                                 <span class="material-symbols-outlined">attach_file</span>
                             </button>
+
                             <button 
                                 type="button" 
                                 wire:click="openTemplateSendModal"
@@ -301,7 +416,7 @@
                             <input
                                 wire:model.defer="messageText"
                                 type="text"
-                                placeholder="Type a message..."
+                                placeholder="{{ $composerMedia ? 'Add a caption...' : 'Type a message...' }}"
                                 class="flex-1 border-none bg-transparent px-2 text-sm placeholder:text-slate-500 focus:ring-0"
                                 wire:keydown.enter="sendMessage"
                             />
@@ -310,8 +425,11 @@
                                 type="button"
                                 wire:click="sendMessage"
                                 class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90"
+                                wire:loading.attr="disabled"
+                                wire:target="sendMessage, composerMedia"
                             >
-                                <span class="material-symbols-outlined">send</span>
+                                <span class="material-symbols-outlined" wire:loading.remove wire:target="sendMessage, composerMedia">send</span>
+                                <div wire:loading wire:target="sendMessage, composerMedia" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                             </button>
                         </div>
                     </div>
