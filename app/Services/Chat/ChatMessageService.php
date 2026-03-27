@@ -95,7 +95,7 @@ class ChatMessageService
             'message_type' => $type,
             'body' => $caption,
             'status' => 'pending',
-            'media_url' => $publicUrl,
+            'media_url' => $permanentPath, // Store the clean relative path
             'sent_by_user_id' => $user->id,
             'sent_at' => now(),
             'media_meta' => [
@@ -104,6 +104,17 @@ class ChatMessageService
                 'size' => $metadata['size'],
                 'local_path' => $permanentPath,
             ]
+        ]);
+
+        \Illuminate\Support\Facades\Log::info("MEDIA_MESSAGE_PERSISTED", [
+            'conversation_id' => $conversation->id,
+            'message_id' => $msg->id,
+            'type' => $type,
+            'media_url' => $msg->media_url,
+            'resolved_url' => $msg->resolved_media_url,
+            'disk' => 'public',
+            'mime' => $mime,
+            'name' => $metadata['name']
         ]);
 
         // Update conversation summary

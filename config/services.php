@@ -32,6 +32,7 @@ return [
     ],
 
     'whatsapp' => [
+        'app_id' => env('WHATSAPP_APP_ID'),
         'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
     ],
 

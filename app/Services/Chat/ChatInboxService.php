@@ -123,6 +123,7 @@ class ChatInboxService
                 'message_type' => $m->message_type,
                 'body' => $m->body,
                 'media_url' => $m->media_url,
+                'resolved_media_url' => $m->resolved_media_url,
                 'status' => $m->status,
                 'status_icon' => $this->getStatusIcon($m->status),
                 'status_color' => $this->getStatusColor($m->status),

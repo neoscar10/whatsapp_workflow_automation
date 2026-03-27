@@ -255,7 +255,7 @@ class WhatsAppGraphClient
      */
     public function createResumableUpload(string $accessToken, string $appId, int $fileSize, string $fileType): array
     {
-        $url = "https://graph.facebook.com/{$this->apiVersion}/{$appId}/uploads";
+        $url = "https://graph.facebook.com/{$this->version}/{$appId}/uploads";
         
         $response = Http::withToken($accessToken)->post($url, [
             'file_length' => $fileSize,
@@ -281,7 +281,7 @@ class WhatsAppGraphClient
      */
     public function uploadFileToSession(string $accessToken, string $uploadSessionId, $fileContents): array
     {
-        $url = "https://graph.facebook.com/{$this->apiVersion}/{$uploadSessionId}";
+        $url = "https://graph.facebook.com/{$this->version}/{$uploadSessionId}";
         
         $response = Http::withToken($accessToken)
             ->withBody($fileContents, 'application/octet-stream')

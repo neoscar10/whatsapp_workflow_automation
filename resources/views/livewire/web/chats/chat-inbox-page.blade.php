@@ -214,21 +214,42 @@
                                         
                                         @if($message['message_type'] === 'image')
                                             <div class="w-72 overflow-hidden rounded-xl bg-slate-100 aspect-video group relative">
-                                                <img src="{{ $message['media_url'] ?? '#' }}" alt="Message image" class="h-full w-full object-cover">
-                                                <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <span class="material-symbols-outlined text-white">open_in_new</span>
-                                                </a>
+                                                @if(!empty($message['resolved_media_url']))
+                                                    <img 
+                                                        src="{{ $message['resolved_media_url'] }}" 
+                                                        alt="Message image" 
+                                                        class="h-full w-full object-cover"
+                                                        onerror="this.onerror=null; this.src='https://placehold.co/400x300/1e293b/64748b?text=Image+Unavailable'; this.parentElement.classList.add('opacity-50');"
+                                                    >
+                                                    <a href="{{ $message['resolved_media_url'] }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span class="material-symbols-outlined text-white">open_in_new</span>
+                                                    </a>
+                                                @else
+                                                    <div class="flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-800">
+                                                        <div class="text-center p-4">
+                                                            <span class="material-symbols-outlined text-slate-400">image_not_supported</span>
+                                                            <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Image unavailable</p>
+                                                        </div>
+                                                    </div>
+                                                @endif
                                             </div>
                                         @elseif($message['message_type'] === 'video')
                                             <div class="w-72 overflow-hidden rounded-xl bg-slate-900 aspect-video relative group flex items-center justify-center">
-                                                <video class="h-full w-full object-cover opacity-60">
-                                                    <source src="{{ $message['media_url'] ?? '#' }}">
-                                                </video>
-                                                <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="absolute inset-0 flex items-center justify-center transition-transform hover:scale-110">
-                                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg">
-                                                        <span class="material-symbols-outlined text-3xl">play_arrow</span>
+                                                @if(!empty($message['resolved_media_url']))
+                                                    <video class="h-full w-full object-cover opacity-60">
+                                                        <source src="{{ $message['resolved_media_url'] }}">
+                                                    </video>
+                                                    <a href="{{ $message['resolved_media_url'] }}" target="_blank" class="absolute inset-0 flex items-center justify-center transition-transform hover:scale-110">
+                                                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg">
+                                                            <span class="material-symbols-outlined text-3xl">play_arrow</span>
+                                                        </div>
+                                                    </a>
+                                                @else
+                                                    <div class="text-center p-4">
+                                                        <span class="material-symbols-outlined text-slate-400">videocam_off</span>
+                                                        <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Video unavailable</p>
                                                     </div>
-                                                </a>
+                                                @endif
                                             </div>
                                         @elseif($message['message_type'] === 'audio')
                                             <div class="w-72 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
@@ -237,13 +258,17 @@
                                                 </div>
                                                 <div class="flex-1 min-w-0">
                                                     <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">Voice Memo / Audio</p>
-                                                    <audio controls class="mt-2 h-8 w-full scale-90 -ml-[5%]">
-                                                        <source src="{{ $message['media_url'] ?? '#' }}">
-                                                    </audio>
+                                                    @if(!empty($message['resolved_media_url']))
+                                                        <audio controls class="mt-2 h-8 w-full scale-90 -ml-[5%]">
+                                                            <source src="{{ $message['resolved_media_url'] }}">
+                                                        </audio>
+                                                    @else
+                                                        <p class="text-[10px] font-bold text-slate-500 mt-2">AUDIO UNAVAILABLE</p>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @elseif($message['message_type'] === 'document')
-                                            <a href="{{ $message['media_url'] ?? '#' }}" target="_blank" class="w-72 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                                            <a href="{{ $message['resolved_media_url'] ?? '#' }}" target="_blank" class="w-72 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
                                                 <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-primary shadow-sm border border-slate-100 dark:border-slate-700">
                                                     <span class="material-symbols-outlined text-3xl">description</span>
                                                 </div>
@@ -251,7 +276,9 @@
                                                     <p class="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate pr-4">{{ $message['media_meta']['filename'] ?? 'document.pdf' }}</p>
                                                     <p class="text-[10px] font-bold text-slate-400 mt-0.5">{{ strtoupper(isset($message['media_meta']['filename']) ? pathinfo($message['media_meta']['filename'], PATHINFO_EXTENSION) : 'PDF') }}</p>
                                                 </div>
-                                                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors pr-2">download</span>
+                                                @if(!empty($message['resolved_media_url']))
+                                                    <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors pr-2">download</span>
+                                                @endif
                                             </a>
                                         @endif
 

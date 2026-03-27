@@ -40,6 +40,7 @@ class ChatMessageReceived implements ShouldBroadcastNow
             'message_type' => $this->message->message_type,
             'body' => $this->message->body,
             'media_url' => $this->message->media_url,
+            'resolved_media_url' => $this->message->resolved_media_url,
             'status' => $this->message->status,
             'time_label' => $this->message->sent_at?->format('H:i') ?? now()->format('H:i'),
             'created_at' => $this->message->created_at->toDateTimeString(),
