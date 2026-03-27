@@ -334,16 +334,16 @@
                         @endif
 
                         {{-- Media Preview Tray --}}
-                        @if($composerMedia)
+                        @if($composerMedia && !empty($composerMediaMetadata))
                             <div class="mb-4 animate-in fade-in slide-in-from-bottom-2">
                                 <div class="relative flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                                     {{-- Preview Image/Icon --}}
                                     <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-800">
-                                        @if(str_starts_with($composerMedia->getMimeType(), 'image/'))
-                                            <img src="{{ $composerMedia->temporaryUrl() }}" class="h-full w-full object-cover">
+                                        @if($composerMediaMetadata['preview_url'])
+                                            <img src="{{ $composerMediaMetadata['preview_url'] }}" class="h-full w-full object-cover">
                                         @else
                                             <span class="material-symbols-outlined text-primary text-[32px]">
-                                                {{ str_starts_with($composerMedia->getMimeType(), 'video/') ? 'movie' : (str_starts_with($composerMedia->getMimeType(), 'audio/') ? 'audiotrack' : 'description') }}
+                                                {{ str_starts_with($composerMediaMetadata['mime'], 'video/') ? 'movie' : (str_starts_with($composerMediaMetadata['mime'], 'audio/') ? 'audiotrack' : 'description') }}
                                             </span>
                                         @endif
                                     </div>
@@ -351,14 +351,14 @@
                                     {{-- File Info --}}
                                     <div class="min-w-0 flex-1">
                                         <p class="truncate text-[11px] font-black uppercase tracking-tight text-slate-700 dark:text-slate-200">
-                                            {{ $composerMedia->getClientOriginalName() }}
+                                            {{ $composerMediaMetadata['name'] }}
                                         </p>
                                         <div class="mt-1 flex items-center gap-2">
                                             <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:bg-slate-800">
-                                                {{ explode('/', $composerMedia->getMimeType())[1] ?? 'File' }}
+                                                {{ explode('/', $composerMediaMetadata['mime'])[1] ?? 'File' }}
                                             </span>
                                             <span class="text-[10px] font-bold text-slate-400">
-                                                {{ number_format($composerMedia->getSize() / 1024, 1) }} KB
+                                                {{ number_format($composerMediaMetadata['size'] / 1024, 1) }} KB
                                             </span>
                                         </div>
                                     </div>

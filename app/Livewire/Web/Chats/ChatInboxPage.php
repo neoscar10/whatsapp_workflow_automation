@@ -24,6 +24,7 @@ class ChatInboxPage extends Component
     
     // Media Composer State
     public $composerMedia;
+    public array $composerMediaMetadata = [];
     public string $composerCaption = '';
 
     public ?string $errorMessage = null;
@@ -101,15 +102,32 @@ class ChatInboxPage extends Component
             $this->validate([
                 'composerMedia' => 'required|file|max:65536', // 64MB max for WhatsApp
             ]);
+
+            // Capture metadata safely while file is definitely there
+            $this->composerMediaMetadata = [
+                'name' => $this->composerMedia->getClientOriginalName(),
+                'size' => $this->composerMedia->getSize(),
+                'mime' => $this->composerMedia->getMimeType(),
+                'preview_url' => str_starts_with($this->composerMedia->getMimeType(), 'image/') 
+                    ? $this->composerMedia->temporaryUrl() 
+                    : null,
+            ];
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->composerMedia = null;
+            $this->composerMediaMetadata = [];
             $this->errorMessage = $e->getMessage();
+        } catch (\Exception $e) {
+            $this->composerMedia = null;
+            $this->composerMediaMetadata = [];
+            $this->errorMessage = 'Error processing file: ' . $e->getMessage();
         }
     }
 
     public function removeComposerMedia()
     {
         $this->composerMedia = null;
+        $this->composerMediaMetadata = [];
         $this->composerCaption = '';
     }
 
