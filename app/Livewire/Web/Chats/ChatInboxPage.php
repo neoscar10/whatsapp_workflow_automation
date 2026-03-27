@@ -170,8 +170,13 @@ class ChatInboxPage extends Component
                 );
                 
                 if ($result) {
+                    // Cleanup staged file
+                    if (!empty($this->composerMediaMetadata['staged_path'])) {
+                        \Illuminate\Support\Facades\Storage::delete($this->composerMediaMetadata['staged_path']);
+                    }
                     $this->messageText = '';
                     $this->composerMedia = null;
+                    $this->composerMediaMetadata = [];
                     $this->successMessage = "Media sent successfully.";
                 } else {
                     $this->errorMessage = 'Failed to send media.';

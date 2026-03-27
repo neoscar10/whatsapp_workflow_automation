@@ -334,7 +334,7 @@
                         @endif
 
                         {{-- Media Preview Tray --}}
-                        @if($composerMedia && !empty($composerMediaMetadata))
+                        @if(!empty($composerMediaMetadata))
                             <div class="mb-4 animate-in fade-in slide-in-from-bottom-2">
                                 <div class="relative flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                                     {{-- Preview Image/Icon --}}
@@ -398,7 +398,7 @@
                             <button 
                                 type="button" 
                                 onclick="document.getElementById('composerMediaInput').click()"
-                                class="p-2 text-slate-500 transition-colors hover:text-primary {{ $composerMedia ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
+                                class="p-2 text-slate-500 transition-colors hover:text-primary {{ !empty($composerMediaMetadata) ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
                                 title="Attach File"
                             >
                                 <span class="material-symbols-outlined">attach_file</span>
@@ -416,7 +416,7 @@
                             <input
                                 wire:model.defer="messageText"
                                 type="text"
-                                placeholder="{{ $composerMedia ? 'Add a caption...' : 'Type a message...' }}"
+                                placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"
                                 class="flex-1 border-none bg-transparent px-2 text-sm placeholder:text-slate-500 focus:ring-0"
                                 wire:keydown.enter="sendMessage"
                             />
