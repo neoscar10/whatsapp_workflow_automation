@@ -68,11 +68,11 @@ class ChatMessageService
         elseif (str_starts_with($mime, 'video/')) $type = 'video';
         elseif (str_starts_with($mime, 'audio/')) $type = 'audio';
 
-        // 2. Move from staging to permanent storage
+        // 2. Move from staging to permanent storage on the public disk
         $filename = time() . '_' . $metadata['name'];
-        $permanentPath = 'public/chat_media/' . $filename;
-        \Illuminate\Support\Facades\Storage::copy($stagedPath, $permanentPath);
-        $publicUrl = \Illuminate\Support\Facades\Storage::url($permanentPath);
+        $permanentPath = 'chat_media/' . $filename;
+        \Illuminate\Support\Facades\Storage::disk('public')->copy($stagedPath, $permanentPath);
+        $publicUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($permanentPath);
 
         // 3. Persist local message as pending
         $msg = $conversation->messages()->create([

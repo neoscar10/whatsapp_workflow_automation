@@ -109,16 +109,17 @@ class ChatInboxPage extends Component
             $fileMime = $this->composerMedia->getMimeType();
             $tempUrl = str_starts_with($fileMime, 'image/') ? $this->composerMedia->temporaryUrl() : null;
 
-            // Now move it (this might invalidate the temporary file handle)
+            // Now move it to the public disk so it is web-accessible via the storage link
             $filename = time() . '_' . $originalName;
-            $stagedPath = $this->composerMedia->storeAs('public/staging_media', $filename);
+            $stagedPath = $this->composerMedia->storeAs('staging_media', $filename, 'public');
+            $stagedUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($stagedPath);
             
             $this->composerMediaMetadata = [
                 'name' => $originalName,
                 'size' => $fileSize,
                 'mime' => $fileMime,
                 'staged_path' => $stagedPath,
-                'preview_url' => $tempUrl,
+                'preview_url' => str_starts_with($fileMime, 'image/') ? $stagedUrl : null,
             ];
 
             // CRITICAL: We nulled this to avoid Livewire trying to track a file that might be deleted/moved
@@ -139,7 +140,7 @@ class ChatInboxPage extends Component
     public function removeComposerMedia()
     {
         if (!empty($this->composerMediaMetadata['staged_path'])) {
-            \Illuminate\Support\Facades\Storage::delete($this->composerMediaMetadata['staged_path']);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($this->composerMediaMetadata['staged_path']);
         }
         $this->composerMedia = null;
         $this->composerMediaMetadata = [];
@@ -170,9 +171,9 @@ class ChatInboxPage extends Component
                 );
                 
                 if ($result) {
-                    // Cleanup staged file
+                    // Cleanup staged file on public disk
                     if (!empty($this->composerMediaMetadata['staged_path'])) {
-                        \Illuminate\Support\Facades\Storage::delete($this->composerMediaMetadata['staged_path']);
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($this->composerMediaMetadata['staged_path']);
                     }
                     $this->messageText = '';
                     $this->composerMedia = null;

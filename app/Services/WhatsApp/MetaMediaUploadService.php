@@ -65,8 +65,10 @@ class MetaMediaUploadService
         ]);
 
         if (is_string($file)) {
-            // Check if it's a storage path first
-            $realPath = Storage::exists($file) ? Storage::path($file) : $file;
+            // Check if it's a storage path on the public disk first
+            $realPath = \Illuminate\Support\Facades\Storage::disk('public')->exists($file) 
+                ? \Illuminate\Support\Facades\Storage::disk('public')->path($file) 
+                : $file;
             $fileContents = file_get_contents($realPath);
             $filename = basename($realPath);
             $mimeType = mime_content_type($realPath);
