@@ -156,16 +156,21 @@ class WhatsAppGraphClient
     {
         $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
 
+        $templateData = [
+            'name' => $templateName,
+            'language' => ['code' => $languageCode],
+        ];
+
+        if (!empty($components)) {
+            $templateData['components'] = $components;
+        }
+
         $payload = [
             'messaging_product' => 'whatsapp',
             'recipient_type' => 'individual',
             'to' => $to,
             'type' => 'template',
-            'template' => [
-                'name' => $templateName,
-                'language' => ['code' => $languageCode],
-                'components' => $components
-            ]
+            'template' => $templateData
         ];
 
         Log::info("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_PAYLOAD: Final payload to provider", [
