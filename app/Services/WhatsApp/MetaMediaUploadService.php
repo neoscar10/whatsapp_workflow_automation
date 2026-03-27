@@ -64,9 +64,17 @@ class MetaMediaUploadService
             'file' => is_string($file) ? $file : $file->getClientOriginalName()
         ]);
 
-        $fileContents = is_string($file) ? file_get_contents($file) : file_get_contents($file->getRealPath());
-        $filename = is_string($file) ? basename($file) : $file->getClientOriginalName();
-        $mimeType = is_string($file) ? mime_content_type($file) : $file->getMimeType();
+        if (is_string($file)) {
+            // Check if it's a storage path first
+            $realPath = Storage::exists($file) ? Storage::path($file) : $file;
+            $fileContents = file_get_contents($realPath);
+            $filename = basename($realPath);
+            $mimeType = mime_content_type($realPath);
+        } else {
+            $fileContents = file_get_contents($file->getRealPath());
+            $filename = $file->getClientOriginalName();
+            $mimeType = $file->getMimeType();
+        }
 
         $result = $this->graphClient->uploadMessageMedia(
             $phoneNumberId,

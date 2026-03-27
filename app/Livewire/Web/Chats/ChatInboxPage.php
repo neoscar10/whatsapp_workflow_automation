@@ -104,14 +104,22 @@ class ChatInboxPage extends Component
             ]);
 
             // Capture metadata safely while file is definitely there
+            $filename = time() . '_' . $this->composerMedia->getClientOriginalName();
+            $stagedPath = $this->composerMedia->storeAs('public/staging_media', $filename);
+            
             $this->composerMediaMetadata = [
                 'name' => $this->composerMedia->getClientOriginalName(),
                 'size' => $this->composerMedia->getSize(),
                 'mime' => $this->composerMedia->getMimeType(),
+                'staged_path' => $stagedPath,
                 'preview_url' => str_starts_with($this->composerMedia->getMimeType(), 'image/') 
                     ? $this->composerMedia->temporaryUrl() 
                     : null,
             ];
+
+            // CRITICAL: We nulled this to avoid Livewire trying to track a file that might be deleted/moved
+            // but we keep the staged path in metadata.
+            $this->composerMedia = null;
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->composerMedia = null;
@@ -126,6 +134,9 @@ class ChatInboxPage extends Component
 
     public function removeComposerMedia()
     {
+        if (!empty($this->composerMediaMetadata['staged_path'])) {
+            \Illuminate\Support\Facades\Storage::delete($this->composerMediaMetadata['staged_path']);
+        }
         $this->composerMedia = null;
         $this->composerMediaMetadata = [];
         $this->composerCaption = '';
@@ -138,7 +149,7 @@ class ChatInboxPage extends Component
         $text = trim($this->messageText);
         
         // Handle Media Send
-        if ($this->composerMedia) {
+        if (!empty($this->composerMediaMetadata['staged_path'])) {
             if (!$this->selectedConversationId) {
                 $this->errorMessage = 'No active conversation selected to send media to.';
                 return;
@@ -146,7 +157,13 @@ class ChatInboxPage extends Component
 
             try {
                 $caption = trim($this->messageText) ?: null;
-                $result = $messageService->sendMediaMessage(auth()->user(), $this->selectedConversationId, $this->composerMedia, $caption);
+                $result = $messageService->sendMediaMessage(
+                    auth()->user(), 
+                    $this->selectedConversationId, 
+                    $this->composerMediaMetadata['staged_path'], 
+                    $this->composerMediaMetadata,
+                    $caption
+                );
                 
                 if ($result) {
                     $this->messageText = '';

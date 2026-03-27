@@ -54,7 +54,7 @@ class ChatMessageService
     /**
      * Send a media message (upload then send).
      */
-    public function sendMediaMessage(User $user, int $conversationId, $file, ?string $caption = null): ?ConversationMessage
+    public function sendMediaMessage(User $user, int $conversationId, string $stagedPath, array $metadata, ?string $caption = null): ?ConversationMessage
     {
         $conversation = $this->inboxService->getActiveConversationForUser($user, $conversationId);
         if (!$conversation) {
@@ -62,16 +62,17 @@ class ChatMessageService
         }
 
         // 1. Identify media type
-        $mime = $file->getMimeType();
+        $mime = $metadata['mime'] ?? 'application/octet-stream';
         $type = 'document';
         if (str_starts_with($mime, 'image/')) $type = 'image';
         elseif (str_starts_with($mime, 'video/')) $type = 'video';
         elseif (str_starts_with($mime, 'audio/')) $type = 'audio';
 
-        // 2. Store file locally for UI persistence
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('public/chat_media', $filename);
-        $publicUrl = \Illuminate\Support\Facades\Storage::url($path);
+        // 2. Move from staging to permanent storage
+        $filename = time() . '_' . $metadata['name'];
+        $permanentPath = 'public/chat_media/' . $filename;
+        \Illuminate\Support\Facades\Storage::copy($stagedPath, $permanentPath);
+        $publicUrl = \Illuminate\Support\Facades\Storage::url($permanentPath);
 
         // 3. Persist local message as pending
         $msg = $conversation->messages()->create([
@@ -83,10 +84,10 @@ class ChatMessageService
             'sent_by_user_id' => $user->id,
             'sent_at' => now(),
             'media_meta' => [
-                'filename' => $file->getClientOriginalName(),
+                'filename' => $metadata['name'],
                 'mime_type' => $mime,
-                'size' => $file->getSize(),
-                'local_path' => $path,
+                'size' => $metadata['size'],
+                'local_path' => $permanentPath,
             ]
         ]);
 
