@@ -97,7 +97,7 @@ class WhatsAppGraphClient
     /**
      * Send a text message via WhatsApp Cloud API.
      */
-    public function sendTextMessage(string $phoneNumberId, string $accessToken, string $to, string $text): array
+    public function sendTextMessage(string $phoneNumberId, string $accessToken, string $to, string $text, string $correlationId = 'N/A'): array
     {
         $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
 
@@ -114,7 +114,7 @@ class WhatsAppGraphClient
 
             if ($response->failed()) {
                 $error = $response->json('error.message', 'Unknown Meta API error');
-                Log::error("WhatsApp API Error (sendTextMessage): {$error}", [
+                Log::error("[{$correlationId}] WHATSAPP_SEND_FAILURE: {$error}", [
                     'phone_id' => $phoneNumberId,
                     'to' => $to,
                     'status' => $response->status(),
@@ -135,9 +135,11 @@ class WhatsAppGraphClient
             ];
 
         } catch (\Exception $e) {
-            Log::error("WhatsApp API Exception (sendTextMessage): " . $e->getMessage(), [
+            Log::error("[{$correlationId}] WHATSAPP_SEND_EXCEPTION: " . $e->getMessage(), [
                 'phone_id' => $phoneNumberId,
-                'to' => $to
+                'to' => $to,
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
 
             return [
@@ -150,52 +152,74 @@ class WhatsAppGraphClient
     /**
      * Send a template message via WhatsApp Cloud API.
      */
-    public function sendTemplate(string $phoneNumberId, string $accessToken, string $to, string $templateName, string $languageCode = 'en_US', array $components = []): array
+    public function sendTemplate(string $phoneNumberId, string $accessToken, string $to, string $templateName, string $languageCode = 'en_US', array $components = [], string $correlationId = 'N/A'): array
     {
         $url = "{$this->baseUrl}/{$this->version}/{$phoneNumberId}/messages";
+
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+            'type' => 'template',
+            'template' => [
+                'name' => $templateName,
+                'language' => ['code' => $languageCode],
+                'components' => $components
+            ]
+        ];
+
+        Log::info("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_PAYLOAD: Final payload to provider", [
+            'url' => $url,
+            'payload' => $payload,
+            'components_count' => count($components)
+        ]);
 
         try {
             $response = Http::withToken($accessToken)
                 ->timeout(15)
-                ->post($url, [
-                    'messaging_product' => 'whatsapp',
-                    'recipient_type' => 'individual',
-                    'to' => $to,
-                    'type' => 'template',
-                    'template' => [
-                        'name' => $templateName,
-                        'language' => ['code' => $languageCode],
-                        'components' => $components
-                    ]
-                ]);
+                ->post($url, $payload);
+
+            $responseBody = $response->json();
 
             if ($response->failed()) {
                 $error = $response->json('error.message', 'Unknown Meta API error');
-                Log::error("WhatsApp API Error (sendTemplate): {$error}", [
-                    'phone_id' => $phoneNumberId,
-                    'to' => $to,
+                
+                Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Meta API rejected template", [
+                    'status_code' => $response->status(),
+                    'error_message' => $error,
+                    'error_code' => $response->json('error.code'),
+                    'error_subcode' => $response->json('error.error_subcode'),
+                    'response_body' => $responseBody,
                     'template' => $templateName,
-                    'status' => $response->status(),
-                    'response' => $response->json()
+                    'phone_id' => $phoneNumberId
                 ]);
 
                 return [
                     'success' => false,
                     'error' => $error,
-                    'status' => $response->status()
+                    'status' => $response->status(),
+                    'response_body' => $responseBody
                 ];
             }
+
+            Log::info("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_SUCCESS: Meta API accepted template", [
+                'status_code' => $response->status(),
+                'message_id' => $response->json('messages.0.id'),
+                'response_body' => $responseBody
+            ]);
 
             return [
                 'success' => true,
                 'message_id' => $response->json('messages.0.id'),
-                'data' => $response->json()
+                'data' => $responseBody
             ];
 
         } catch (\Exception $e) {
-            Log::error("WhatsApp API Exception (sendTemplate): " . $e->getMessage(), [
-                'phone_id' => $phoneNumberId,
-                'to' => $to
+            Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Network or Runtime Exception", [
+                'exception' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'method' => __METHOD__
             ]);
 
             return [
