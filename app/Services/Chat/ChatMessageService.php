@@ -71,8 +71,23 @@ class ChatMessageService
         // 2. Move from staging to permanent storage on the public disk
         $filename = time() . '_' . $metadata['name'];
         $permanentPath = 'chat_media/' . $filename;
-        \Illuminate\Support\Facades\Storage::disk('public')->copy($stagedPath, $permanentPath);
-        $publicUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($permanentPath);
+        
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        
+        // Ensure the permanent directory exists
+        if (!$disk->exists('chat_media')) {
+            $disk->makeDirectory('chat_media');
+        }
+
+        if (!$disk->move($stagedPath, $permanentPath)) {
+            \Illuminate\Support\Facades\Log::error("Failed to move media from staged path", [
+                'staged' => $stagedPath,
+                'permanent' => $permanentPath
+            ]);
+            throw new \Exception("Could not persist media file to permanent storage.");
+        }
+
+        $publicUrl = $disk->url($permanentPath);
 
         // 3. Persist local message as pending
         $msg = $conversation->messages()->create([
@@ -110,7 +125,7 @@ class ChatMessageService
             $mediaId = $mediaService->uploadMessageMedia(
                 $conversation->whatsappPhoneNumber->phone_number_id,
                 $account->access_token,
-                $file
+                $permanentPath
             );
 
             if ($mediaId) {
