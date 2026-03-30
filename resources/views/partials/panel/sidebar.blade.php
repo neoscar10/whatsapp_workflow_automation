@@ -35,6 +35,12 @@
                 <p class="text-sm font-bold">Templates</p>
             </a>
 
+            <a href="{{ route('automations.index') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ request()->routeIs('automations.*') ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ request()->routeIs('automations.*') ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">auto_awesome</span>
+                <p class="text-sm font-bold">Automations</p>
+            </a>
+
             <a href="{{ route('whatsapp.setup.phone-numbers') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">settings_suggest</span>

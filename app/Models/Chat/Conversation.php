@@ -18,6 +18,7 @@ class Conversation extends Model
 
     protected $casts = [
         'last_message_at' => 'datetime',
+        'last_customer_message_at' => 'datetime',
         'assigned_at' => 'datetime',
         'labels' => 'array',
         'metadata' => 'array',
@@ -46,5 +47,17 @@ class Conversation extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(ConversationNote::class);
+    }
+
+    /**
+     * Determine if the WhatsApp 24-hour service window is currently active.
+     */
+    public function getIsSessionActiveAttribute(): bool
+    {
+        if (!$this->last_customer_message_at) {
+            return false;
+        }
+
+        return $this->last_customer_message_at->diffInHours(now()) < 24;
     }
 }

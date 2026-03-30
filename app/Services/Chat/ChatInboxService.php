@@ -32,6 +32,7 @@ class ChatInboxService
                     'avatar_url' => $activeConversationModel->contact_avatar_url,
                     'location' => $activeConversationModel->contact_location,
                     'is_active' => true,
+                    'is_session_active' => $activeConversationModel->is_session_active,
                 ];
 
                 $messages = $this->getMessagesForConversation($user, $activeConversationModel->id);
@@ -49,6 +50,7 @@ class ChatInboxService
                 'time_label' => $c->last_message_at ? $c->last_message_at->diffForHumans(short: true) : '',
                 'unread_count' => $c->unread_count,
                 'is_active' => true,
+                'is_session_active' => $c->is_session_active,
             ]),
             'activeConversation' => $activeConversation,
             'messages' => $messages,

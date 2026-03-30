@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/whatsapp/*',
             'webhooks/whatsapp/meta',
             'webhooks/whatsapp/meta/',
+            'api/v1/automation/webhooks/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

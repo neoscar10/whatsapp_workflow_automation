@@ -114,8 +114,8 @@
                                     </div>
                                 @endif
 
-                                @if(!empty($conversation['is_active']))
-                                    <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-900"></span>
+                                @if(!empty($conversation['is_session_active']))
+                                    <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-900" title="Active Window"></span>
                                 @endif
                             </div>
 
@@ -158,9 +158,12 @@
                                 <h2 class="leading-none font-bold text-slate-900 dark:text-white">{{ $activeConversation['name'] }}</h2>
                                 <div class="mt-1 flex items-center gap-2">
                                     <span class="text-xs text-slate-500">{{ $activeConversation['phone'] }}</span>
-                                    @if(!empty($activeConversation['is_active']))
+                                    @if(!empty($activeConversation['is_session_active']))
                                         <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-green-600">Active</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-green-600">Active Session</span>
+                                    @else
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Session Expired</span>
                                     @endif
                                 </div>
                             </div>
@@ -409,56 +412,76 @@
                             </div>
                         @endif
 
-                        <div class="flex items-center gap-3 rounded-xl bg-slate-100 p-2 dark:bg-slate-800">
-                            <button type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
-                                <span class="material-symbols-outlined">sentiment_satisfied</span>
-                            </button>
-                            
-                            {{-- Hidden File Input --}}
-                            <input 
-                                type="file" 
-                                id="composerMediaInput" 
-                                class="hidden" 
-                                wire:model="composerMedia"
-                                accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            >
-                            <button 
-                                type="button" 
-                                onclick="document.getElementById('composerMediaInput').click()"
-                                class="p-2 text-slate-500 transition-colors hover:text-primary {{ !empty($composerMediaMetadata) ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
-                                title="Attach File"
-                            >
-                                <span class="material-symbols-outlined">attach_file</span>
-                            </button>
+                        @if($activeConversation['is_session_active'])
+                            <div class="flex items-center gap-3 rounded-xl bg-slate-100 p-2 dark:bg-slate-800">
+                                <button type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
+                                    <span class="material-symbols-outlined">sentiment_satisfied</span>
+                                </button>
+                                
+                                {{-- Hidden File Input --}}
+                                <input 
+                                    type="file" 
+                                    id="composerMediaInput" 
+                                    class="hidden" 
+                                    wire:model="composerMedia"
+                                    accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                >
+                                <button 
+                                    type="button" 
+                                    onclick="document.getElementById('composerMediaInput').click()"
+                                    class="p-2 text-slate-500 transition-colors hover:text-primary {{ !empty($composerMediaMetadata) ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
+                                    title="Attach File"
+                                >
+                                    <span class="material-symbols-outlined">attach_file</span>
+                                </button>
 
-                            <button 
-                                type="button" 
-                                wire:click="openTemplateSendModal"
-                                class="p-2 text-slate-500 transition-colors hover:text-primary"
-                                title="Send Template"
-                            >
-                                <span class="material-symbols-outlined">auto_awesome</span>
-                            </button>
+                                <button 
+                                    type="button" 
+                                    wire:click="openTemplateSendModal"
+                                    class="p-2 text-slate-500 transition-colors hover:text-primary"
+                                    title="Send Template"
+                                >
+                                    <span class="material-symbols-outlined">auto_awesome</span>
+                                </button>
 
-                            <input
-                                wire:model.defer="messageText"
-                                type="text"
-                                placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"
-                                class="flex-1 border-none bg-transparent px-2 text-sm placeholder:text-slate-500 focus:ring-0"
-                                wire:keydown.enter="sendMessage"
-                            />
+                                <input
+                                    wire:model.defer="messageText"
+                                    type="text"
+                                    placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"
+                                    class="flex-1 border-none bg-transparent px-2 text-sm placeholder:text-slate-500 focus:ring-0"
+                                    wire:keydown.enter="sendMessage"
+                                />
 
-                            <button
-                                type="button"
-                                wire:click="sendMessage"
-                                class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90"
-                                wire:loading.attr="disabled"
-                                wire:target="sendMessage, composerMedia"
-                            >
-                                <span class="material-symbols-outlined" wire:loading.remove wire:target="sendMessage, composerMedia">send</span>
-                                <div wire:loading wire:target="sendMessage, composerMedia" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            </button>
-                        </div>
+                                <button
+                                    type="button"
+                                    wire:click="sendMessage"
+                                    class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90"
+                                    wire:loading.attr="disabled"
+                                    wire:target="sendMessage, composerMedia"
+                                >
+                                    <span class="material-symbols-outlined" wire:loading.remove wire:target="sendMessage, composerMedia">send</span>
+                                    <div wire:loading wire:target="sendMessage, composerMedia" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                </button>
+                            </div>
+                        @else
+                            <div class="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500 dark:bg-amber-900/20">
+                                    <span class="material-symbols-outlined">history_toggle_off</span>
+                                </div>
+                                <div class="text-center">
+                                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">Messaging Window Closed</h4>
+                                    <p class="mt-1 text-xs text-slate-500">It's been more than 24 hours since the user last messaged you. To restart the conversation, you must send a pre-approved template.</p>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    wire:click="openTemplateSendModal"
+                                    class="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
+                                >
+                                    <span class="material-symbols-outlined text-lg">auto_awesome</span>
+                                    Send WhatsApp Template
+                                </button>
+                            </div>
+                        @endif
                     </div>
                 </section>
 
