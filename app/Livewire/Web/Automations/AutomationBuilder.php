@@ -206,7 +206,11 @@ class AutomationBuilder extends Component
             'label' => $this->getDefaultLabel($subtype),
             'position_x' => $x,
             'position_y' => $y,
-            'config' => [],
+            'config' => $type === 'trigger' ? [
+                'trigger_category' => $subtype,
+                'trigger_type' => $subtype,
+                'trigger_definition_key' => $subtype === 'event_based' ? 'new_message_received' : null
+            ] : []
         ]);
 
         $this->loadState(); // Refresh to ensure it's in the collection for immediate selection
@@ -353,6 +357,22 @@ class AutomationBuilder extends Component
                 
                 // Map 'webhook' to 'webhook_api' for consistency
                 if ($category === 'webhook') $category = 'webhook_api';
+
+                // AUTO-REPAIR: If category is blank in DB but we know it's a trigger,
+                // populate it and sync back to ensure persistence.
+                if (empty($this->nodeConfig['trigger_category'])) {
+                    Log::info("Auto-repairing trigger node [{$node->id}] in Builder", ['subtype' => $node->subtype]);
+                    $this->nodeConfig['trigger_category'] = $category;
+                    $this->nodeConfig['trigger_type'] = $this->nodeConfig['trigger_type'] ?? $category;
+                    
+                    if ($category === 'event_based') {
+                        $this->nodeConfig['trigger_definition_key'] = $this->nodeConfig['trigger_definition_key'] ?? 'new_message_received';
+                    }
+
+                    $node->config = $this->nodeConfig;
+                    $node->save();
+                }
+
                 $this->nodeConfig['trigger_category'] = $category;
                 $this->nodeConfig['trigger_type'] = $this->nodeConfig['trigger_type'] ?? $category;
 
@@ -584,6 +604,13 @@ class AutomationBuilder extends Component
 
         $node->config = $this->nodeConfig;
         $node->save();
+
+        Log::info("Node configuration saved to DB", [
+            'node_id' => $node->id,
+            'type' => $node->type,
+            'subtype' => $node->subtype,
+            'config_category' => $node->config['trigger_category'] ?? null
+        ]);
 
         // Update local collection
         $index = $this->nodes->search(fn($n) => $n->id === $this->selectedNodeId);

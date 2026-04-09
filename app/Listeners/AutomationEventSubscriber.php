@@ -33,13 +33,26 @@ class AutomationEventSubscriber
             }
 
             $currentCategory = $trigger->config['trigger_category'] ?? null;
+            
+            // Backup: If category is empty in config, derive from subtype
+            if (!$currentCategory) {
+                $currentCategory = $trigger->subtype;
+            }
+
+            $defKey = $trigger->config['trigger_definition_key'] ?? $trigger->subtype;
+
+            Log::info("Evaluating Trigger Correlation:", [
+                'flow_id' => $flow->id,
+                'category' => $currentCategory,
+                'definition_key' => $defKey,
+                'subtype' => $trigger->subtype,
+                'is_event_based' => ($currentCategory === 'event_based')
+            ]);
+
             if ($currentCategory !== 'event_based') {
                 Log::info("Skipping Flow [{$flow->id}]: Trigger category is '{$currentCategory}', expected 'event_based'.", ['node_id' => $trigger->id]);
                 continue;
             }
-
-            $defKey = $trigger->config['trigger_definition_key'] ?? $trigger->subtype;
-            Log::info("Evaluating Trigger: [Node: {$trigger->id}] [Subtype: {$trigger->subtype}] [DefKey: {$defKey}]");
 
             // Broaden matching: Trigger if it's the specific WhatsApp event OR a generic webhook/webhook_api 
             // set to listen for everything.
