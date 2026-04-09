@@ -210,8 +210,14 @@ class AutomationBuilder extends Component
             'config' => $type === 'trigger' ? [
                 'trigger_category' => $subtype,
                 'trigger_type' => $subtype,
-                'trigger_definition_key' => $subtype === 'event_based' ? 'new_message_received' : null
+                'trigger_definition_key' => $subtype === 'event_based' ? 'new_message_received' : ($subtype === 'webhook_api' ? 'generic_incoming_webhook' : null)
             ] : []
+        ]);
+
+        \Illuminate\Support\Facades\Log::info("AUDIT: New Trigger Created", [
+            'node_id' => $node->id,
+            'subtype' => $node->subtype,
+            'config' => $node->config
         ]);
 
         $this->loadState(); // Refresh to ensure it's in the collection for immediate selection
@@ -603,7 +609,10 @@ class AutomationBuilder extends Component
 
         $node = AutomationNode::findOrFail($this->selectedNodeId);
         
-        // Persist subtype changes if they happened in config
+        // Ensure trigger_category is NEVER null during save for triggers
+        if ($node->type === 'trigger' && empty($this->nodeConfig['trigger_category'])) {
+            $this->nodeConfig['trigger_category'] = $this->nodeConfig['trigger_category'] ?? $node->subtype;
+        }
         if ($node->type === 'trigger' && isset($this->nodeConfig['trigger_category'])) {
             $node->subtype = $this->nodeConfig['trigger_category'];
         } elseif ($node->type === 'loop' && isset($this->nodeConfig['loop_type'])) {

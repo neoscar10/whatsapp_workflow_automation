@@ -35,9 +35,14 @@ class AutomationEventSubscriber
             $currentCategory = $trigger->config['trigger_category'] ?? null;
             $defKey = $trigger->config['trigger_definition_key'] ?? $trigger->subtype;
 
-            // Defensive Fallback: If category is event_based but definition is generic/empty, 
-            // force it to new_message_received for this WhatsApp integration.
-            if ($currentCategory === 'event_based' && in_array($defKey, ['event_based', '', null])) {
+            // Aggressive Rescue Fallback: Handle new flows where builder persisted 'event_based' as definition
+            // or where category is completely missing (null).
+            if ($trigger->subtype === 'event_based' && ($currentCategory === null || in_array($defKey, ['event_based', '', null]))) {
+                \Illuminate\Support\Facades\Log::info("RESCUE: Resolving missing/generic event metadata for Flow [{$flow->id}]", [
+                    'old_category' => $currentCategory,
+                    'old_defKey' => $defKey
+                ]);
+                $currentCategory = 'event_based';
                 $defKey = 'new_message_received';
             }
 
