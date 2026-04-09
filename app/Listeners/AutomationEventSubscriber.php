@@ -6,6 +6,7 @@ use App\Events\Chat\InboundMessageReceived;
 use App\Services\Automations\AutomationTriggerService;
 use App\Models\AutomationFlow;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Support\Facades\Log;
 
 class AutomationEventSubscriber
 {
