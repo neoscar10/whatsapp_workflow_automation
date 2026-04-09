@@ -61,6 +61,22 @@ class AutomationTriggerService
             return null;
         }
 
+        // Idempotency Safeguard: Check if we have already fired this specific trigger for this specific message
+        if (isset($payload['message_id'])) {
+            $duplicate = AutomationRun::where('trigger_node_id', $node->id)
+                ->where('created_at', '>=', now()->subMinutes(5))
+                ->where('trigger_context->message_id', $payload['message_id'])
+                ->exists();
+
+            if ($duplicate) {
+                \Illuminate\Support\Facades\Log::info("Idempotency Safeguard Triggered: Automation [{$node->automation_flow_id}] already fired for message [{$payload['message_id']}]. Aborting duplicate run.", [
+                    'node_id' => $node->id,
+                    'message_id' => $payload['message_id']
+                ]);
+                return null;
+            }
+        }
+
         try {
             $runData = [
                 'automation_flow_id' => $node->automation_flow_id,

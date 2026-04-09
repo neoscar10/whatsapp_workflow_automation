@@ -13,7 +13,7 @@ class AutomationEventSubscriber
     /**
      * Handle inbound message events.
      */
-    public function handleInboundMessage(InboundMessageReceived $event)
+    public function onInboundMessageReceived(InboundMessageReceived $event)
     {
         Log::info('TRACE B: AutomationEventSubscriber reached', ['event_company_id' => $event->companyId]);
 
@@ -95,7 +95,7 @@ class AutomationEventSubscriber
     public function subscribe(Dispatcher $events): array
     {
         return [
-            InboundMessageReceived::class => 'handleInboundMessage',
+            InboundMessageReceived::class => 'onInboundMessageReceived',
         ];
     }
 }
