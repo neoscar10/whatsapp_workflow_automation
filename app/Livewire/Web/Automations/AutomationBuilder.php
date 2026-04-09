@@ -9,6 +9,7 @@ use App\Models\WhatsApp\WhatsAppAccount;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Models\WhatsApp\WhatsAppTemplate;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use App\Services\Automations\FlowValidator;
@@ -217,6 +218,16 @@ class AutomationBuilder extends Component
         $this->selectNode($node->id);
     }
 
+    public function updatedNodeConfigTriggerCategory($value)
+    {
+        $this->nodeConfig['trigger_type'] = $value;
+        $this->nodeConfig['trigger_definition_key'] = $value === 'event_based' ? 'new_message_received' : null;
+        
+        if ($this->nodeConfig['trigger_definition_key']) {
+            $this->updatedNodeConfigTriggerDefinitionKey($this->nodeConfig['trigger_definition_key']);
+        }
+    }
+
     public function openCustomTriggerModal()
     {
         $this->showCustomTriggerModal = true;
@@ -361,14 +372,23 @@ class AutomationBuilder extends Component
                 // AUTO-REPAIR: If category is blank in DB but we know it's a trigger,
                 // populate it and sync back to ensure persistence.
                 if (empty($this->nodeConfig['trigger_category'])) {
-                    Log::info("Auto-repairing trigger node [{$node->id}] in Builder", ['subtype' => $node->subtype]);
+                    Log::info("Auto-repairing trigger node [{$node->id}] in Builder: Missing category", ['subtype' => $node->subtype]);
                     $this->nodeConfig['trigger_category'] = $category;
                     $this->nodeConfig['trigger_type'] = $this->nodeConfig['trigger_type'] ?? $category;
                     
                     if ($category === 'event_based') {
-                        $this->nodeConfig['trigger_definition_key'] = $this->nodeConfig['trigger_definition_key'] ?? 'new_message_received';
+                        $this->nodeConfig['trigger_definition_key'] = 'new_message_received';
                     }
 
+                    $node->config = $this->nodeConfig;
+                    $node->save();
+                }
+
+                if ($this->nodeConfig['trigger_category'] === 'event_based' && in_array($this->nodeConfig['trigger_definition_key'] ?? '', ['event_based', '', null])) {
+                    Log::info("Auto-repairing trigger node [{$node->id}] in Builder: Correcting definition key to new_message_received", [
+                        'old_val' => $this->nodeConfig['trigger_definition_key'] ?? 'null'
+                    ]);
+                    $this->nodeConfig['trigger_definition_key'] = 'new_message_received';
                     $node->config = $this->nodeConfig;
                     $node->save();
                 }
@@ -458,16 +478,6 @@ class AutomationBuilder extends Component
             unset($this->nodeConfig['rules'][$index]);
             $this->nodeConfig['rules'] = array_values($this->nodeConfig['rules']);
         }
-    }
-
-    public function updatedNodeConfigTriggerCategory($value)
-    {
-        if (in_array($value, ['webhook', 'webhook_api'])) {
-            $this->ensureWebhookProvisioned();
-        }
-        
-        // Reset definition if category changes
-        $this->nodeConfig['trigger_definition_key'] = null;
     }
 
     public function updatedNodeConfigTriggerDefinitionKey($value)
@@ -602,14 +612,17 @@ class AutomationBuilder extends Component
             $node->subtype = $this->nodeConfig['wait_mode'];
         }
 
+        \Illuminate\Support\Facades\Log::info("AUDIT: Pre-Save Trigger Config", [
+            'node_id' => $node->id,
+            'config' => $this->nodeConfig
+        ]);
+
         $node->config = $this->nodeConfig;
         $node->save();
 
-        Log::info("Node configuration saved to DB", [
+        \Illuminate\Support\Facades\Log::info("AUDIT: Post-Save Verfication", [
             'node_id' => $node->id,
-            'type' => $node->type,
-            'subtype' => $node->subtype,
-            'config_category' => $node->config['trigger_category'] ?? null
+            'stored_config' => $node->refresh()->config
         ]);
 
         // Update local collection

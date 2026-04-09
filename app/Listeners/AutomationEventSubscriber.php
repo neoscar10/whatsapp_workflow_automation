@@ -21,27 +21,27 @@ class AutomationEventSubscriber
             ->where('is_enabled', true)
             ->get();
 
-        Log::info('TRACE C: Matching Flows Found', ['count' => count($activeFlows)]);
+        \Illuminate\Support\Facades\Log::info('TRACE C: Matching Flows Found', ['count' => count($activeFlows)]);
 
         foreach ($activeFlows as $flow) {
-            Log::info("Processing Matched Flow: [{$flow->id}] {$flow->name}");
+            \Illuminate\Support\Facades\Log::info("Processing Matched Flow: [{$flow->id}] {$flow->name}");
             $trigger = $flow->nodes()->where('type', 'trigger')->first();
             
             if (!$trigger) {
-                Log::info("Skipping Flow [{$flow->id}]: No trigger node found.");
+                \Illuminate\Support\Facades\Log::info("Skipping Flow [{$flow->id}]: No trigger node found.");
                 continue;
             }
 
             $currentCategory = $trigger->config['trigger_category'] ?? null;
-            
-            // Backup: If category is empty in config, derive from subtype
-            if (!$currentCategory) {
-                $currentCategory = $trigger->subtype;
-            }
-
             $defKey = $trigger->config['trigger_definition_key'] ?? $trigger->subtype;
 
-            Log::info("Evaluating Trigger Correlation:", [
+            // Defensive Fallback: If category is event_based but definition is generic/empty, 
+            // force it to new_message_received for this WhatsApp integration.
+            if ($currentCategory === 'event_based' && in_array($defKey, ['event_based', '', null])) {
+                $defKey = 'new_message_received';
+            }
+
+            \Illuminate\Support\Facades\Log::info("Evaluating Trigger Correlation:", [
                 'flow_id' => $flow->id,
                 'category' => $currentCategory,
                 'definition_key' => $defKey,
@@ -50,7 +50,7 @@ class AutomationEventSubscriber
             ]);
 
             if ($currentCategory !== 'event_based') {
-                Log::info("Skipping Flow [{$flow->id}]: Trigger category is '{$currentCategory}', expected 'event_based'.", ['node_id' => $trigger->id]);
+                \Illuminate\Support\Facades\Log::info("Skipping Flow [{$flow->id}]: Trigger category is '{$currentCategory}', expected 'event_based'.", ['node_id' => $trigger->id]);
                 continue;
             }
 

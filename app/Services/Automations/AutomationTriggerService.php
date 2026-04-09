@@ -45,19 +45,19 @@ class AutomationTriggerService
      */
     public function fireTrigger(AutomationNode $node, array $payload = []): ?AutomationRun
     {
-        Log::info("Entered fireTrigger for Node [{$node->id}] Flow [{$node->automation_flow_id}]", [
+        \Illuminate\Support\Facades\Log::info("Entered fireTrigger for Node [{$node->id}] Flow [{$node->automation_flow_id}]", [
             'company_id' => $node->flow->company_id,
             'node_type' => $node->type
         ]);
 
         if ($node->type !== 'trigger') {
-            Log::info("Aborting Trigger: Node [{$node->id}] is not a trigger type.");
+            \Illuminate\Support\Facades\Log::info("Aborting Trigger: Node [{$node->id}] is not a trigger type.");
             return null;
         }
 
         // Validate conditions if any
         if (!$this->validateTriggerConditions($node, $payload)) {
-            Log::info("Automation [{$node->automation_flow_id}] trigger conditions not met.");
+            \Illuminate\Support\Facades\Log::info("Automation [{$node->automation_flow_id}] trigger conditions not met.");
             return null;
         }
 
@@ -71,11 +71,11 @@ class AutomationTriggerService
                 'started_at' => now(),
             ];
 
-            Log::info("About to create AutomationRun", ['payload' => $runData]);
+            \Illuminate\Support\Facades\Log::info("About to create AutomationRun", ['payload' => $runData]);
 
             $run = AutomationRun::create($runData);
 
-            Log::info("AutomationRun created successfully", [
+            \Illuminate\Support\Facades\Log::info("AutomationRun created successfully", [
                 'run_id' => $run->id,
                 'status' => $run->status
             ]);
@@ -86,7 +86,7 @@ class AutomationTriggerService
 
             return $run;
         } catch (\Exception $e) {
-            Log::error("CRITICAL FAILURE during AutomationRun creation", [
+            \Illuminate\Support\Facades\Log::error("CRITICAL FAILURE during AutomationRun creation", [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'flow_id' => $node->automation_flow_id
@@ -118,12 +118,12 @@ class AutomationTriggerService
         }
 
         if (!$result['match']) {
-            Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition FAILED.", [
+            \Illuminate\Support\Facades\Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition FAILED.", [
                 'summary' => $result['summary'],
                 'details' => $result['groups'] ?? $result['rules'] ?? []
             ]);
         } else {
-            Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition PASSED.");
+            \Illuminate\Support\Facades\Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition PASSED.");
         }
 
         return $result['match'];
