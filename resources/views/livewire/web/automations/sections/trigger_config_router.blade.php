@@ -1,5 +1,7 @@
 @php
-    $type = $nodeConfig['trigger_type'] ?? $nodeConfig['trigger_category'] ?? '';
+    $type = $nodeConfig['trigger_type'] ?? $nodeConfig['trigger_category'] ?? $activeNode->subtype ?? '';
+    // Unify webhook naming for routing
+    if ($type === 'webhook') $type = 'webhook_api';
     $defKey = $nodeConfig['trigger_definition_key'] ?? '';
 @endphp
 

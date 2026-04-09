@@ -2,7 +2,8 @@
     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Trigger Category</label>
     
     @php
-        $category = $nodeConfig['trigger_category'] ?? 'webhook_api';
+        $category = $nodeConfig['trigger_category'] ?? $activeNode->subtype ?? 'webhook_api';
+        if ($category === 'webhook') $category = 'webhook_api';
         $categoryLabel = match($category) {
             'webhook_api' => 'Webhook / API Trigger',
             'time_based' => 'Time-based (Scheduled)',

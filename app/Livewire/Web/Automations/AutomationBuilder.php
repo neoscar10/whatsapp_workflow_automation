@@ -333,6 +333,7 @@ class AutomationBuilder extends Component
                 // Map 'webhook' to 'webhook_api' for consistency
                 if ($category === 'webhook') $category = 'webhook_api';
                 $this->nodeConfig['trigger_category'] = $category;
+                $this->nodeConfig['trigger_type'] = $this->nodeConfig['trigger_type'] ?? $category;
 
                 $defKey = $this->nodeConfig['trigger_definition_key'] ?? null;
                 if ($defKey) {
