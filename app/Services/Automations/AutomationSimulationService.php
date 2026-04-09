@@ -6,6 +6,7 @@ use App\Models\AutomationFlow;
 use App\Models\AutomationNode;
 use App\Models\SimulationSession;
 use App\Models\SimulationStep;
+use App\Models\WhatsApp\WhatsAppTemplate;
 use Illuminate\Support\Facades\Log;
 
 class AutomationSimulationService
@@ -122,19 +123,102 @@ class AutomationSimulationService
 
     protected function simulateAction(AutomationNode $node, array $context): array
     {
-        $messageBody = $node->config['message_body'] ?? '';
+        $config = $node->config ?? [];
+        $messageBody = $config['message_body'] ?? '';
         $resolvedMessage = $this->resolveVariables($messageBody, $context);
         
-        $logMessage = "Action [" . ($node->config['label'] ?? $node->subtype) . "] prepared payload.";
+        $recipientExpression = $config['recipient_expression'] ?? '';
+        
+        // Fallback for WhatsApp messages if expression is missing (matching builder defaults)
+        if ($node->subtype === 'whatsapp_message' && empty($recipientExpression)) {
+            $recipientExpression = '{{trigger.phone_number}}';
+        }
+
+        $recipient = $this->resolveVariables($recipientExpression, $context);
+        
+        $logMessage = "Action [" . ($config['label'] ?? $node->subtype) . "] prepared payload.";
+        $status = 'simulated_success';
+
+        if ($config['message_mode'] ?? 'text' === 'template') {
+            return $this->handleTemplateSimulation($node, $context, $recipient);
+        }
+
+        if ($node->subtype === 'whatsapp_message' && (empty($recipient) || str_contains($recipient, '{{'))) {
+            $status = 'simulated_warning';
+            $logMessage .= " WARNING: Recipient could not be resolved from '{$recipientExpression}'. Message may fail in production.";
+        }
         
         return [
             'message' => $logMessage,
             'output' => [
+                'message_mode' => $config['message_mode'] ?? 'text',
                 'simulated_payload' => $resolvedMessage,
-                'recipient' => $this->resolveVariables($node->config['recipient_expression'] ?? '', $context),
-                'status' => 'simulated_success',
+                'recipient' => $recipient,
+                'status' => $status,
             ],
             'next_node_id' => $this->getNextNodeId($node),
+        ];
+    }
+
+    protected function handleTemplateSimulation(AutomationNode $node, array $context, $recipient): array
+    {
+        $config = $node->config ?? [];
+        $templateId = $config['template_id'] ?? null;
+        $mappings = $config['template_variable_mappings'] ?? [];
+        
+        $template = WhatsAppTemplate::find($templateId);
+        
+        if (!$template) {
+            return [
+                'message' => "ERROR: Template with ID [{$templateId}] not found.",
+                'output' => ['status' => 'simulated_error', 'recipient' => $recipient],
+                'status' => 'simulated_error',
+                'next_node_id' => $this->getNextNodeId($node),
+            ];
+        }
+
+        $resolvedVariables = ['body' => [], 'header' => []];
+        $previewBody = $template->body_text;
+        $previewHeader = $template->header_text;
+
+        // Resolve Body
+        if (!empty($mappings['body'])) {
+            foreach ($mappings['body'] as $num => $expr) {
+                $val = $this->resolveVariables($expr, $context);
+                $resolvedVariables['body'][$num] = $val;
+                $previewBody = str_replace("{{{$num}}}", $val, $previewBody);
+            }
+        }
+
+        // Resolve Header
+        if (!empty($mappings['header'])) {
+            foreach ($mappings['header'] as $num => $expr) {
+                $val = $this->resolveVariables($expr, $context);
+                $resolvedVariables['header'][$num] = $val;
+                $previewHeader = str_replace("{{{$num}}}", $val, $previewHeader);
+            }
+        }
+
+        $status = 'simulated_success';
+        if (empty($recipient) || str_contains($recipient, '{{')) $status = 'simulated_warning';
+
+        return [
+            'message' => "Action [{$template->remote_template_name}] prepared template payload.",
+            'output' => [
+                'message_mode' => 'template',
+                'template_name' => $template->remote_template_name,
+                'template_language' => $template->language_code,
+                'recipient' => $recipient,
+                'resolved_variables' => $resolvedVariables,
+                'preview' => [
+                    'header' => $previewHeader,
+                    'body' => $previewBody,
+                    'footer' => $template->footer_text
+                ],
+                'status' => $status
+            ],
+            'next_node_id' => $this->getNextNodeId($node),
+            'status' => $status
         ];
     }
 
@@ -143,17 +227,32 @@ class AutomationSimulationService
         $rules = $node->config['rules'] ?? [];
         $matchMode = $node->config['match_mode'] ?? 'and';
         
+        $evaluator = app(AutomationRuleEvaluator::class);
+        $report = [];
+
         // Handle rule groups if present (legacy or complex)
         if (isset($node->config['rule_groups'])) {
-            $matched = $this->evaluateRuleGroups($node->config['rule_groups'], $context);
+            $report = $evaluator->evaluateGroupsDetailed($node->config['rule_groups'], $context);
         } else {
-            $matched = $this->evaluateRules($rules, $context, $matchMode);
+            $report = $evaluator->evaluateDetailed($rules, $context, $matchMode);
+        }
+
+        $matched = $report['match'] ?? false;
+        $summary = $report['summary'] ?? ($matched ? 'All rules matched' : 'Rules did not match');
+        $outcome = $matched ? 'true' : 'false';
+        $nextNodeId = $this->getNextNodeId($node, $outcome);
+
+        $message = 'Condition evaluated to ' . ($matched ? 'TRUE' : 'FALSE') . ': ' . $summary;
+        
+        if (!$nextNodeId) {
+            $branchLabel = $matched ? 'YES' : 'NO';
+            $message .= " WARNING: No matching {$branchLabel} branch connection found. Simulation will stop here.";
         }
 
         return [
-            'message' => 'Condition evaluated to ' . ($matched ? 'TRUE' : 'FALSE') . ' (Simulated).',
-            'output' => ['match' => $matched],
-            'next_node_id' => $this->getNextNodeId($node, $matched ? 'true' : 'false'),
+            'message' => $message,
+            'output' => $report,
+            'next_node_id' => $nextNodeId,
         ];
     }
 
@@ -236,14 +335,51 @@ class AutomationSimulationService
         ];
     }
 
-    protected function getNextNodeId(AutomationNode $node, string $outcome = null): ?int
+    public function getNextNodeId(AutomationNode $node, string $outcome = null): ?int
     {
         $query = $node->outgoingConnections();
+        
         if ($outcome) {
-            $query->where('source_handle', $outcome);
+            $aliases = $this->getOutcomeAliases($outcome);
+            
+            $matched = (clone $query)->where(function($q) use ($aliases) {
+                $q->whereIn('source_handle', $aliases)
+                  ->orWhereIn('condition_key', $aliases);
+            })->first();
+
+            if ($matched) {
+                return $matched->target_node_id;
+            }
+
+            // If it's a condition node and no match found, don't fallback
+            if ($node->type === 'condition') {
+                return null;
+            }
         }
+
         $connection = $query->first();
         return $connection ? $connection->target_node_id : null;
+    }
+
+    /**
+     * Get all possible aliases for a given outcome to support various builder conventions.
+     */
+    protected function getOutcomeAliases(string $outcome): array
+    {
+        $outcome = strtolower($outcome);
+        
+        $positive = ['true', 'yes', 'if', 'match', 'body', 'success', 'pass'];
+        $negative = ['false', 'no', 'else', 'none', 'exit', 'fail', 'error'];
+        
+        if (in_array($outcome, $positive)) {
+            return $positive;
+        }
+        
+        if (in_array($outcome, $negative)) {
+            return $negative;
+        }
+        
+        return [$outcome];
     }
 
     protected function completeSession(SimulationSession $session)

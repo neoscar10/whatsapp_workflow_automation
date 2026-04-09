@@ -8,7 +8,21 @@
         draggingNode: null,
         activeTab: @entangle('tab'),
         sessionStatus: @entangle('session.status'),
-        currentNodeId: @entangle('session.current_node_id')
+        currentNodeId: @entangle('session.current_node_id'),
+        inspectorFullView: false,
+        fullViewData: null,
+        fullViewTitle: '',
+        copyStatus: false,
+        openFullView(title, data) {
+            this.fullViewTitle = title;
+            this.fullViewData = data;
+            this.inspectorFullView = true;
+        },
+        copyToClipboard() {
+            navigator.clipboard.writeText(JSON.stringify(this.fullViewData, null, 2));
+            this.copyStatus = true;
+            setTimeout(() => this.copyStatus = false, 2000);
+        }
     }"
 >
     <!-- TOP TOOLBAR -->
@@ -301,23 +315,80 @@
             <!-- STEP INSPECTOR (DYNAMIC BOTTOM PANEL) -->
             @if($activeStep)
                 <div class="h-1/2 flex-shrink-0 bg-[#0a1630] border-t border-white/10 flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
-                    <div class="p-4 bg-white/[0.03] border-b border-white/5 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg text-primary">data_object</span>
-                            <span class="text-[10px] font-black uppercase tracking-widest text-white">Step Inspector</span>
+                    <div class="p-4 bg-white/[0.03] border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                                <span class="material-symbols-outlined text-sm text-primary">data_object</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-white">Step Inspector</span>
+                                <span class="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">{{ $activeStep->node_subtype ?? $activeStep->node_type }}</span>
+                            </div>
                         </div>
-                        <button wire:click="$set('activeStepId', null)" class="text-slate-500 hover:text-white transition-colors">
+                        <button wire:click="$set('activeStepId', null)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 text-slate-500 hover:text-white transition-colors">
                             <span class="material-symbols-outlined text-lg">close</span>
                         </button>
                     </div>
-                    <div class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar">
-                        <div class="space-y-3">
-                            <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest px-1">Input Context</label>
-                            <pre class="bg-[#061122] border border-white/5 rounded-2xl p-4 text-[10px] font-mono text-primary/80 overflow-x-auto shadow-inner">{{ json_encode($activeStep->input_snapshot, JSON_PRETTY_PRINT) }}</pre>
+
+                    <div class="flex-1 overflow-y-auto p-5 space-y-8 no-scrollbar">
+                        
+                        <!-- INPUT CONTEXT SECTION -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between px-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-1 h-3 rounded-full bg-primary/40"></span>
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Input Context</label>
+                                </div>
+                                <button 
+                                    @click="openFullView('Input Context Snapshot', {{ json_encode($activeStep->input_snapshot) }})"
+                                    class="text-[9px] font-black text-primary uppercase tracking-widest hover:text-primary/80 flex items-center gap-1.5 group"
+                                >
+                                    <span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">open_in_full</span>
+                                    Full View
+                                </button>
+                            </div>
+
+                            <!-- Raw JSON Preview -->
+                            <div class="group relative">
+                                <pre class="bg-[#061122] border border-white/5 rounded-2xl p-4 text-[10px] font-mono text-primary/70 overflow-x-auto shadow-inner max-h-32 scrollbar-thin">{{ json_encode($activeStep->input_snapshot, JSON_PRETTY_PRINT) }}</pre>
+                                <div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#061122] to-transparent rounded-b-2xl opacity-60 pointer-events-none"></div>
+                            </div>
                         </div>
-                        <div class="space-y-3">
-                            <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest px-1">Output Result</label>
-                            <pre class="bg-[#061122] border border-white/5 rounded-2xl p-4 text-[10px] font-mono text-green-500/80 overflow-x-auto shadow-inner">{{ json_encode($activeStep->output_snapshot, JSON_PRETTY_PRINT) }}</pre>
+
+                        <!-- OUTPUT RESULT SECTION -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between px-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-1 h-3 rounded-full bg-green-500/40"></span>
+                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Output Result</label>
+                                </div>
+                                <button 
+                                    @click="openFullView('Output Result Snapshot', {{ json_encode($activeStep->output_snapshot) }})"
+                                    class="text-[9px] font-black text-primary uppercase tracking-widest hover:text-primary/80 flex items-center gap-1.5 group"
+                                >
+                                    <span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">open_in_full</span>
+                                    Full View
+                                </button>
+                            </div>
+
+                            <!-- Human Friendly Summary -->
+                            <div class="p-4 bg-primary/5 border border-primary/10 rounded-2xl space-y-3 shadow-xl">
+                                @php $summary = $this->getStepSummary($activeStep); @endphp
+                                @forelse($summary as $item)
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">{{ $item['label'] }}</span>
+                                        <span class="text-[11px] font-bold text-slate-200 leading-tight">{{ $item['value'] }}</span>
+                                    </div>
+                                @empty
+                                    <p class="text-[10px] font-bold text-slate-600 uppercase italic">No summary available for this step type.</p>
+                                @endforelse
+                            </div>
+
+                            <!-- Raw JSON Preview -->
+                            <div class="group relative">
+                                <pre class="bg-[#061122] border border-white/5 rounded-2xl p-4 text-[10px] font-mono text-green-500/70 overflow-x-auto shadow-inner max-h-32 scrollbar-thin">{{ json_encode($activeStep->output_snapshot, JSON_PRETTY_PRINT) }}</pre>
+                                <div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#061122] to-transparent rounded-b-2xl opacity-60 pointer-events-none"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,46 +398,197 @@
 
     <!-- TRIGGER PAYLOAD OVERLAY -->
     @if($tab === 'triggers')
-        <div class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[#061122]/90 backdrop-blur-xl animate-in fade-in duration-300" 
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[#061122]/95 backdrop-blur-2xl animate-in fade-in duration-300" 
              @click.self="activeTab = 'execution'">
-            <div class="w-full max-w-2xl bg-[#0a1630] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300">
-                <div class="p-8 border-b border-white/5 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                            <span class="material-symbols-outlined text-primary text-2xl">input</span>
+            <div class="w-full max-w-3xl bg-[#0a1630] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+                
+                <!-- HEADER -->
+                <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                    <div class="flex items-center gap-5">
+                        <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5">
+                            <span class="material-symbols-outlined text-primary text-3xl">input</span>
                         </div>
                         <div>
-                            <h3 class="text-lg font-black text-white tracking-tight">Simulation Payload</h3>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Define the trigger data to start the simulation</p>
+                            <h3 class="text-xl font-black text-white tracking-tight">Simulation Payload</h3>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Define your entry data for this run</p>
                         </div>
                     </div>
-                    <button @click="activeTab = 'execution'" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors group">
-                        <span class="material-symbols-outlined text-slate-500 group-hover:text-white">close</span>
-                    </button>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8 no-scrollbar">
-                    <div class="space-y-4">
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">Initial JSON Payload</label>
-                        <textarea 
-                            wire:model.defer="initialPayload"
-                            class="w-full h-96 bg-[#061122] border border-white/10 rounded-3xl p-6 text-xs font-mono text-primary/80 focus:ring-2 focus:ring-primary shadow-inner resize-none scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-                            placeholder="{ ... }"
-                        ></textarea>
-                        <div class="p-5 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4">
-                            <span class="material-symbols-outlined text-primary text-lg shrink-0">info</span>
-                            <p class="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-tight">
-                                These variables will be injected into the simulation entry point. You can reference them using <span class="text-white">@{{ trigger.field }}</span> in your node configurations.
-                            </p>
-                        </div>
+                    
+                    <!-- MODE TOGGLE -->
+                    <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                        <button 
+                            wire:click="togglePayloadMode"
+                            class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $payloadMode === 'form' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }}"
+                        >
+                            Simple Form
+                        </button>
+                        <button 
+                            wire:click="togglePayloadMode"
+                            class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $payloadMode === 'json' ? 'bg-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }}"
+                        >
+                            Raw JSON
+                        </button>
                     </div>
                 </div>
-                <div class="p-8 border-t border-white/5 bg-[#0d1b38]/40 flex justify-end gap-3">
-                    <button @click="activeTab = 'execution'" class="px-8 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition-all">Cancel</button>
-                    <button @click="activeTab = 'execution'" class="px-8 py-3.5 bg-primary text-white rounded-2xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/80 transition-all shadow-lg shadow-primary/20">Save Payload</button>
+
+                <!-- CONTENT -->
+                <div class="flex-1 overflow-y-auto p-8 no-scrollbar space-y-8">
+                    
+                    @if($payloadMode === 'form')
+                        <!-- SUGGESTED FIELDS -->
+                        @if(!empty($suggestedFields))
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 px-1">
+                                    <span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Workflow Field Suggestions</label>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($suggestedFields as $field)
+                                        @php $isPresent = collect($formPayload)->pluck('key')->contains($field); @endphp
+                                        <button 
+                                            wire:click="addSuggestedField('{{ $field }}')"
+                                            class="px-4 py-2.5 rounded-xl border {{ $isPresent ? 'bg-primary/10 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-slate-400 hover:border-primary/40 hover:text-primary' }} transition-all flex items-center gap-2.5 group"
+                                        >
+                                            <span class="text-[10px] font-black uppercase tracking-tight">{{ $field }}</span>
+                                            <span class="material-symbols-outlined text-sm {{ $isPresent ? 'text-primary' : 'text-slate-600 group-hover:text-primary' }}">
+                                                {{ $isPresent ? 'check_circle' : 'add_circle' }}
+                                            </span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                                <p class="text-[9px] font-bold text-slate-600 uppercase tracking-tight px-1 italic">
+                                    These fields were detected in your current workflow nodes. 
+                                </p>
+                            </div>
+                        @endif
+
+                        <!-- FORM FIELDS -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between px-1">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Payload Data</label>
+                                <button wire:click="addPayloadField" class="text-[9px] font-black text-primary uppercase tracking-widest hover:underline">+ Add Custom Field</button>
+                            </div>
+
+                            <div class="space-y-3">
+                                @foreach($formPayload as $index => $entry)
+                                    <div class="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/10 rounded-2xl group hover:border-white/20 transition-all shadow-sm">
+                                        <div class="flex-1">
+                                            <input 
+                                                type="text" 
+                                                wire:model.defer="formPayload.{{ $index }}.key" 
+                                                class="w-full bg-transparent border-none focus:ring-0 text-[11px] font-black text-white placeholder-slate-600 p-0"
+                                                placeholder="Field name (e.g. contact.name)"
+                                            >
+                                        </div>
+                                        <div class="w-px h-6 bg-white/10 invisible group-hover:visible transition-all"></div>
+                                        <div class="flex-[1.5]">
+                                            <input 
+                                                type="text" 
+                                                wire:model.defer="formPayload.{{ $index }}.value" 
+                                                class="w-full bg-transparent border-none focus:ring-0 text-[11px] font-bold text-primary placeholder-slate-700 p-0"
+                                                placeholder="Value..."
+                                            >
+                                        </div>
+                                        <button wire:click="removePayloadField({{ $index }})" class="p-2 text-slate-600 hover:text-red-500 transition-colors">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <!-- JSON MODE -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between px-1">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Advanced JSON Input</label>
+                                <p class="text-[9px] font-bold text-slate-600 uppercase">Supports nested objects & arrays</p>
+                            </div>
+                            <textarea 
+                                wire:model.defer="initialPayload"
+                                class="w-full h-80 bg-[#061122] border border-white/10 rounded-3xl p-8 text-xs font-mono text-primary/80 focus:ring-2 focus:ring-primary shadow-inner resize-none scrollbar-thin"
+                                placeholder='{ "field": "value" }'
+                            ></textarea>
+                            
+                            <!-- JSON Validation Hint -->
+                            <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/5 flex gap-4">
+                                <span class="material-symbols-outlined text-slate-500 text-lg shrink-0">info</span>
+                                <p class="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">
+                                    Use JSON mode for complex payloads. Any valid JSON entered here will be parsed back into the form view where possible.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- FOOTER -->
+                <div class="p-8 border-t border-white/5 bg-[#0d1b38]/40 flex justify-between items-center bg-white/[0.01]">
+                    <div class="flex items-center gap-3 text-slate-500">
+                        <span class="material-symbols-outlined text-lg">shield</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Changes are saved to your trial session</span>
+                    </div>
+                    <div class="flex gap-4">
+                        <button @click="activeTab = 'execution'" class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition-all">Discard</button>
+                        <button 
+                            wire:click="{{ $payloadMode === 'form' ? 'syncFormToJson' : '' }}" 
+                            @click="activeTab = 'execution'" 
+                            class="px-10 py-4 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/80 transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95"
+                        >
+                            Apply & Save Payload
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     @endif
+
+    <!-- FULL VIEW JSON MODAL -->
+    <div x-show="inspectorFullView" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-12 bg-black/80 backdrop-blur-3xl"
+         x-cloak
+         @click.self="inspectorFullView = false"
+    >
+        <div class="w-full max-w-5xl bg-[#0a1630] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div class="flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5">
+                        <span class="material-symbols-outlined text-primary text-3xl">data_object</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-white tracking-tight" x-text="fullViewTitle"></h3>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Comprehensive execution snapshot</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button 
+                        @click="copyToClipboard()"
+                        class="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 group"
+                    >
+                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform" x-text="copyStatus ? 'check' : 'content_copy'"></span>
+                        <span x-text="copyStatus ? 'Copied to Clipboard' : 'Copy JSON'"></span>
+                    </button>
+                    <button @click="inspectorFullView = false" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors group">
+                        <span class="material-symbols-outlined text-slate-500 group-hover:text-white">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto p-12 bg-[#061122]/50 no-scrollbar">
+                <pre class="text-xs font-mono text-primary/90 leading-relaxed whitespace-pre" x-text="JSON.stringify(fullViewData, null, 2)"></pre>
+            </div>
+
+            <div class="p-8 border-t border-white/5 bg-[#0d1b38]/40 flex justify-between items-center text-slate-500">
+                <span class="text-[10px] font-black uppercase tracking-widest">Simulation Context Viewer</span>
+                <span class="text-[10px] font-bold uppercase tracking-tight" x-text="'Ref ID: ' + (activeStepId || 'Latest')"></span>
+            </div>
+        </div>
+    </div>
 
     <style>
         @keyframes progress-indefinite {

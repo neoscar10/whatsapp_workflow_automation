@@ -1,14 +1,29 @@
-<aside class="flex w-72 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm z-20 no-scrollbar">
-    <div class="flex h-full flex-col gap-8 p-6 no-scrollbar">
-        <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-primary">
-                <span class="material-symbols-outlined text-white">cloud_queue</span>
+<aside 
+    class="relative h-full flex flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm z-20 no-scrollbar transition-all duration-300 ease-in-out shrink-0 overflow-hidden"
+    :class="sidebarOpen ? 'w-72 opacity-100 translate-x-0' : 'w-0 opacity-0 -translate-x-full border-none'"
+>
+    <div class="flex h-full w-72 flex-col gap-8 p-6 no-scrollbar">
+        <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-primary">
+                    <span class="material-symbols-outlined text-white">cloud_queue</span>
+                </div>
+
+                <div class="flex flex-col">
+                    <h1 class="text-base font-bold leading-none text-slate-900 dark:text-slate-100 uppercase tracking-tight">WA Cloud</h1>
+                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">SaaS Admin Panel</p>
+                </div>
             </div>
 
-            <div class="flex flex-col">
-                <h1 class="text-base font-bold leading-none text-slate-900 dark:text-slate-100 uppercase tracking-tight">WA Cloud</h1>
-                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">SaaS Admin Panel</p>
-            </div>
+            <button 
+                @click="sidebarOpen = false" 
+                class="flex items-center justify-center size-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all dark:bg-slate-800 dark:hover:bg-slate-700 lg:hidden xl:flex"
+                title="Collapse Sidebar"
+            >
+                <span class="material-symbols-outlined text-[20px]">
+                    menu_open
+                </span>
+            </button>
         </div>
 
         <nav class="flex flex-1 flex-col gap-1.5 overflow-y-auto no-scrollbar">

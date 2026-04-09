@@ -14,19 +14,30 @@ class AutomationRun extends Model
         'automation_flow_id',
         'company_id',
         'status',
+        'current_node_id',
         'trigger_node_id',
         'trigger_context',
+        'context',
+        'step_count',
         'started_at',
         'completed_at',
         'metadata',
+        'last_error',
     ];
 
     protected $casts = [
         'trigger_context' => 'array',
+        'context' => 'array',
         'metadata' => 'array',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'step_count' => 'integer',
     ];
+
+    public function currentNode(): BelongsTo
+    {
+        return $this->belongsTo(AutomationNode::class, 'current_node_id');
+    }
 
     public function flow(): BelongsTo
     {

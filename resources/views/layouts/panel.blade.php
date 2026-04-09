@@ -14,7 +14,11 @@
     @livewireStyles
 </head>
 <body class="bg-background-light font-display text-slate-900 antialiased dark:bg-background-dark dark:text-slate-100">
-    <div class="flex h-screen overflow-hidden">
+    <div 
+        class="flex h-screen overflow-hidden"
+        x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false' }"
+        x-init="$watch('sidebarOpen', value => localStorage.setItem('sidebarOpen', value))"
+    >
         @include('partials.panel.sidebar', [
             'activeNav' => $activeNav ?? 'dashboard',
             'storage' => $storage ?? null,

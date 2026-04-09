@@ -1,22 +1,67 @@
 <div class="flex h-[calc(100vh-64px)] flex-col bg-[#061122] text-slate-200 overflow-hidden" 
      x-data="{ 
         zoom: @entangle('canvasMeta.zoom'),
+        panX: @entangle('canvasMeta.pan_x'),
+        panY: @entangle('canvasMeta.pan_y'),
         selectedNodeId: @entangle('selectedNodeId'),
         draggingNodeId: null,
         offsetX: 0,
         offsetY: 0,
         
-        startDrag(e, nodeId, x, y) {
-            this.draggingNodeId = nodeId;
-            this.selectedNodeId = nodeId;
-            this.offsetX = e.clientX - x;
-            this.offsetY = e.clientY - y;
+        panModeActive: false,
+        isPanning: false,
+        panStartX: 0,
+        panStartY: 0,
+        startPanX: 0,
+        startPanY: 0,
+
+        togglePanMode() {
+            this.panModeActive = !this.panModeActive;
+            if (!this.panModeActive) this.isPanning = false;
         },
+
+        startPanning(e) {
+            // 0 = left, 1 = middle
+            if (!this.panModeActive && e.button !== 1) return;
+            
+            // Prevent browser autoscroll on middle click
+            if (e.button === 1) e.preventDefault();
+            
+            this.isPanning = true;
+            this.panStartX = e.clientX;
+            this.panStartY = e.clientY;
+            this.startPanX = this.panX;
+            this.startPanY = this.panY;
+        },
+
+        onPan(e) {
+            if (!this.isPanning) return;
+            const scale = this.zoom / 100;
+            const dx = (e.clientX - this.panStartX) / scale;
+            const dy = (e.clientY - this.panStartY) / scale;
+            this.panX = Math.round(this.startPanX + dx);
+            this.panY = Math.round(this.startPanY + dy);
+        },
+
+        stopPanning() {
+            this.isPanning = false;
+        },
+        
+        startDrag(e, nodeId, x, y) {
+             if (this.panModeActive) return;
+             this.draggingNodeId = nodeId;
+             this.selectedNodeId = nodeId;
+             
+             const scale = this.zoom / 100;
+             this.offsetX = (e.clientX / scale) - x;
+             this.offsetY = (e.clientY / scale) - y;
+         },
         
         onDrag(e) {
             if (!this.draggingNodeId) return;
-            const newX = Math.round(e.clientX - this.offsetX);
-            const newY = Math.round(e.clientY - this.offsetY);
+            const scale = this.zoom / 100;
+            const newX = Math.round((e.clientX / scale) - this.offsetX);
+            const newY = Math.round((e.clientY / scale) - this.offsetY);
             
             // Local update for smoothness
             const el = document.getElementById('node-' + this.draggingNodeId);
@@ -29,8 +74,9 @@
         
         stopDrag(e) {
             if (!this.draggingNodeId) return;
-            const newX = Math.round(e.clientX - this.offsetX);
-            const newY = Math.round(e.clientY - this.offsetY);
+            const scale = this.zoom / 100;
+            const newX = Math.round((e.clientX / scale) - this.offsetX);
+            const newY = Math.round((e.clientY / scale) - this.offsetY);
             
             @this.updateNodePosition(this.draggingNodeId, newX, newY);
             this.draggingNodeId = null;
@@ -52,11 +98,11 @@
         },
         
         updateMousePos(e) {
-            if (!this.connectingFromNodeId) return;
-            const canvas = this.$refs.canvas.getBoundingClientRect();
-            this.mouseX = (e.clientX - canvas.left) / (this.zoom / 100);
-            this.mouseY = (e.clientY - canvas.top) / (this.zoom / 100);
-        },
+             if (!this.connectingFromNodeId) return;
+             const canvas = this.$refs.canvas.getBoundingClientRect();
+             this.mouseX = ((e.clientX - canvas.left) / (this.zoom / 100)) - this.panX;
+             this.mouseY = ((e.clientY - canvas.top) / (this.zoom / 100)) - this.panY;
+         },
         
         completeConnection(targetNodeId, targetHandle) {
             if (!this.connectingFromNodeId || this.connectingFromNodeId === targetNodeId) {
@@ -98,10 +144,19 @@
             const cp1y = y1 + dy * 0.5;
             const cp2y = y2 - dy * 0.5;
             return `M ${x1} ${y1} C ${x1} ${cp1y} ${x2} ${cp2y} ${x2} ${y2}`;
+        },
+
+        init() {
+            // Force a recalculation of all connectors once the DOM is stable
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('node-moved'));
+            }, 100);
         }
      }"
-     @mousemove="onDrag($event); updateMousePos($event)"
-     @mouseup="stopDrag($event); cancelConnection()"
+     @mousemove="onDrag($event); onPan($event); updateMousePos($event)"
+     @mouseup="stopDrag($event); stopPanning(); cancelConnection()"
+     @keydown.space.window="if (!panModeActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { panModeActive = true; $event.preventDefault(); }"
+     @keyup.space.window="if (panModeActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) panModeActive = false"
 >
     {{-- Builder Toolbar --}}
     <div class="flex items-center justify-between gap-4 border-b border-white/10 bg-[#0a1630] px-6 py-3 z-50 shadow-[0_10px_40px_rgba(0,0,0,0.2)]">
@@ -138,6 +193,13 @@
                 <span class="w-12 text-center text-xs font-bold text-slate-400" x-text="zoom + '%'"></span>
                 <button @click="zoom = Math.min(150, zoom + 10)" class="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white transition-colors">
                     <span class="material-symbols-outlined text-xl">zoom_in</span>
+                </button>
+                <div class="mx-1 h-4 w-px bg-white/5"></div>
+                <button @click="togglePanMode()" 
+                        class="rounded-lg p-1.5 transition-colors"
+                        :class="panModeActive ? 'bg-primary text-white' : 'text-slate-500 hover:bg-white/5 hover:text-white'"
+                        title="Hand Tool (H / Space)">
+                    <span class="material-symbols-outlined text-xl">pan_tool</span>
                 </button>
             </div>
 
@@ -271,13 +333,22 @@
         </aside>
 
         {{-- Canvas Area --}}
-        <main class="flex-1 relative overflow-hidden bg-[#061122] canvas-grid" 
-              x-ref="canvas"
-              style="background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px); background-size: 24px 24px;">
+         <main class="flex-1 relative overflow-hidden bg-[#061122]" 
+               x-ref="canvas"
+               @mousedown="startPanning($event)"
+               :class="panModeActive ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : ''">
+             
+             {{-- Transformed Viewport Layer --}}
+             <div class="absolute inset-0 transition-none" 
+                  :style="'transform-origin: 0 0; transform: scale(' + (zoom/100) + ') translate(' + panX + 'px, ' + panY + 'px)'">
+                 
+                 {{-- Grid Backdrop (Infinite-ish) --}}
+                 <div class="absolute inset-[-10000px] pointer-events-none" 
+                      style="background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px); background-size: 24px 24px;">
+                 </div>
             
             {{-- Drawing Layer for Edges --}}
-            <svg class="pointer-events-none absolute inset-0 h-full w-full overflow-visible z-10"
-                 :style="'transform-origin: 0 0; transform: scale(' + (zoom/100) + ')'">
+             <svg class="pointer-events-none absolute inset-0 h-full w-full overflow-visible z-10">
                 {{-- Ghost Connection --}}
                 <template x-if="connectingFromNodeId">
                     <path 
@@ -347,7 +418,7 @@
             </svg>
 
             {{-- Nodes Layer --}}
-            <div class="absolute inset-0 z-20" :style="'transform-origin: 0 0; transform: scale(' + (zoom/100) + ')'">
+             <div class="absolute inset-0 z-20">
                 @foreach($nodes as $node)
                     <div 
                         id="node-{{ $node->id }}"
@@ -390,7 +461,7 @@
                             <div class="absolute -bottom-1.5 left-1/4 -translate-x-1/2 flex flex-col items-center gap-1">
                                 <div 
                                     class="h-4 w-4 rounded-full bg-slate-600 border-2 border-[#061122] z-30 cursor-crosshair hover:bg-emerald-500 transition-colors flex items-center justify-center group"
-                                    @mousedown.stop="startConnecting($event, {{ $node->id }}, 'bottom', 'yes')"
+                                    @mousedown.stop="if (!panModeActive) startConnecting($event, {{ $node->id }}, 'bottom', 'yes')"
                                 >
                                     <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
@@ -400,7 +471,7 @@
                             <div class="absolute -bottom-1.5 left-3/4 -translate-x-1/2 flex flex-col items-center gap-1">
                                 <div 
                                     class="h-4 w-4 rounded-full bg-slate-600 border-2 border-[#061122] z-30 cursor-crosshair hover:bg-rose-500 transition-colors flex items-center justify-center group"
-                                    @mousedown.stop="startConnecting($event, {{ $node->id }}, 'bottom', 'no')"
+                                    @mousedown.stop="if (!panModeActive) startConnecting($event, {{ $node->id }}, 'bottom', 'no')"
                                 >
                                     <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
@@ -410,7 +481,7 @@
                             {{-- Standard single output handle --}}
                             <div 
                                 class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-slate-600 border-2 border-[#061122] z-30 cursor-crosshair hover:bg-primary transition-colors flex items-center justify-center group"
-                                @mousedown.stop="startConnecting($event, {{ $node->id }}, 'bottom')"
+                                @mousedown.stop="if (!panModeActive) startConnecting($event, {{ $node->id }}, 'bottom')"
                             >
                                 <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </div>
@@ -419,14 +490,16 @@
                         @if($node->type !== 'trigger')
                             <div 
                                 class="absolute -top-1.5 left-1/2 -translate-x-1/2 h-4 w-4 rounded-full bg-slate-600 border-2 border-[#061122] z-30 cursor-pointer hover:bg-emerald-500 transition-colors"
-                                @mouseup.stop="completeConnection({{ $node->id }}, 'top')"
+                                @mouseup.stop="if (!panModeActive) completeConnection({{ $node->id }}, 'top')"
                             ></div>
                         @endif
                     </div>
                 @endforeach
             </div>
 
-            {{-- Canvas Toolbar (Centered Pill) --}}
+             </div>
+ 
+             {{-- Canvas Toolbar (Centered Pill) --}}
             <div class="absolute top-6 left-1/2 -translate-x-1/2 bg-[#0c1833]/90 backdrop-blur-md border border-white/10 rounded-full shadow-2xl px-6 py-2.5 flex items-center gap-4 z-30 transition-all">
                 <div class="flex items-center gap-1.5">
                     <button @click="zoom = Math.min(150, zoom + 10)" class="p-1 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors">
@@ -440,6 +513,13 @@
                 <div class="h-4 w-[1px] bg-white/10"></div>
                 <button @click="zoom = 100" class="p-1 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors" title="Fit to Screen">
                     <span class="material-symbols-outlined text-xl">fit_screen</span>
+                </button>
+                <div class="h-4 w-[1px] bg-white/10"></div>
+                <button @click="togglePanMode()" 
+                        class="p-1 rounded-full transition-colors" 
+                        :class="panModeActive ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+                        title="Hand Tool (Pan)">
+                    <span class="material-symbols-outlined text-xl">pan_tool</span>
                 </button>
                 <button class="p-1 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors" title="Toggle Grid">
                     <span class="material-symbols-outlined text-xl">grid_on</span>
@@ -465,9 +545,9 @@
                             'nodeConfig' => $nodeConfig
                         ])
                     @endforeach
-                </div>
 
-                @include('livewire.web.automations.sections.footer', ['activeNode' => $activeNode])
+                    @include('livewire.web.automations.sections.footer', ['activeNode' => $activeNode])
+                </div>
             @else
                 {{-- Empty State --}}
                 <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">

@@ -1,0 +1,26 @@
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AutomationRun>
+ */
+class AutomationRunFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'automation_flow_id' => \App\Models\AutomationFlow::factory(),
+            'company_id' => \App\Models\Company::factory(),
+            'status' => 'running',
+            'started_at' => now(),
+        ];
+    }
+}

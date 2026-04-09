@@ -1,16 +1,33 @@
 <div class="space-y-4">
-    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Trigger Type</label>
-    <div class="relative group">
-        <select 
-            wire:model.live="nodeConfig.trigger_category" 
-            class="w-full bg-[#101d39] border border-white/10 rounded-2xl px-4 py-4 text-sm text-white focus:ring-2 focus:ring-primary shadow-xl appearance-none transition-all hover:border-primary/30"
-        >
-            <option value="webhook_api">Webhook / API Trigger</option>
-            <option value="time_based">Time-based Trigger (Scheduled)</option>
-            <option value="event_based">Event-based Trigger (System Action)</option>
-            <option value="behavior_based">Behavior-based Trigger (User Activity)</option>
-            <option value="conditional">Conditional Trigger (Rules)</option>
-        </select>
-        <span class="material-symbols-outlined absolute right-4 top-4 text-slate-500 pointer-events-none group-hover:text-primary transition-colors">expand_more</span>
+    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Trigger Category</label>
+    
+    @php
+        $category = $nodeConfig['trigger_category'] ?? 'webhook_api';
+        $categoryLabel = match($category) {
+            'webhook_api' => 'Webhook / API Trigger',
+            'time_based' => 'Time-based (Scheduled)',
+            'event_based' => 'Event-based (System)',
+            'behavior_based' => 'Behavior-based (Activity)',
+            'conditional' => 'Conditional rules',
+            default => ucfirst(str_replace('_', ' ', $category))
+        };
+        $categoryIcon = match($category) {
+            'webhook_api' => 'hub',
+            'time_based' => 'schedule',
+            'event_based' => 'notifications_active',
+            'behavior_based' => 'track_changes',
+            'conditional' => 'rule',
+            default => 'rocket_launch'
+        };
+    @endphp
+
+    <div class="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl group transition-all hover:bg-white/[0.07]">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5">
+            <span class="material-symbols-outlined text-primary text-xl">{{ $categoryIcon }}</span>
+        </div>
+        <div class="flex-1">
+            <p class="text-[11px] font-black text-white uppercase tracking-wider">{{ $categoryLabel }}</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Core Type • Non-editable</p>
+        </div>
     </div>
 </div>

@@ -89,12 +89,17 @@ class AutomationTriggerService
         return app(AutomationRuleEvaluator::class)->evaluate($rules, $payload, $mode);
     }
 
+    public function __construct(
+        protected AutomationRunnerService $runner
+    ) {}
+
     /**
      * Hand off the run to the background execution engine.
      */
     protected function dispatchRun(AutomationRun $run)
     {
-        // Placeholder for the actual background worker dispatch
-        // e.g., ProcessAutomationRun::dispatch($run);
+        // For now, execute synchronously to ensure immediate feedback in this task
+        // In a high-scale environment, this would be: ProcessAutomationRun::dispatch($run);
+        $this->runner->executeRun($run);
     }
 }

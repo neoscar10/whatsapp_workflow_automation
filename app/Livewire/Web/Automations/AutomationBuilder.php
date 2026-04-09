@@ -7,9 +7,11 @@ use App\Models\AutomationFlow;
 use App\Models\AutomationNode;
 use App\Models\WhatsApp\WhatsAppAccount;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
+use App\Models\WhatsApp\WhatsAppTemplate;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use App\Services\Automations\FlowValidator;
 use Livewire\Component;
 
 #[Title('Automation Builder')]
@@ -56,7 +58,9 @@ class AutomationBuilder extends Component
             'action.whatsapp_message' => [
                 'action_type',
                 'provider_account_selector',
-                'message_editor',
+                'message_mode_selector',
+                ($this->nodeConfig['message_mode'] ?? 'text') === 'template' ? 'template_selector' : 'message_editor',
+                ($this->nodeConfig['message_mode'] ?? 'text') === 'template' ? 'template_variable_mapper' : null,
                 'advanced_settings',
                 'error_handling'
             ],
@@ -285,8 +289,11 @@ class AutomationBuilder extends Component
                 
                 if ($node->subtype === 'whatsapp_message') {
                     $this->nodeConfig['recipient_expression'] = $this->nodeConfig['recipient_expression'] ?? '{{trigger.phone_number}}';
+                    $this->nodeConfig['message_mode'] = $this->nodeConfig['message_mode'] ?? 'text';
                     $this->nodeConfig['message_body'] = $this->nodeConfig['message_body'] ?? '';
                     $this->nodeConfig['provider_account_id'] = $this->nodeConfig['provider_account_id'] ?? null;
+                    $this->nodeConfig['template_id'] = $this->nodeConfig['template_id'] ?? null;
+                    $this->nodeConfig['template_variable_mappings'] = $this->nodeConfig['template_variable_mappings'] ?? [];
                 }
 
                 if ($node->subtype === 'call_api') {
@@ -430,6 +437,43 @@ class AutomationBuilder extends Component
             
             // Merge default config if not already set or if explicitly resetting
             $this->nodeConfig = array_merge($definition->default_config ?? [], $this->nodeConfig);
+        }
+    }
+
+    public function updatedNodeConfigTemplateId($value)
+    {
+        if (!$value) return;
+
+        $template = WhatsAppTemplate::find($value);
+        if ($template) {
+            $this->nodeConfig['template_name'] = $template->remote_template_name;
+            $this->nodeConfig['template_language'] = $template->language_code;
+            
+            // Re-initialize mappings for the new template
+            $mappings = [
+                'body' => [],
+                'header' => []
+            ];
+
+            // Extract body variables: {{1}}, {{2}}...
+            preg_match_all('/\{\{(\d+)\}\}/', $template->body_text, $bodyMatches);
+            if (!empty($bodyMatches[1])) {
+                foreach ($bodyMatches[1] as $num) {
+                    $mappings['body'][$num] = $this->nodeConfig['template_variable_mappings']['body'][$num] ?? '';
+                }
+            }
+
+            // Extract header variables if text
+            if ($template->header_type === 'text' && !empty($template->header_text)) {
+                preg_match_all('/\{\{(\d+)\}\}/', $template->header_text, $headerMatches);
+                if (!empty($headerMatches[1])) {
+                    foreach ($headerMatches[1] as $num) {
+                        $mappings['header'][$num] = $this->nodeConfig['template_variable_mappings']['header'][$num] ?? '';
+                    }
+                }
+            }
+
+            $this->nodeConfig['template_variable_mappings'] = $mappings;
         }
     }
 
@@ -612,16 +656,17 @@ class AutomationBuilder extends Component
         return redirect()->route('automations.edit', $this->automation->id);
     }
 
-    public function publish()
+    public function publish(FlowValidator $validator)
     {
-        // Simple validation
-        if (empty($this->workflowName) || $this->workflowName === 'Untitled Workflow') {
-            $this->dispatch('notify', ['type' => 'error', 'message' => 'Please provide a valid workflow name']);
-            return;
-        }
+        // Save current state first to ensure we validate the latest data
+        $this->save();
 
-        if ($this->nodes->count() < 2) {
-            $this->dispatch('notify', ['type' => 'error', 'message' => 'Workflow must have at least one trigger and one action']);
+        $result = $validator->validate($this->automation);
+
+        if (!$result['is_valid']) {
+            foreach ($result['errors'] as $error) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => $error]);
+            }
             return;
         }
 
@@ -658,8 +703,14 @@ class AutomationBuilder extends Component
     #[Layout('layouts.panel')]
     public function render()
     {
+        $companyId = auth()->user()->company_id;
+
         return view('livewire.web.automations.builder', [
-            'availableAccounts' => WhatsAppAccount::where('company_id', auth()->user()->company_id)->with('phoneNumbers')->get(),
+            'availableAccounts' => WhatsAppAccount::where('company_id', $companyId)->with('phoneNumbers')->get(),
+            'availableTemplates' => WhatsAppTemplate::where('company_id', $companyId)
+                ->where('status', 'approved')
+                ->orderBy('remote_template_name')
+                ->get(),
         ]);
     }
 }

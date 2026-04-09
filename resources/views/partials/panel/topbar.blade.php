@@ -1,5 +1,18 @@
 <header class="sticky top-0 z-10 flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-8 dark:border-slate-800 dark:bg-slate-900/80">
-    <div class="flex flex-1 items-center gap-4">
+    <div class="flex items-center gap-4">
+        <button 
+            @click="sidebarOpen = !sidebarOpen" 
+            class="flex items-center justify-center size-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary transition-all dark:bg-slate-800"
+            title="Toggle Sidebar"
+        >
+            <span class="material-symbols-outlined transition-transform duration-300" :class="!sidebarOpen ? '' : 'rotate-180'">
+                menu_open
+            </span>
+        </button>
+
+        <div class="mx-2 h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+
+        <div class="flex flex-1 items-center gap-4">
         <div class="relative w-full max-w-md group">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 group-focus-within:text-primary transition-colors">search</span>
             <input
