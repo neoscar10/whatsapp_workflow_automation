@@ -96,6 +96,10 @@ class ChatConversationResolverService
             'event' => 'chat.inbound.received'
         ]);
 
+        Log::info('TRACE A: About to dispatch InboundMessageReceived', [
+            'company_id' => $conversation->company_id,
+        ]);
+
         broadcast(new InboundMessageReceived(
             companyId: $conversation->company_id,
             conversationId: $conversation->id,

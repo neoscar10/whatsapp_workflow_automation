@@ -14,9 +14,13 @@ class AutomationEventSubscriber
      */
     public function handleInboundMessage(InboundMessageReceived $event)
     {
+        Log::info('TRACE B: AutomationEventSubscriber reached', ['event_company_id' => $event->companyId]);
+
         $activeFlows = AutomationFlow::where('company_id', $event->companyId)
             ->where('is_enabled', true)
             ->get();
+
+        Log::info('TRACE C: Matching Flows Found', ['count' => count($activeFlows)]);
 
         foreach ($activeFlows as $flow) {
             $trigger = $flow->nodes()->where('type', 'trigger')->first();
