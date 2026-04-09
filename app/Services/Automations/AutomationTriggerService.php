@@ -45,7 +45,13 @@ class AutomationTriggerService
      */
     public function fireTrigger(AutomationNode $node, array $payload = []): ?AutomationRun
     {
+        Log::info("Entered fireTrigger for Node [{$node->id}] Flow [{$node->automation_flow_id}]", [
+            'company_id' => $node->flow->company_id,
+            'node_type' => $node->type
+        ]);
+
         if ($node->type !== 'trigger') {
+            Log::info("Aborting Trigger: Node [{$node->id}] is not a trigger type.");
             return null;
         }
 
@@ -55,22 +61,38 @@ class AutomationTriggerService
             return null;
         }
 
-        $run = AutomationRun::create([
-            'automation_flow_id' => $node->automation_flow_id,
-            'company_id' => $node->flow->company_id,
-            'status' => 'running',
-            'trigger_node_id' => $node->id,
-            'trigger_context' => $payload,
-            'started_at' => now(),
-        ]);
+        try {
+            $runData = [
+                'automation_flow_id' => $node->automation_flow_id,
+                'company_id' => $node->flow->company_id,
+                'status' => 'running',
+                'trigger_node_id' => $node->id,
+                'trigger_context' => $payload,
+                'started_at' => now(),
+            ];
 
-        Log::info("Automation Run [{$run->id}] started for flow [{$node->automation_flow_id}]");
+            Log::info("About to create AutomationRun", ['payload' => $runData]);
 
-        // In a real implementation, we would dispatch a job to process the next nodes.
-        // For now, mirroring the execution engine's handoff.
-        $this->dispatchRun($run);
+            $run = AutomationRun::create($runData);
 
-        return $run;
+            Log::info("AutomationRun created successfully", [
+                'run_id' => $run->id,
+                'status' => $run->status
+            ]);
+
+            // In a real implementation, we would dispatch a job to process the next nodes.
+            // For now, mirroring the execution engine's handoff.
+            $this->dispatchRun($run);
+
+            return $run;
+        } catch (\Exception $e) {
+            Log::error("CRITICAL FAILURE during AutomationRun creation", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'flow_id' => $node->automation_flow_id
+            ]);
+            return null;
+        }
     }
 
     /**

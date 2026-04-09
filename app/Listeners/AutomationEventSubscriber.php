@@ -24,13 +24,22 @@ class AutomationEventSubscriber
         Log::info('TRACE C: Matching Flows Found', ['count' => count($activeFlows)]);
 
         foreach ($activeFlows as $flow) {
+            Log::info("Processing Matched Flow: [{$flow->id}] {$flow->name}");
             $trigger = $flow->nodes()->where('type', 'trigger')->first();
             
-            if (!$trigger || ($trigger->config['trigger_category'] ?? null) !== 'event_based') {
+            if (!$trigger) {
+                Log::info("Skipping Flow [{$flow->id}]: No trigger node found.");
+                continue;
+            }
+
+            $currentCategory = $trigger->config['trigger_category'] ?? null;
+            if ($currentCategory !== 'event_based') {
+                Log::info("Skipping Flow [{$flow->id}]: Trigger category is '{$currentCategory}', expected 'event_based'.", ['node_id' => $trigger->id]);
                 continue;
             }
 
             $defKey = $trigger->config['trigger_definition_key'] ?? $trigger->subtype;
+            Log::info("Evaluating Trigger: [Node: {$trigger->id}] [Subtype: {$trigger->subtype}] [DefKey: {$defKey}]");
 
             // Broaden matching: Trigger if it's the specific WhatsApp event OR a generic webhook/webhook_api 
             // set to listen for everything.
@@ -50,7 +59,14 @@ class AutomationEventSubscriber
                 // Add 'trigger' nested key for consistency with builder's 'trigger.field' notation
                 $payload['trigger'] = $payload;
 
+                Log::info("Firing Trigger for Flow [{$flow->id}]", [
+                    'company_id' => $event->companyId,
+                    'payload_keys' => array_keys($payload)
+                ]);
+
                 app(AutomationTriggerService::class)->fireTrigger($trigger, $payload);
+            } else {
+                Log::info("Skipping Flow [{$flow->id}]: Trigger definition '{$defKey}' does not match.");
             }
         }
     }
