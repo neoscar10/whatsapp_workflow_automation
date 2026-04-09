@@ -46,6 +46,14 @@ class AutomationBuilder extends Component
 
         // Determine subtype based on current config if available (for reactive UI)
         $subtype = $node->subtype;
+        
+        // Safety check: Ensure webhook provisioning is present if needed before rendering sections
+        if ($node->type === 'trigger' && in_array($subtype, ['webhook', 'webhook_api'])) {
+            if (empty($this->nodeConfig['webhook_url']) || empty($this->nodeConfig['api_key_masked'])) {
+                $this->ensureWebhookProvisioned();
+            }
+        }
+
         if ($node->type === 'trigger' && isset($this->nodeConfig['trigger_category'])) {
             $subtype = $this->nodeConfig['trigger_category'];
         } elseif ($node->type === 'loop' && isset($this->nodeConfig['loop_type'])) {
@@ -480,21 +488,32 @@ class AutomationBuilder extends Component
 
     protected function ensureWebhookProvisioned()
     {
+        $updated = false;
         if (empty($this->nodeConfig['webhook_uuid'])) {
             $this->nodeConfig['webhook_uuid'] = (string) \Illuminate\Support\Str::uuid();
+            $updated = true;
         }
         if (empty($this->nodeConfig['webhook_secret'])) {
             $this->nodeConfig['webhook_secret'] = \Illuminate\Support\Str::random(32);
+            $updated = true;
         }
         
+        // Always ensure these derived values are fresh
         $this->nodeConfig['webhook_url'] = route('api.automation.webhook', ['uuid' => $this->nodeConfig['webhook_uuid']]);
         $this->nodeConfig['api_key_masked'] = substr($this->nodeConfig['webhook_secret'], 0, 8) . '****************' . substr($this->nodeConfig['webhook_secret'], -4);
         
-        // Very important: sync back to the model in the collection if it exists
+        // Force the array to be recognized as changed by Livewire
+        $this->nodeConfig = array_merge([], $this->nodeConfig);
+
+        // Sync back to the model in the collection
         if ($this->selectedNodeId) {
             $node = $this->nodes->firstWhere('id', $this->selectedNodeId);
             if ($node) {
                 $node->config = $this->nodeConfig;
+                // If we generated new base metadata (UUID/Secret), save immediately to avoid loss
+                if ($updated) {
+                    $node->save();
+                }
             }
         }
     }
@@ -660,7 +679,10 @@ class AutomationBuilder extends Component
     public function publish(FlowValidator $validator)
     {
         // Save current state first to ensure we validate the latest data
-        $this->save();
+        $this->automation->company_id = auth()->user()->company_id;
+        $this->automation->name = $this->workflowName;
+        $this->automation->canvas_meta = $this->canvasMeta;
+        $this->automation->save();
 
         $result = $validator->validate($this->automation);
 
