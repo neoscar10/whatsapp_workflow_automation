@@ -34,6 +34,11 @@ class AutomationRunnerService
             'current_node_id' => $run->trigger_node_id,
         ]);
 
+        \Illuminate\Support\Facades\Log::info("Automation Run [{$run->id}] initialized and starting. Context snapshot created.", [
+            'flow_id' => $run->automation_flow_id,
+            'node_id' => $run->trigger_node_id
+        ]);
+
         ProcessAutomationNode::dispatch($run, $run->trigger_node_id);
     }
 
