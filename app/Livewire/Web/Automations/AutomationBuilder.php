@@ -317,15 +317,28 @@ class AutomationBuilder extends Component
             // Ensure defaults for Conditions
             if ($node->type === 'condition') {
                 $this->nodeConfig['match_mode'] = $this->nodeConfig['match_mode'] ?? 'all';
-                $this->nodeConfig['rule_groups'] = $this->nodeConfig['rule_groups'] ?? [
-                    [
-                        'joiner' => 'and',
-                        'rules' => [
-                            ['field' => 'message_body', 'operator' => 'contains', 'value' => '']
+                
+                // Critical: Ensure rule_groups and nested rules exist for the builder view
+                if (empty($this->nodeConfig['rule_groups'])) {
+                    $this->nodeConfig['rule_groups'] = [
+                        [
+                            'joiner' => 'and',
+                            'rules' => [
+                                ['field' => 'message_body', 'operator' => 'contains', 'value' => '']
+                            ]
                         ]
-                    ]
-                ];
+                    ];
+                }
+
+                // Sanitize: Ensure every group has a 'rules' array
+                foreach ($this->nodeConfig['rule_groups'] as $idx => $group) {
+                    if (empty($group['rules'])) {
+                        $this->nodeConfig['rule_groups'][$idx]['rules'] = [['field' => 'message_body', 'operator' => 'contains', 'value' => '']];
+                    }
+                }
             }
+
+            $this->dispatch('nodeSelected', nodeId: $id);
 
             // Ensure defaults for Wait
             if ($node->type === 'wait') {

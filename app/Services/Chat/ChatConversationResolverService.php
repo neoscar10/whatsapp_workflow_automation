@@ -102,6 +102,8 @@ class ChatConversationResolverService
             messageId: $msg->id,
             preview: $body,
             createdAt: $msg->created_at->toDateTimeString(),
+            phoneNumber: $conversation->contact_phone,
+            senderName: $conversation->contact_name ?? '',
             direction: 'inbound'
         ));
 

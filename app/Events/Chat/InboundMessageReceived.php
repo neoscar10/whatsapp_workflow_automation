@@ -18,6 +18,8 @@ class InboundMessageReceived implements ShouldBroadcastNow
         public int $messageId,
         public string $preview,
         public string $createdAt,
+        public string $phoneNumber = '',
+        public string $senderName = '',
         public string $direction = 'inbound'
     ) {}
 
@@ -41,6 +43,8 @@ class InboundMessageReceived implements ShouldBroadcastNow
             'message_id' => $this->messageId,
             'message_preview' => $this->preview,
             'created_at' => $this->createdAt,
+            'phone_number' => $this->phoneNumber,
+            'sender_name' => $this->senderName,
             'direction' => $this->direction,
         ];
     }

@@ -25,7 +25,7 @@
                                     <input 
                                         type="text" 
                                         wire:model.lazy="nodeConfig.template_variable_mappings.body.{{ $index }}"
-                                        placeholder="{{ $index == 1 ? 'e.g. ' . '{' . '{' . 'customer.name' . '}' . '}' : 'Enter expression...' }}"
+                                        placeholder="{{ $index == 1 ? 'e.g. customer.name' : 'Enter expression...' }}"
                                         class="w-full bg-[#0a1630] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:ring-2 focus:ring-primary shadow-inner"
                                     />
                                     <div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -79,14 +79,32 @@ class AutomationTriggerService
     protected function validateTriggerConditions(AutomationNode $node, array $payload): bool
     {
         $config = $node->config ?? [];
-        $rules = $config['rules'] ?? $config['conditions']['rules'] ?? [];
-        $mode = $config['match_mode'] ?? $config['conditions']['match_mode'] ?? 'all';
+        $rules = $config['rules'] ?? $config['rule_groups'] ?? [];
+        $mode = $config['match_mode'] ?? 'all';
 
         if (empty($rules)) {
             return true;
         }
 
-        return app(AutomationRuleEvaluator::class)->evaluate($rules, $payload, $mode);
+        $evaluator = app(AutomationRuleEvaluator::class);
+        $result = [];
+
+        if (isset($config['rule_groups'])) {
+            $result = $evaluator->evaluateGroupsDetailed($config['rule_groups'], $payload);
+        } else {
+            $result = $evaluator->evaluateDetailed($rules, $payload, $mode);
+        }
+
+        if (!$result['match']) {
+            Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition FAILED.", [
+                'summary' => $result['summary'],
+                'details' => $result['groups'] ?? $result['rules'] ?? []
+            ]);
+        } else {
+            Log::info("Automation [{$node->automation_flow_id}] Trigger [{$node->id}] Condition PASSED.");
+        }
+
+        return $result['match'];
     }
 
     public function __construct(

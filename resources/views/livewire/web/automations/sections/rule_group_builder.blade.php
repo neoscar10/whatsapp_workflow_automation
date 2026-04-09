@@ -22,9 +22,9 @@
         <div class="bg-surface-container-low/50 rounded-2xl p-5 border border-white/5 space-y-5 shadow-2xl">
             @foreach($group['rules'] as $ruleIndex => $rule)
                 <div class="space-y-4" x-data="{ 
-                    operator: @entangle('nodeConfig.rule_groups.' . $groupIndex . '.rules.' . $ruleIndex . '.operator'),
-                    field: @entangle('nodeConfig.rule_groups.' . $groupIndex . '.rules.' . $ruleIndex . '.field'),
-                    value: @entangle('nodeConfig.rule_groups.' . $groupIndex . '.rules.' . $ruleIndex . '.value'),
+                    get operator() { return $wire.get('nodeConfig.rule_groups.{{ $groupIndex }}.rules.{{ $ruleIndex }}.operator') },
+                    get field() { return $wire.get('nodeConfig.rule_groups.{{ $groupIndex }}.rules.{{ $ruleIndex }}.field') },
+                    get value() { return $wire.get('nodeConfig.rule_groups.{{ $groupIndex }}.rules.{{ $ruleIndex }}.value') },
                     isExistenceOperator() {
                         return ['exists', 'is_set', 'is_empty', 'is_not_empty'].includes(this.operator);
                     }
