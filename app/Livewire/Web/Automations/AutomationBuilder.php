@@ -368,9 +368,12 @@ class AutomationBuilder extends Component
                     }
                 }
                 
-                if ($this->nodeConfig['trigger_category'] === 'time_based') {
-                    $this->nodeConfig['start_date'] = $this->nodeConfig['start_date'] ?? date('Y-m-d');
-                    $this->nodeConfig['repeat_interval'] = $this->nodeConfig['repeat_interval'] ?? 'once';
+                if ($this->nodeConfig['trigger_category'] === 'event_based') {
+                    // Auto-default to New Message Received if it's a fresh event trigger
+                    $this->nodeConfig['trigger_definition_key'] = $this->nodeConfig['trigger_definition_key'] ?? 'new_message_received';
+                    
+                    // Manually trigger the definition update to pull in variables
+                    $this->updatedNodeConfigTriggerDefinitionKey($this->nodeConfig['trigger_definition_key']);
                 }
 
                 if (in_array($node->subtype, ['webhook', 'webhook_api'])) {
@@ -719,6 +722,7 @@ class AutomationBuilder extends Component
     protected function getDefaultLabel(string $subtype): string
     {
         return match($subtype) {
+            'event_based' => 'New Message Received',
             'webhook' => 'Incoming Webhook',
             'time_based' => 'Scheduled Trigger',
             'conditional' => 'Conditional Trigger',

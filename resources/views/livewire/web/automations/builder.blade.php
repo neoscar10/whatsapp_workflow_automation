@@ -241,6 +241,10 @@
                             <span class="material-symbols-outlined text-xs text-slate-700">bolt</span>
                         </div>
                         <div class="space-y-0.5">
+                            <button wire:click="addNode('trigger', 'event_based')" class="w-full px-6 py-3 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/[0.03] transition-all group border-r-4 border-transparent hover:border-emerald-500">
+                                <span class="material-symbols-outlined text-emerald-500/50 group-hover:text-emerald-500 group-hover:scale-110 transition-all text-xl">notifications_active</span>
+                                <span class="text-[12px] font-black tracking-tight uppercase">System Events</span>
+                            </button>
                             <button wire:click="addNode('trigger', 'webhook_api')" class="w-full px-6 py-3 flex items-center gap-3 text-slate-400 hover:text-white hover:bg-white/[0.03] transition-all group border-r-4 border-transparent hover:border-emerald-500">
                                 <span class="material-symbols-outlined text-emerald-500/50 group-hover:text-emerald-500 group-hover:scale-110 transition-all text-xl">sensors</span>
                                 <span class="text-[12px] font-black tracking-tight uppercase">Webhook / API</span>

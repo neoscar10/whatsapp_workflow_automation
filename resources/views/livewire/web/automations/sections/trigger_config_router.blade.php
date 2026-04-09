@@ -19,13 +19,43 @@
         @include('livewire.web.automations.sections.trigger_conditional_rule_builder')
 
     @elseif($type === 'event_based')
-        <div class="p-4 bg-primary/5 border border-primary/20 rounded-2xl">
-            <div class="flex items-start gap-3">
-                <span class="material-symbols-outlined text-primary text-xl">info</span>
-                <div class="space-y-1">
-                    <p class="text-xs font-bold text-white uppercase tracking-wider">Event Subscription</p>
-                    <p class="text-[11px] text-slate-400 leading-relaxed">
-                        This flow will automatically fire when the system detects a <b>{{ str_replace('_', ' ', $defKey) }}</b> event.
+        <div class="space-y-4">
+            <div class="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                
+                <div class="flex items-start gap-4 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                        <span class="material-symbols-outlined text-emerald-500 text-xl">notifications_active</span>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs font-black text-white uppercase tracking-[0.2em]">System Event Subscription</p>
+                        <p class="text-[11px] font-bold text-emerald-500/80 uppercase tracking-tight">Active Listener</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                    <p class="text-[11px] font-bold text-slate-400 leading-relaxed uppercase tracking-tight">
+                        This trigger fires automatically when a customer sends a WhatsApp message. No additional configuration is required to receive standard inbound events.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-[#0c1833] border border-white/10 rounded-[2rem] space-y-4">
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Available Payload Variables</label>
+                
+                <div class="grid grid-cols-1 gap-2">
+                    @foreach(['message_body', 'phone_number', 'sender_name', 'received_at'] as $var)
+                        <div class="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl group hover:bg-white/[0.04] transition-all">
+                            <code class="text-[10px] font-black text-primary tracking-tight group-hover:text-white transition-colors">trigger.{{ $var }}</code>
+                            <span class="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">String</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <p class="text-[9px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">
+                        Use these variables in downstream condition nodes or message templates using the 
+                        <span class="text-primary italic">@{{ trigger.field }}</span> syntax.
                     </p>
                 </div>
             </div>
