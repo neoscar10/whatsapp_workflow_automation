@@ -39,7 +39,7 @@ class AutomationRunnerService
             'node_id' => $run->trigger_node_id
         ]);
 
-        ProcessAutomationNode::dispatch($run, $run->trigger_node_id);
+        ProcessAutomationNode::dispatchSync($run, $run->trigger_node_id);
     }
 
     /**
@@ -63,11 +63,21 @@ class AutomationRunnerService
 
         $context = $run->context ?? [];
         
+        \Illuminate\Support\Facades\Log::info("Stepping into Node [{$nodeId}] type: [{$node->type}]", [
+            'run_id' => $run->id,
+            'subtype' => $node->subtype
+        ]);
+        
         try {
             // Execute the node's business logic
             $result = $this->executeNode($node, $context, $run);
             $outcome = is_array($result) ? ($result['outcome'] ?? 'success') : $result;
             $output = is_array($result) ? ($result['output'] ?? []) : [];
+
+            \Illuminate\Support\Facades\Log::info("Node [{$nodeId}] Execution Outcome: [{$outcome}]", [
+                'run_id' => $run->id,
+                'output_keys' => array_keys($output)
+            ]);
 
             // Merge output into context for downstream nodes
             $newContext = array_merge($context, $output);
@@ -91,9 +101,12 @@ class AutomationRunnerService
             $nextNodeId = $this->simulationService->getNextNodeId($node, $outcome, $newContext);
             
             if (!$nextNodeId) {
+                \Illuminate\Support\Facades\Log::info("No next node found. Automation Run [{$run->id}] completed.");
                 $this->completeRun($run);
                 return;
             }
+
+            \Illuminate\Support\Facades\Log::info("Next Node Resolved: [{$nextNodeId}]. Advancing...", ['run_id' => $run->id]);
 
             // Handle Timing (Wait nodes)
             if ($node->type === 'wait') {
@@ -101,7 +114,7 @@ class AutomationRunnerService
             } else {
                 // Immediate dispatch for other nodes
                 $run->update(['current_node_id' => $nextNodeId]);
-                ProcessAutomationNode::dispatch($run, $nextNodeId);
+                ProcessAutomationNode::dispatchSync($run, $nextNodeId);
             }
 
         } catch (\Exception $e) {
@@ -124,6 +137,8 @@ class AutomationRunnerService
             'days' => now()->addDays($delayValue),
             default => now()->addSeconds($delayValue),
         };
+
+        \Illuminate\Support\Facades\Log::info("Scheduling delayed step: Node [{$nextNodeId}] delayed until {$delay->toDateTimeString()}", ['run_id' => $run->id]);
 
         $run->update([
             'status' => 'delayed',
