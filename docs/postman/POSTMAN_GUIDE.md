@@ -1,0 +1,78 @@
+# WhatsApp Workflow Automation API - Postman Guide
+
+## Overview
+This directory contains the Postman collection and environment files required to interact with the WhatsApp Workflow Automation API. These resources are specifically designed for the Flutter mobile developer to test and integrate authentication and core messaging features.
+
+## Files Included
+1. `whatsapp-workflow-api.postman_collection.json`: The core API collection containing all versioned endpoints.
+2. `whatsapp-workflow-local.postman_environment.json`: Local development environment variables.
+
+## How to Import into Postman
+1. Open Postman.
+2. Click the **Import** button in the top-left corner.
+3. Drag and drop both the collection and environment JSON files into the import area.
+4. Ensure the **WhatsApp Workflow Automation API - v1** collection and **WhatsApp Workflow - Local** environment are selected.
+
+## Environment Setup
+After importing, select the **WhatsApp Workflow - Local** environment from the environment dropdown in the top-right corner.
+
+The following variables are available:
+- `base_url`: Default is `http://localhost:8000`.
+- `api_version`: Default is `v1`.
+- `auth_token`: Automatically updated upon successful login.
+- `test_email`: Used for login requests.
+- `test_password`: Used for login requests.
+
+## Authentication Flow
+The API uses **Laravel Sanctum** for bearer token authentication.
+
+### How to Login and Save Token Automatically
+1. Locate the **Auth > Login** request in the collection.
+2. Ensure your local server is running (`php artisan serve`).
+3. Click **Send**.
+4. The successful response includes a `token`.
+5. A **Post-response script** (Tests tab) automatically saves this token to your `auth_token` environment variable.
+
+### How to Call Protected Routes
+All protected routes (e.g., `/me`, `/logout`) automatically include the following header:
+`Authorization: Bearer {{auth_token}}`
+
+## Common Error Responses
+- **401 Unauthenticated**: The bearer token is missing, invalid, or expired.
+- **422 Validation Error**: Required fields are missing or data format is incorrect. Check the `errors` object in the response.
+- **404 Not Found**: The requested resource or endpoint does not exist.
+
+## Local Development
+By default, the `base_url` is set to `http://localhost:8000`. If you are using a different port or a tool like Ngrok, update the `base_url` variable in your Postman environment.
+
+## Sample cURL Requests
+
+### Login
+```bash
+curl --location 'http://localhost:8000/api/v1/auth/login' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "developer@example.com",
+    "password": "password"
+}'
+```
+
+### Get Profile (Me)
+```bash
+curl --location 'http://localhost:8000/api/v1/auth/me' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer <your_token_here>'
+```
+
+### Logout
+```bash
+curl --location --request POST 'http://localhost:8000/api/v1/auth/logout' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer <your_token_here>'
+```
+
+## Troubleshooting
+- **Connection Refused**: Ensure your Laravel server is running and accessible from Postman.
+- **CSRF Token Mismatch**: API routes are exempt from CSRF protection. Ensure you are calling `/api/...` and not a web route.
+- **Token Not Saving**: Ensure you have the correct environment selected in the top-right corner before logging in.

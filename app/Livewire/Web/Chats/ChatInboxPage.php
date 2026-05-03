@@ -94,7 +94,7 @@ class ChatInboxPage extends Component
         ]);
     }
 
-    public function updatedComposerMedia()
+    public function updatedComposerMedia(\App\Services\WhatsApp\MetaMediaUploadService $mediaService)
     {
         $this->errorMessage = null;
         
@@ -103,24 +103,13 @@ class ChatInboxPage extends Component
                 'composerMedia' => 'required|file|max:65536', // 64MB max for WhatsApp
             ]);
 
-            // Capture metadata safely while file is definitely there
-            $originalName = $this->composerMedia->getClientOriginalName();
-            $fileSize = $this->composerMedia->getSize();
-            $fileMime = $this->composerMedia->getMimeType();
-            $tempUrl = str_starts_with($fileMime, 'image/') ? $this->composerMedia->temporaryUrl() : null;
+            $result = $mediaService->stageMedia($this->composerMedia);
 
-            // Now move it to the public disk so it is web-accessible via the storage link
-            $filename = time() . '_' . $originalName;
-            $stagedPath = $this->composerMedia->storeAs('staging_media', $filename, 'public');
-            $stagedUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($stagedPath);
-            
-            $this->composerMediaMetadata = [
-                'name' => $originalName,
-                'size' => $fileSize,
-                'mime' => $fileMime,
-                'staged_path' => $stagedPath,
-                'preview_url' => str_starts_with($fileMime, 'image/') ? $stagedUrl : null,
-            ];
+            if ($result['success']) {
+                $this->composerMediaMetadata = $result['data'];
+            } else {
+                throw new Exception($result['message']);
+            }
 
             // CRITICAL: We nulled this to avoid Livewire trying to track a file that might be deleted/moved
             // but we keep the staged path in metadata.
@@ -137,10 +126,10 @@ class ChatInboxPage extends Component
         }
     }
 
-    public function removeComposerMedia()
+    public function removeComposerMedia(\App\Services\WhatsApp\MetaMediaUploadService $mediaService)
     {
         if (!empty($this->composerMediaMetadata['staged_path'])) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($this->composerMediaMetadata['staged_path']);
+            $mediaService->cleanupStagedMedia($this->composerMediaMetadata['staged_path']);
         }
         $this->composerMedia = null;
         $this->composerMediaMetadata = [];
@@ -171,9 +160,9 @@ class ChatInboxPage extends Component
                 );
                 
                 if ($result) {
-                    // Cleanup staged file on public disk
+                    // Cleanup staged file on public disk using the centralized service
                     if (!empty($this->composerMediaMetadata['staged_path'])) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($this->composerMediaMetadata['staged_path']);
+                        app(\App\Services\WhatsApp\MetaMediaUploadService::class)->cleanupStagedMedia($this->composerMediaMetadata['staged_path']);
                     }
                     $this->messageText = '';
                     $this->composerMedia = null;
@@ -592,7 +581,7 @@ class ChatInboxPage extends Component
         $this->successMessage = null;
     }
 
-    public function render(ChatInboxService $inboxService)
+    public function render(ChatInboxService $inboxService, \App\Support\Presenters\ChatInboxPresenter $presenter)
     {
         $user = auth()->user();
         
@@ -605,10 +594,10 @@ class ChatInboxPage extends Component
         $this->channelAvailability = $data['channel_availability'];
 
         return view('livewire.web.chats.chat-inbox-page', [
-            'conversationList' => $data['conversations'],
-            'activeConversation' => $data['activeConversation'],
-            'messages' => $data['messages'],
-            'sidebarData' => $data['sidebarData'],
+            'conversationList' => $presenter->formatConversations($data['conversations']),
+            'activeConversation' => $presenter->formatActiveConversation($data['activeConversation']),
+            'messages' => $presenter->formatMessages($data['messages']),
+            'sidebarData' => $presenter->formatSidebarData($data['sidebarData']),
             'hasAvailableChannels' => $data['channel_availability']['has_available_channels'],
             'agentInitials' => strtoupper(substr($user->name, 0, 2)),
             'agentName' => $user->name,

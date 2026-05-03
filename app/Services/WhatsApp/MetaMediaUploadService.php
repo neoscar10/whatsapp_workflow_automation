@@ -61,13 +61,13 @@ class MetaMediaUploadService
     {
         Log::info("Initiating Message Media Upload to Meta", [
             'phone_id' => $phoneNumberId,
-            'file' => is_string($file) ? $file : $file->getClientOriginalName()
+            'file' => is_string($file) ? $file : (method_exists($file, 'getClientOriginalName') ? $file->getClientOriginalName() : 'unknown')
         ]);
 
         if (is_string($file)) {
             // Check if it's a storage path on the public disk first
-            $realPath = \Illuminate\Support\Facades\Storage::disk('public')->exists($file) 
-                ? \Illuminate\Support\Facades\Storage::disk('public')->path($file) 
+            $realPath = Storage::disk('public')->exists($file) 
+                ? Storage::disk('public')->path($file) 
                 : $file;
             $fileContents = file_get_contents($realPath);
             $filename = basename($realPath);
@@ -91,5 +91,60 @@ class MetaMediaUploadService
         }
 
         return $result['media_id'];
+    }
+
+    /**
+     * Stage a media file for future sending (web-accessible staging).
+     */
+    public function stageMedia($file, array $options = []): array
+    {
+        $disk = $options['disk'] ?? 'public';
+        $directory = $options['directory'] ?? 'staging_media';
+
+        $originalName = method_exists($file, 'getClientOriginalName') ? $file->getClientOriginalName() : basename($file->getRealPath());
+        $fileSize = $file->getSize();
+        $fileMime = $file->getMimeType();
+
+        // Move to public disk so it is web-accessible
+        $filename = time() . '_' . $originalName;
+        $stagedPath = $file->storeAs($directory, $filename, $disk);
+        $stagedUrl = Storage::disk($disk)->url($stagedPath);
+
+        return [
+            'success' => true,
+            'data' => [
+                'name' => $originalName,
+                'size' => $fileSize,
+                'mime' => $fileMime,
+                'staged_path' => $stagedPath,
+                'staged_url' => $stagedUrl,
+                'disk' => $disk,
+                'preview_url' => str_starts_with($fileMime, 'image/') ? $stagedUrl : null,
+                'media_type' => $this->getMediaTypeFromMime($fileMime),
+            ],
+            'message' => 'File staged successfully',
+        ];
+    }
+
+    /**
+     * Cleanup a staged media file.
+     */
+    public function cleanupStagedMedia(string $path, string $disk = 'public'): bool
+    {
+        if (Storage::disk($disk)->exists($path)) {
+            return Storage::disk($disk)->delete($path);
+        }
+        return false;
+    }
+
+    /**
+     * Helper to determine media type from mime.
+     */
+    protected function getMediaTypeFromMime(string $mime): string
+    {
+        if (str_starts_with($mime, 'image/')) return 'image';
+        if (str_starts_with($mime, 'video/')) return 'video';
+        if (str_starts_with($mime, 'audio/')) return 'audio';
+        return 'document';
     }
 }

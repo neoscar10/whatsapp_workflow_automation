@@ -24,34 +24,15 @@ class ChatInboxService
         $sidebarData = [];
 
         if ($selectedId) {
-            if ($activeConversationModel = $this->getActiveConversationForUser($user, $selectedId)) {
-                $activeConversation = [
-                    'id' => $activeConversationModel->id,
-                    'name' => $activeConversationModel->contact_name,
-                    'phone' => $activeConversationModel->contact_phone,
-                    'avatar_url' => $activeConversationModel->contact_avatar_url,
-                    'location' => $activeConversationModel->contact_location,
-                    'is_active' => true,
-                    'is_session_active' => $activeConversationModel->is_session_active,
-                ];
-
-                $messages = $this->getMessagesForConversation($user, $activeConversationModel->id);
-                $sidebarData = $this->getConversationSidebarData($user, $activeConversationModel->id);
+            $activeConversation = $this->getActiveConversationForUser($user, $selectedId);
+            if ($activeConversation) {
+                $messages = $this->getMessagesForConversation($user, $activeConversation->id);
+                $sidebarData = $this->getConversationSidebarData($user, $activeConversation->id);
             }
         }
 
         return [
-            'conversations' => $conversations->map(fn($c) => [
-                'id' => $c->id,
-                'name' => $c->contact_name,
-                'phone' => $c->contact_phone,
-                'avatar_url' => $c->contact_avatar_url,
-                'preview' => $c->last_message_preview ?? 'No messages yet',
-                'time_label' => $c->last_message_at ? $c->last_message_at->diffForHumans(short: true) : '',
-                'unread_count' => $c->unread_count,
-                'is_active' => true,
-                'is_session_active' => $c->is_session_active,
-            ]),
+            'conversations' => $conversations,
             'activeConversation' => $activeConversation,
             'messages' => $messages,
             'sidebarData' => $sidebarData,
@@ -107,7 +88,7 @@ class ChatInboxService
     }
 
     /**
-     * Get messages for conversation properly shaped for UI.
+     * Get messages for conversation.
      */
     public function getMessagesForConversation(User $user, int $conversationId): Collection
     {
@@ -116,27 +97,7 @@ class ChatInboxService
             return collect();
         }
 
-        $messages = $conversation->messages()->orderBy('created_at', 'asc')->get();
-
-        return $messages->map(function ($m) {
-            return [
-                'id' => $m->id,
-                'direction' => $m->direction,
-                'message_type' => $m->message_type,
-                'body' => $m->body,
-                'media_url' => $m->media_url,
-                'resolved_media_url' => $m->resolved_media_url,
-                'status' => $m->status,
-                'status_icon' => $this->getStatusIcon($m->status),
-                'status_color' => $this->getStatusColor($m->status),
-                'failure_message' => $m->failure_message,
-                'time_label' => $m->sent_at ? $m->sent_at->format('H:i') : $m->created_at->format('H:i'),
-                'card_title' => $m->media_meta['title'] ?? null,
-                'card_heading' => $m->media_meta['heading'] ?? null,
-                'card_subtext' => $m->media_meta['subtext'] ?? null,
-                'card_button_text' => $m->media_meta['button_text'] ?? null,
-            ];
-        });
+        return $conversation->messages()->orderBy('created_at', 'asc')->get();
     }
 
     /**
@@ -160,29 +121,5 @@ class ChatInboxService
                 'assigned_at' => $conversation->assigned_at?->diffForHumans() ?? 'recently',
             ] : null,
         ];
-    }
-
-    private function getStatusIcon(?string $status): string
-    {
-        return match($status) {
-            'read' => 'done_all',
-            'delivered' => 'done_all',
-            'sent' => 'check',
-            'failed' => 'error',
-            'pending' => 'schedule',
-            default => 'schedule',
-        };
-    }
-
-    private function getStatusColor(?string $status): string
-    {
-        return match($status) {
-            'read' => 'text-sky-400',
-            'delivered' => 'text-slate-400',
-            'sent' => 'text-slate-400',
-            'failed' => 'text-red-500',
-            'pending' => 'text-slate-400',
-            default => 'text-slate-400',
-        };
     }
 }
