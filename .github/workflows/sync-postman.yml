@@ -1,0 +1,32 @@
+name: Sync Postman Collection
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/postman/**"
+
+jobs:
+  sync-postman:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Postman JSON files
+        run: |
+          python -m json.tool docs/postman/whatsapp-workflow-api.postman_collection.json > /dev/null
+          python -m json.tool docs/postman/whatsapp-workflow-local.postman_environment.json > /dev/null
+
+      - name: Wrap collection for Postman API
+        run: |
+          jq '{collection: .}' docs/postman/whatsapp-workflow-api.postman_collection.json > /tmp/postman-collection-payload.json
+
+      - name: Update Postman collection
+        run: |
+          curl --location --request PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_ID }}" \
+            --header "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
+            --header "Content-Type: application/json" \
+            --data @/tmp/postman-collection-payload.json
