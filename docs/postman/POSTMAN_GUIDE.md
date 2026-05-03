@@ -72,6 +72,25 @@ curl --location --request POST 'http://localhost:8000/api/v1/auth/logout' \
 --header 'Authorization: Bearer <your_token_here>'
 ```
 
+## WhatsApp Templates APIs
+These endpoints allow you to manage WhatsApp message templates.
+
+### Workflow:
+1. **Login first**: Ensure you have a valid `auth_token`.
+2. **List Templates**: Call `GET /whatsapp/templates`. 
+   - This request includes a test script that automatically saves the ID of the first template in the list to the `template_id` environment variable.
+3. **Show Template**: Call `GET /whatsapp/templates/{{template_id}}` to see full details.
+4. **Sync Templates**: Call `POST /whatsapp/templates/sync` to pull the latest templates from Meta.
+   - > [!WARNING]
+   - > Sync calls the Meta Graph API. Avoid excessive calling in production.
+5. **Delete Template**: Call `DELETE /whatsapp/templates/{{template_id}}`.
+   - > [!CAUTION]
+   - > This will attempt to delete the template from Meta as well.
+
+### Common Errors:
+- **403 Forbidden**: Returned if you try to access or delete a template belonging to a different company.
+- **404 Not Found**: Returned if the template ID does not exist in the database.
+
 ## Troubleshooting
 - **Connection Refused**: Ensure your Laravel server is running and accessible from Postman.
 - **CSRF Token Mismatch**: API routes are exempt from CSRF protection. Ensure you are calling `/api/...` and not a web route.
