@@ -24,12 +24,16 @@ jobs:
       - name: Wrap collection for Postman API
         run: |
           jq '{collection: .}' docs/postman/whatsapp-workflow-api.postman_collection.json > /tmp/postman-collection-payload.json
+          python -m json.tool /tmp/postman-collection-payload.json > /dev/null
 
       - name: Update Postman collection
         env:
-          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
-          POSTMAN_COLLECTION_ID: ${{ secrets.POSTMAN_COLLECTION_ID }}
+          POSTMAN_API_KEY_RAW: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_COLLECTION_ID_RAW: ${{ secrets.POSTMAN_COLLECTION_ID }}
         run: |
+          POSTMAN_API_KEY="$(printf '%s' "$POSTMAN_API_KEY_RAW" | tr -d '\r\n' | xargs)"
+          POSTMAN_COLLECTION_ID="$(printf '%s' "$POSTMAN_COLLECTION_ID_RAW" | tr -d '\r\n' | xargs)"
+
           if [ -z "$POSTMAN_COLLECTION_ID" ]; then
             echo "POSTMAN_COLLECTION_ID is empty. Add it in GitHub: Settings > Secrets and variables > Actions."
             exit 1
@@ -40,9 +44,20 @@ jobs:
             exit 1
           fi
 
+          if echo "$POSTMAN_COLLECTION_ID" | grep -q "http"; then
+            echo "POSTMAN_COLLECTION_ID must be only the collection UID, not a full URL."
+            exit 1
+          fi
+
+          if echo "$POSTMAN_COLLECTION_ID" | grep -q "/"; then
+            echo "POSTMAN_COLLECTION_ID contains a slash. Use only the collection UID, not a URL/path."
+            exit 1
+          fi
+
+          echo "Collection ID length: ${#POSTMAN_COLLECTION_ID}"
           echo "Updating Postman collection..."
 
-          curl --fail --show-error --location --request PUT "https://api.getpostman.com/collections/${POSTMAN_COLLECTION_ID}" \
+          curl --fail-with-body --show-error --location --request PUT "https://api.getpostman.com/collections/${POSTMAN_COLLECTION_ID}" \
             --header "X-Api-Key: ${POSTMAN_API_KEY}" \
             --header "Content-Type: application/json" \
             --data @/tmp/postman-collection-payload.json
