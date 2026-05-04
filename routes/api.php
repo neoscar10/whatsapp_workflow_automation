@@ -26,6 +26,21 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::prefix('chats')->name('chats.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'index'])->name('index');
+            Route::get('/{conversation}', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'show'])->name('show');
+            Route::post('/{conversation}/close', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'close'])->name('close');
+            Route::post('/{conversation}/reopen', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'reopen'])->name('reopen');
+            Route::post('/{conversation}/assign', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'assign'])->name('assign');
+            Route::post('/{conversation}/read', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'markRead'])->name('read');
+            
+            Route::prefix('{conversation}/messages')->name('messages.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'index'])->name('index');
+                Route::post('/text', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'sendText'])->name('text');
+                Route::post('/media', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'sendMedia'])->name('media');
+            });
+        });
+
         Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
             Route::prefix('templates')->name('templates.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'index'])->name('index');

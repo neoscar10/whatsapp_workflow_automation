@@ -91,6 +91,26 @@ These endpoints allow you to manage WhatsApp message templates.
 - **403 Forbidden**: Returned if you try to access or delete a template belonging to a different company.
 - **404 Not Found**: Returned if the template ID does not exist in the database.
 
+## Chats APIs
+These endpoints allow you to interact with chat conversations and messages.
+
+### Workflow:
+1. **Login first**: Ensure you have a valid `auth_token`.
+2. **List Chats**: Call `GET /chats`.
+   - This request includes a test script that automatically saves the ID of the first conversation to the `conversation_id` environment variable.
+3. **Show Chat**: Call `GET /chats/{{conversation_id}}` to see details.
+4. **List Messages**: Call `GET /chats/{{conversation_id}}/messages`.
+5. **Send Text Message**: Call `POST /chats/{{conversation_id}}/messages/text`.
+6. **Send Media Message**: Call `POST /chats/{{conversation_id}}/messages/media`.
+   - Use `multipart/form-data`.
+   - Attach a file to the `media_file` key.
+7. **Actions**: Use `POST /chats/{{conversation_id}}/read`, `/close`, etc.
+
+### Common Errors:
+- **403 Forbidden / 404 Not Found**: Returned if you try to access a conversation belonging to a different company.
+- **422 Unprocessable Entity**: Returned if validation fails (e.g., missing message body or unsupported media type).
+- **500 Internal Server Error**: Often indicates a WhatsApp provider error. Check the `message` for details like "WhatsApp message provider rejected the request."
+
 ## Troubleshooting
 - **Connection Refused**: Ensure your Laravel server is running and accessible from Postman.
 - **CSRF Token Mismatch**: API routes are exempt from CSRF protection. Ensure you are calling `/api/...` and not a web route.
