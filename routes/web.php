@@ -19,6 +19,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardPage::class)->name('dashboard');
     Route::get('/company/profile', CompanyProfilePage::class)->name('company.profile');
     Route::get('/chats', \App\Livewire\Web\Chats\ChatInboxPage::class)->name('chats.index');
+    Route::get('/contacts', \App\Livewire\Web\Contacts\ContactIndexPage::class)->name('contacts.index');
+    Route::get('/contacts/audiences', \App\Livewire\Contacts\AudienceManagerPage::class)->name('contacts.audiences');
+
+    // Campaigns
+    Route::group(['prefix' => 'campaigns'], function () {
+        Route::get('/', \App\Livewire\Campaigns\CampaignIndexPage::class)->name('campaigns.index');
+        Route::get('/{id}', \App\Livewire\Campaigns\CampaignShowPage::class)->name('campaigns.show');
+    });
 
     // WhatsApp Setup
     Route::group(['prefix' => 'whatsapp/setup'], function () {

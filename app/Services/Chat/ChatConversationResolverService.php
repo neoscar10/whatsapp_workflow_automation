@@ -7,11 +7,16 @@ use App\Models\Chat\ConversationMessage;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Events\Chat\ChatMessageReceived;
 use App\Events\Chat\ChatConversationUpdated;
-use App\Events\Chat\InboundMessageReceived;
+use App\Events\InboundMessageReceived;
+use App\Services\Contact\ContactSyncService;
 use Illuminate\Support\Facades\Log;
 
 class ChatConversationResolverService
 {
+    public function __construct(
+        protected ContactSyncService $contactSyncService
+    ) {}
+
     /**
      * Resolve an inbound WhatsApp message to a local conversation and store the message.
      *
@@ -80,6 +85,16 @@ class ChatConversationResolverService
             'last_customer_message_at' => now(), // WhatsApp 24h window trigger
             // Unread count tracking could go here
         ]);
+
+        // Sync Contact logic
+        try {
+            $this->contactSyncService->syncConversation($conversation);
+        } catch (\Throwable $e) {
+            Log::warning('Contact sync failed during message resolution', [
+                'conversation_id' => $conversation->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Log::debug('Realtime: Inbound message saved', [
             'conversation_id' => $conversation->id,

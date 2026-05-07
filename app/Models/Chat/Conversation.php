@@ -3,6 +3,7 @@
 namespace App\Models\Chat;
 
 use App\Models\Company;
+use App\Models\Contact\Contact;
 use App\Models\User;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +48,11 @@ class Conversation extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(ConversationNote::class);
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
     }
 
     /**

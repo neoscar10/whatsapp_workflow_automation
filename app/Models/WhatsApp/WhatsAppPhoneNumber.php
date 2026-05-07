@@ -44,4 +44,12 @@ class WhatsAppPhoneNumber extends Model
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
+
+    /**
+     * Scope a query to only include phone numbers for a specific company.
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
+    }
 }

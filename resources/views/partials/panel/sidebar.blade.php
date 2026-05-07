@@ -39,6 +39,18 @@
                 <p class="text-sm font-bold">Chats</p>
             </a>
 
+            <a href="{{ route('contacts.index') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'contacts' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'contacts' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">group</span>
+                <p class="text-sm font-bold">Contacts</p>
+            </a>
+
+            <a href="{{ route('campaigns.index') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'campaigns' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'campaigns' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">campaign</span>
+                <p class="text-sm font-bold">Campaigns</p>
+            </a>
+
             <a href="{{ route('company.profile') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'company-profile' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'company-profile' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">business</span>

@@ -77,4 +77,12 @@ class WhatsAppTemplate extends Model
     {
         return $this->belongsTo(User::class, 'updated_by_user_id');
     }
+
+    /**
+     * Scope a query to only include templates for a specific company.
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
+    }
 }
