@@ -94,6 +94,14 @@ class ContactIndexPage extends Component
         );
     }
 
+    public function downloadImportTemplate()
+    {
+        return response()->streamDownload(
+            app(ContactExportService::class)->getImportTemplate(),
+            'contacts-import-template.csv'
+        );
+    }
+
     // Modal Methods
     public function openCreateModal()
     {

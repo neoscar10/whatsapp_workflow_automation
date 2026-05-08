@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
+    // Mobile Broadcasting Auth
+    Broadcast::routes(['middleware' => ['auth:sanctum']]);
+
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login');
 

@@ -11,6 +11,10 @@
                     <span class="material-symbols-outlined text-[20px]">groups</span>
                     Audience Manager
                 </a>
+                <button wire:click="downloadImportTemplate" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
+                    <span class="material-symbols-outlined text-[20px]">download_for_offline</span>
+                    Template
+                </button>
                 <button wire:click="exportContacts" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
                     <span class="material-symbols-outlined text-[20px]">download</span>
                     Export

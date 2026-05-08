@@ -36,6 +36,7 @@ class ChatMessageReceived implements ShouldBroadcastNow
             'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
             'company_id' => $this->message->conversation->company_id,
+            'contact_id' => $this->message->conversation->contact_id,
             'direction' => $this->message->direction,
             'message_type' => $this->message->message_type,
             'body' => $this->message->body,
@@ -44,6 +45,9 @@ class ChatMessageReceived implements ShouldBroadcastNow
             'status' => $this->message->status,
             'time_label' => $this->message->sent_at?->format('H:i') ?? now()->format('H:i'),
             'created_at' => $this->message->created_at->toDateTimeString(),
+            'sender_name' => $this->message->direction === 'inbound' 
+                ? $this->message->conversation->contact_name 
+                : ($this->message->sender->name ?? 'System'),
         ];
     }
 }

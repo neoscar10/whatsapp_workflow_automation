@@ -7,7 +7,7 @@ use App\Models\Chat\ConversationMessage;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Events\Chat\ChatMessageReceived;
 use App\Events\Chat\ChatConversationUpdated;
-use App\Events\InboundMessageReceived;
+use App\Events\Chat\InboundMessageReceived;
 use App\Services\Contact\ContactSyncService;
 use Illuminate\Support\Facades\Log;
 

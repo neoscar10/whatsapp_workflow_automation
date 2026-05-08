@@ -52,4 +52,24 @@ class ContactExportService
 
         return $callback;
     }
+
+    public function getImportTemplate()
+    {
+        $headers = ['phone', 'name', 'tags', 'groups', 'notes', 'has_opted_in'];
+        $sampleData = [
+            ['+1234567890', 'John Doe', 'Customer,Vip', 'Newsletter', 'Sample note', 'true'],
+            ['+9876543210', 'Jane Smith', 'Lead', 'Promotions', 'Another sample note', 'false']
+        ];
+
+        return function() use ($headers, $sampleData) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+
+            foreach ($sampleData as $row) {
+                fputcsv($file, $row);
+            }
+
+            fclose($file);
+        };
+    }
 }

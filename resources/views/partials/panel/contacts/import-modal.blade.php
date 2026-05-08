@@ -25,10 +25,16 @@
                 @if(!$importResults)
                     <div class="space-y-6">
                         <!-- CSV Template Help -->
-                        <div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                            <p class="text-xs font-bold text-primary uppercase tracking-wider mb-2">Required Columns</p>
-                            <p class="text-[11px] text-slate-600 dark:text-slate-400">
-                                Your CSV should include: <code class="bg-primary/10 px-1.5 py-0.5 rounded text-primary">phone</code> (required), <code class="bg-primary/10 px-1.5 py-0.5 rounded text-primary">name</code>, <code class="bg-primary/10 px-1.5 py-0.5 rounded text-primary">tags</code>, <code class="bg-primary/10 px-1.5 py-0.5 rounded text-primary">groups</code>.
+                        <div class="p-5 bg-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/10">
+                            <div class="flex items-start justify-between mb-3">
+                                <p class="text-xs font-black text-white uppercase tracking-widest">Required Columns</p>
+                                <button wire:click="downloadImportTemplate" class="text-[10px] font-black uppercase text-white/90 hover:text-white hover:underline flex items-center gap-1 transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">download</span>
+                                    Download Sample Template
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-white/80 leading-relaxed">
+                                Your CSV should include: <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">phone</code> (required), <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">name</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">tags</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">groups</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">notes</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">has_opted_in</code>.
                             </p>
                         </div>
 
@@ -40,7 +46,10 @@
                                 <div class="w-full px-8 py-10 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center gap-3 group-hover:border-primary/50 transition-all">
                                     <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors text-[48px]">cloud_upload</span>
                                     @if($csvFile)
-                                        <p class="text-sm font-bold text-primary">{{ $csvFile->getClientOriginalName() }}</p>
+                                        <div class="px-4 py-2 bg-primary rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 animate-in fade-in zoom-in duration-300">
+                                            <span class="material-symbols-outlined text-white text-[18px]">description</span>
+                                            <p class="text-sm font-bold text-white">{{ $csvFile->getClientOriginalName() }}</p>
+                                        </div>
                                     @else
                                         <p class="text-sm font-bold text-slate-900 dark:text-white">Click to upload or drag and drop</p>
                                         <p class="text-xs text-slate-400 italic">CSV files up to 5MB</p>

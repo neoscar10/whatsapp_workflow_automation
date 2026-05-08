@@ -35,7 +35,12 @@ class ChatConversationUpdated implements ShouldBroadcastNow
         return [
             'id' => $this->conversation->id,
             'company_id' => $this->conversation->company_id,
+            'contact_name' => $this->conversation->contact_name,
+            'contact_phone' => $this->conversation->contact_phone,
+            'status' => $this->conversation->status,
+            'assignment_status' => $this->conversation->assignment_status,
             'preview' => $this->conversation->last_message_preview,
+            'last_message' => $this->conversation->last_message_preview,
             'unread_count' => $this->conversation->unread_count,
             'time_label' => $this->conversation->last_message_at?->diffForHumans(['short' => true]) ?? '',
             'last_message_at' => $this->conversation->last_message_at?->toDateTimeString(),
