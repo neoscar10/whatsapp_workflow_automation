@@ -1,29 +1,29 @@
 <div class="flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-900/50">
     <!-- Header -->
     <div class="px-8 py-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col gap-6">
             <div>
-                <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Contacts</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Manage your customer relationships and WhatsApp audiences.</p>
+                <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight whitespace-nowrap">Contacts</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">Manage your customer relationships and WhatsApp audiences.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('contacts.audiences') }}" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
+            <div class="flex items-center gap-3 flex-wrap">
+                <a href="{{ route('contacts.audiences') }}" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">groups</span>
                     Audience Manager
                 </a>
-                <button wire:click="downloadImportTemplate" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
+                <button wire:click="downloadImportTemplate" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">download_for_offline</span>
                     Template
                 </button>
-                <button wire:click="exportContacts" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
+                <button wire:click="exportContacts" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">download</span>
                     Export
                 </button>
-                <button wire:click="openImportModal" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700">
+                <button wire:click="openImportModal" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">upload_file</span>
                     Import
                 </button>
-                <button wire:click="openCreateModal" class="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+                <button wire:click="openCreateModal" class="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">person_add</span>
                     Add Contact
                 </button>
