@@ -2,11 +2,8 @@
 
 namespace App\Livewire\Contacts;
 
-use App\Models\Contact\ContactTag;
 use App\Models\Contact\ContactGroup;
-use App\Services\Contact\ContactTagService;
 use App\Services\Contact\ContactGroupService;
-use App\Services\Contact\ContactSegmentRuleService;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
@@ -15,97 +12,43 @@ class AudienceManagerPage extends Component
 {
     use WithPagination;
 
-    public $activeTab = 'tags'; // tags, static_groups, dynamic_segments
     public $search = '';
 
     // Modal State
-    public $showTagModal = false;
     public $showStaticGroupModal = false;
-    public $showDynamicSegmentModal = false;
-    public $showPreviewModal = false;
+    public $showMembershipModal = false;
 
     // Form Data
     public $selectedId = null;
     public $name = '';
     public $description = '';
-    public $color = '#3b82f6';
-    
-    // Dynamic Segment Rules
-    public $rules = [
-        'match' => 'all',
-        'conditions' => [
-            ['field' => '', 'operator' => '', 'value' => '']
-        ]
-    ];
 
-    // Preview
-    public $previewResults = null;
+    // Membership Data
+    public $membershipGroupId = null;
+    public $availableSearch = '';
+    public $memberSearch = '';
+    public $selectedContactIds = [];
 
     protected $queryString = [
-        'activeTab' => ['except' => 'tags'],
         'search' => ['except' => ''],
     ];
-
-    public function updatedActiveTab()
-    {
-        $this->resetPage();
-        $this->reset(['search', 'selectedId']);
-    }
 
     public function updatedSearch()
     {
         $this->resetPage();
     }
 
-    // Tag Methods
-    public function openTagModal($id = null)
+    public function updatedAvailableSearch()
     {
-        $this->resetForm();
-        if ($id) {
-            $tag = ContactTag::where('company_id', Auth::user()->company_id)->findOrFail($id);
-            $this->selectedId = $tag->id;
-            $this->name = $tag->name;
-            $this->description = $tag->description;
-            $this->color = $tag->color ?? '#3b82f6';
-        }
-        $this->showTagModal = true;
+        $this->resetPage('available-page');
     }
 
-    public function saveTag()
+    public function updatedMemberSearch()
     {
-        $this->validate([
-            'name' => 'required|string|max:255',
-            'color' => 'nullable|string|max:20',
-        ]);
-
-        $service = app(ContactTagService::class);
-        $data = [
-            'name' => $this->name,
-            'description' => $this->description,
-            'color' => $this->color,
-        ];
-
-        if ($this->selectedId) {
-            $tag = ContactTag::where('company_id', Auth::user()->company_id)->findOrFail($this->selectedId);
-            $service->update(Auth::user(), $tag, $data);
-            $msg = 'Tag updated successfully.';
-        } else {
-            $service->create(Auth::user(), $data);
-            $msg = 'Tag created successfully.';
-        }
-
-        $this->showTagModal = false;
-        $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
+        $this->resetPage('member-page');
     }
 
-    public function deleteTag($id)
-    {
-        $tag = ContactTag::where('company_id', Auth::user()->company_id)->findOrFail($id);
-        app(ContactTagService::class)->delete(Auth::user(), $tag);
-        $this->dispatch('notify', ['type' => 'success', 'message' => 'Tag deleted.']);
-    }
-
-    // Static Group Methods
+    // Group Methods
     public function openStaticGroupModal($id = null)
     {
         $this->resetForm();
@@ -132,70 +75,14 @@ class AudienceManagerPage extends Component
         if ($this->selectedId) {
             $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($this->selectedId);
             $service->update(Auth::user(), $group, $data);
-            $msg = 'Static group updated.';
+            $msg = 'Group updated successfully.';
         } else {
             $service->create(Auth::user(), $data);
-            $msg = 'Static group created.';
+            $msg = 'Group created successfully.';
         }
 
         $this->showStaticGroupModal = false;
         $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
-    }
-
-    // Dynamic Segment Methods
-    public function openDynamicSegmentModal($id = null)
-    {
-        $this->resetForm();
-        if ($id) {
-            $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($id);
-            $this->selectedId = $group->id;
-            $this->name = $group->name;
-            $this->description = $group->description;
-            $this->rules = $group->rules ?? $this->rules;
-        }
-        $this->showDynamicSegmentModal = true;
-    }
-
-    public function addCondition()
-    {
-        $this->rules['conditions'][] = ['field' => '', 'operator' => '', 'value' => ''];
-    }
-
-    public function removeCondition($index)
-    {
-        unset($this->rules['conditions'][$index]);
-        $this->rules['conditions'] = array_values($this->rules['conditions']);
-    }
-
-    public function saveDynamicSegment()
-    {
-        $this->validate(['name' => 'required|string|max:255']);
-        
-        $service = app(ContactGroupService::class);
-        $data = [
-            'name' => $this->name,
-            'description' => $this->description,
-            'type' => 'dynamic',
-            'rules' => $this->rules,
-        ];
-
-        if ($this->selectedId) {
-            $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($this->selectedId);
-            $service->update(Auth::user(), $group, $data);
-            $msg = 'Dynamic segment updated.';
-        } else {
-            $service->create(Auth::user(), $data);
-            $msg = 'Dynamic segment created.';
-        }
-
-        $this->showDynamicSegmentModal = false;
-        $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
-    }
-
-    public function previewSegment()
-    {
-        $this->previewResults = app(ContactSegmentRuleService::class)->preview(Auth::user(), $this->rules);
-        $this->showPreviewModal = true;
     }
 
     public function deleteGroup($id)
@@ -205,37 +92,82 @@ class AudienceManagerPage extends Component
         $this->dispatch('notify', ['type' => 'success', 'message' => 'Group deleted.']);
     }
 
+    // Membership Methods
+    public function openMembershipModal($id)
+    {
+        $this->membershipGroupId = $id;
+        $this->availableSearch = '';
+        $this->memberSearch = '';
+        $this->selectedContactIds = [];
+        $this->showMembershipModal = true;
+        $this->resetPage('available-page');
+        $this->resetPage('member-page');
+    }
+
+    public function addSelectedContacts()
+    {
+        if (empty($this->selectedContactIds)) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Select at least one contact to add.']);
+            return;
+        }
+
+        $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($this->membershipGroupId);
+        $result = app(ContactGroupService::class)->addContactsToGroup(Auth::user(), $group, $this->selectedContactIds);
+
+        $this->selectedContactIds = [];
+        $this->dispatch('notify', ['type' => 'success', 'message' => "{$result['added_count']} contacts added to group."]);
+    }
+
+    public function removeMember($contactId)
+    {
+        $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($this->membershipGroupId);
+        app(ContactGroupService::class)->removeContactsFromGroup(Auth::user(), $group, [$contactId]);
+
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Member removed from group.']);
+    }
+
     protected function resetForm()
     {
-        $this->reset(['selectedId', 'name', 'description', 'color', 'previewResults']);
-        $this->rules = [
-            'match' => 'all',
-            'conditions' => [
-                ['field' => '', 'operator' => '', 'value' => '']
-            ]
-        ];
+        $this->reset(['selectedId', 'name', 'description']);
     }
 
     public function render()
     {
         $companyId = Auth::user()->company_id;
+        $service = app(ContactGroupService::class);
         
-        $data = match($this->activeTab) {
-            'tags' => app(ContactTagService::class)->listForCompany($companyId, ['search' => $this->search]),
-            'static_groups' => app(ContactGroupService::class)->listForCompany($companyId, ['search' => $this->search, 'type' => 'static']),
-            'dynamic_segments' => app(ContactGroupService::class)->listForCompany($companyId, ['search' => $this->search, 'type' => 'dynamic']),
-        };
+        $data = $service->listForCompany($companyId, [
+            'search' => $this->search, 
+            'type' => 'static'
+        ]);
 
         $stats = [
-            'tags_count' => ContactTag::where('company_id', $companyId)->count(),
-            'static_count' => ContactGroup::where('company_id', $companyId)->where('type', 'static')->count(),
-            'dynamic_count' => ContactGroup::where('company_id', $companyId)->where('type', 'dynamic')->count(),
+            'groups_count' => ContactGroup::where('company_id', $companyId)->where('type', 'static')->count(),
         ];
+
+        // Membership data if modal is open
+        $availableContacts = collect();
+        $currentMembers = collect();
+        $membershipGroup = null;
+
+        if ($this->showMembershipModal && $this->membershipGroupId) {
+            $membershipGroup = ContactGroup::where('company_id', $companyId)->findOrFail($this->membershipGroupId);
+            $availableContacts = $service->searchAvailableContactsForGroup(Auth::user(), $membershipGroup, [
+                'search' => $this->availableSearch,
+                'per_page' => 10
+            ]);
+            $currentMembers = $service->getGroupMembers(Auth::user(), $membershipGroup, [
+                'search' => $this->memberSearch,
+                'per_page' => 10
+            ]);
+        }
 
         return view('livewire.contacts.audience-manager-page', [
             'items' => $data,
             'stats' => $stats,
-            'availableFields' => app(ContactSegmentRuleService::class)->availableFields(),
-        ])->layout('layouts.panel', ['title' => 'Audience Manager', 'activeNav' => 'contacts']);
+            'membershipGroup' => $membershipGroup,
+            'availableContacts' => $availableContacts,
+            'currentMembers' => $currentMembers,
+        ])->layout('layouts.panel', ['title' => 'Audience Manager', 'activeNav' => 'contacts.audiences']);
     }
 }

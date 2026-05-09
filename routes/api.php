@@ -77,6 +77,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::post('/', [\App\Http\Controllers\Api\V1\Contact\ContactGroupController::class, 'store'])->name('store');
             Route::patch('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactGroupController::class, 'update'])->name('update');
             Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactGroupController::class, 'destroy'])->name('destroy');
+
+            // Membership Management
+            Route::get('/{group}/available-contacts', [\App\Http\Controllers\Api\V1\Contact\AudienceGroupMemberController::class, 'availableContacts'])->name('available-contacts');
+            Route::get('/{group}/members', [\App\Http\Controllers\Api\V1\Contact\AudienceGroupMemberController::class, 'members'])->name('members');
+            Route::post('/{group}/members', [\App\Http\Controllers\Api\V1\Contact\AudienceGroupMemberController::class, 'storeMembers'])->name('members.store');
+            Route::delete('/{group}/members', [\App\Http\Controllers\Api\V1\Contact\AudienceGroupMemberController::class, 'destroyMembers'])->name('members.destroy');
         });
 
         // Campaign Management

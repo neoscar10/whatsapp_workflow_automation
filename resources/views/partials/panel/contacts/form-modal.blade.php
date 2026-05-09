@@ -53,25 +53,12 @@
                     </div>
                 </div>
 
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Tags -->
-                    <div class="space-y-3">
-                        <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Assigned Tags</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            @foreach($tags as $tag)
-                                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
-                                    <input type="checkbox" wire:model="selectedTags" value="{{ $tag->id }}" class="rounded border-slate-300 text-primary focus:ring-primary">
-                                    <span class="text-xs font-medium text-slate-600 dark:text-slate-400">{{ $tag->name }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-
+                <div class="mt-8">
                     <!-- Groups -->
                     <div class="space-y-3">
-                        <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Member Groups</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            @foreach($groups->where('type', 'static') as $group)
+                        <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Groups</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            @foreach($groups as $group)
                                 <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
                                     <input type="checkbox" wire:model="selectedGroups" value="{{ $group->id }}" class="rounded border-slate-300 text-primary focus:ring-primary">
                                     <span class="text-xs font-medium text-slate-600 dark:text-slate-400">{{ $group->name }}</span>

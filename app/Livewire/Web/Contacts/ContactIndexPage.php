@@ -18,7 +18,6 @@ class ContactIndexPage extends Component
     public $search = '';
     public $status = '';
     public $source = '';
-    public $tagId = '';
     public $groupId = '';
     public $filterHasOptedIn = '';
     public $filterDoNotMessage = '';
@@ -38,7 +37,6 @@ class ContactIndexPage extends Component
     public $hasOptedIn = false;
     public $doNotMessage = false;
     public $notes = '';
-    public $selectedTags = [];
     public $selectedGroups = [];
 
     // Import State
@@ -50,7 +48,6 @@ class ContactIndexPage extends Component
         'search' => ['except' => ''],
         'status' => ['except' => ''],
         'source' => ['except' => ''],
-        'tagId' => ['except' => ''],
         'groupId' => ['except' => ''],
     ];
 
@@ -70,7 +67,6 @@ class ContactIndexPage extends Component
             'search' => $this->search,
             'status' => $this->status,
             'source' => $this->source,
-            'tag_id' => $this->tagId,
             'group_id' => $this->groupId,
             'has_opted_in' => $this->filterHasOptedIn === '' ? null : (bool)$this->filterHasOptedIn,
             'do_not_message' => $this->filterDoNotMessage === '' ? null : (bool)$this->filterDoNotMessage,
@@ -123,7 +119,6 @@ class ContactIndexPage extends Component
         $this->hasOptedIn = $contact->has_opted_in;
         $this->doNotMessage = $contact->do_not_message;
         $this->notes = $contact->notes;
-        $this->selectedTags = $contact->tags->pluck('id')->toArray();
         $this->selectedGroups = $contact->groups->pluck('id')->toArray();
         
         $this->showFormModal = true;
@@ -144,7 +139,7 @@ class ContactIndexPage extends Component
 
     protected function resetForm()
     {
-        $this->reset(['contactId', 'name', 'phone', 'contactStatus', 'hasOptedIn', 'doNotMessage', 'notes', 'selectedTags', 'selectedGroups']);
+        $this->reset(['contactId', 'name', 'phone', 'contactStatus', 'hasOptedIn', 'doNotMessage', 'notes', 'selectedGroups']);
         $this->resetErrorBag();
     }
 
@@ -164,7 +159,6 @@ class ContactIndexPage extends Component
             'has_opted_in' => $this->hasOptedIn,
             'do_not_message' => $this->doNotMessage,
             'notes' => $this->notes,
-            'tag_ids' => $this->selectedTags,
             'group_ids' => $this->selectedGroups,
         ];
 
@@ -213,10 +207,12 @@ class ContactIndexPage extends Component
 
     public function render()
     {
+        $service = app(ContactService::class);
+        
         return view('livewire.web.contacts.contact-index-page', [
             'contacts' => $this->contacts,
-            'tags' => app(ContactTagService::class)->listForCompany(auth()->user()->company_id),
             'groups' => app(ContactGroupService::class)->listForCompany(auth()->user()->company_id),
+            'stats' => $service->getCompanyStats(auth()->user()->company_id),
         ])->layout('layouts.panel', ['activeNav' => 'contacts']);
     }
 }

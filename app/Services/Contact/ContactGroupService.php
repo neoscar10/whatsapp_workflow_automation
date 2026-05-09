@@ -10,6 +10,107 @@ use Illuminate\Support\Str;
 class ContactGroupService
 {
     /**
+     * Search contacts that can be added to a group.
+     */
+    public function searchAvailableContactsForGroup(User $actor, ContactGroup $group, array $filters = [])
+    {
+        if ($group->company_id !== $actor->company_id) {
+            throw new \Exception("Unauthorized access to group.");
+        }
+
+        $query = \App\Models\Contact\Contact::forCompany($actor->company_id)
+            ->whereDoesntHave('groups', function ($q) use ($group) {
+                $q->where('contact_groups.id', $group->id);
+            });
+
+        if (!empty($filters['search'])) {
+            $query->search($filters['search']);
+        }
+
+        return $query->paginate($filters['per_page'] ?? 15);
+    }
+
+    /**
+     * List current members of a group.
+     */
+    public function getGroupMembers(User $actor, ContactGroup $group, array $filters = [])
+    {
+        if ($group->company_id !== $actor->company_id) {
+            throw new \Exception("Unauthorized access to group.");
+        }
+
+        $query = $group->contacts();
+
+        if (!empty($filters['search'])) {
+            $query->search($filters['search']);
+        }
+
+        return $query->paginate($filters['per_page'] ?? 15);
+    }
+
+    /**
+     * Add multiple contacts to a group.
+     */
+    public function addContactsToGroup(User $actor, ContactGroup $group, array $contactIds): array
+    {
+        if ($group->company_id !== $actor->company_id) {
+            throw new \Exception("Unauthorized access to group.");
+        }
+
+        if ($group->type !== 'static') {
+            throw new \Exception("Dynamic segments are controlled by rules and cannot have manual contact assignments.");
+        }
+
+        // Validate contacts belong to the company
+        $validContacts = \App\Models\Contact\Contact::forCompany($actor->company_id)
+            ->whereIn('id', $contactIds)
+            ->get();
+
+        $invalidCount = count($contactIds) - $validContacts->count();
+        
+        // Find existing members among valid contacts to count them as skipped
+        $existingMemberIds = $group->contacts()
+            ->whereIn('contact_id', $validContacts->pluck('id'))
+            ->pluck('contact_id')
+            ->toArray();
+
+        $skippedCount = count($existingMemberIds);
+        $addedIds = $validContacts->pluck('id')->diff($existingMemberIds);
+
+        $group->contacts()->syncWithoutDetaching($addedIds);
+
+        return [
+            'group_id' => $group->id,
+            'added_count' => $addedIds->count(),
+            'skipped_existing_count' => $skippedCount,
+            'invalid_count' => $invalidCount,
+            'member_count' => $group->contacts()->count(),
+        ];
+    }
+
+    /**
+     * Remove multiple contacts from a group.
+     */
+    public function removeContactsFromGroup(User $actor, ContactGroup $group, array $contactIds): array
+    {
+        if ($group->company_id !== $actor->company_id) {
+            throw new \Exception("Unauthorized access to group.");
+        }
+
+        if ($group->type !== 'static') {
+            throw new \Exception("Dynamic segments are controlled by rules and cannot have manual contact assignments.");
+        }
+
+        $removedCount = $group->contacts()->detach($contactIds);
+
+        return [
+            'group_id' => $group->id,
+            'removed_count' => $removedCount,
+            'member_count' => $group->contacts()->count(),
+        ];
+    }
+
+    /**
      * List groups for a company with optional filtering.
      */
     public function listForCompany(int $companyId, array $filters = []): Collection

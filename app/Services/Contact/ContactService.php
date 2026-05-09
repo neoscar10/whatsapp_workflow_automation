@@ -244,4 +244,21 @@ class ContactService
     {
         Contact::forCompany($actor->company_id)->whereIn('id', $contactIds)->delete();
     }
+
+    /**
+     * Get aggregate statistics for a company's contacts.
+     */
+    public function getCompanyStats(int $companyId): array
+    {
+        return [
+            'total' => Contact::forCompany($companyId)->count(),
+            'opted_in' => Contact::forCompany($companyId)->where('has_opted_in', true)->count(),
+            'recent' => Contact::forCompany($companyId)->where('last_interaction_at', '>', now()->subDays(7))->count(),
+            'blocked' => Contact::forCompany($companyId)
+                ->where(function($q) {
+                    $q->where('status', 'blocked')
+                      ->orWhere('do_not_message', true);
+                })->count(),
+        ];
+    }
 }

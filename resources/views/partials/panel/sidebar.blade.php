@@ -45,6 +45,12 @@
                 <p class="text-sm font-bold">Contacts</p>
             </a>
 
+            <a href="{{ route('contacts.audiences') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'contacts.audiences' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'contacts.audiences' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">groups_2</span>
+                <p class="text-sm font-bold">Audience Manager</p>
+            </a>
+
             <a href="{{ route('campaigns.index') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'campaigns' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'campaigns' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">campaign</span>

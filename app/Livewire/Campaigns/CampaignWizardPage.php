@@ -33,13 +33,11 @@ class CampaignWizardPage extends Component
     // Step 2: Audience
     public $audience_type = 'selected_contacts';
     public $selected_contact_ids = [];
-    public $selected_tag_ids = [];
     public $selected_group_ids = [];
     public $audience_filters = [
         'source' => '',
         'status' => '',
         'has_opted_in' => '',
-        'tag_ids' => [],
         'group_ids' => [],
     ];
     public $csv_file;
@@ -129,7 +127,6 @@ class CampaignWizardPage extends Component
         $selection = [
             'type' => $this->audience_type,
             'contact_ids' => $this->selected_contact_ids,
-            'tag_ids' => $this->selected_tag_ids,
             'group_ids' => $this->selected_group_ids,
             'filters' => $this->audience_filters,
         ];
@@ -203,7 +200,6 @@ class CampaignWizardPage extends Component
     {
         return view('livewire.campaigns.campaign-wizard-page', [
             'phoneNumbers' => WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->get(),
-            'tags' => ContactTag::forCompany(Auth::user()->company_id)->get(),
             'groups' => ContactGroup::forCompany(Auth::user()->company_id)->get(),
             'templates' => WhatsAppTemplate::forCompany(Auth::user()->company_id)->where('status', 'approved')->get(),
             'personalizationFields' => app(CampaignTemplateVariableService::class)->provideAvailablePersonalizationFields(),

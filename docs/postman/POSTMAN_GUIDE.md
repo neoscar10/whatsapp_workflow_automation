@@ -111,6 +111,27 @@ These endpoints allow you to interact with chat conversations and messages.
 - **422 Unprocessable Entity**: Returned if validation fails (e.g., missing message body or unsupported media type).
 - **500 Internal Server Error**: Often indicates a WhatsApp provider error. Check the `message` for details like "WhatsApp message provider rejected the request."
 
+## Audience Group Members APIs
+These endpoints allow you to manage the membership of audience groups (lists).
+
+### Workflow:
+1. **Login first**: Ensure you have a valid `auth_token`.
+2. **List Groups**: Call `GET /contact-groups`.
+   - This request includes a test script that automatically saves the ID of the first group to the `audience_group_id` environment variable.
+3. **Available Contacts for Group**: Call `GET /contact-groups/{{audience_group_id}}/available-contacts`.
+   - This returns contacts that are NOT yet in the group.
+   - The test script saves the ID of the first available contact to the `contact_id` environment variable.
+4. **Add Contacts to Group**: Call `POST /contact-groups/{{audience_group_id}}/members`.
+   - Send an array of `contact_ids` in the body.
+5. **List Group Members**: Call `GET /contact-groups/{{audience_group_id}}/members`.
+   - Returns all contacts currently inside the group.
+6. **Remove Contacts from Group**: Call `DELETE /contact-groups/{{audience_group_id}}/members`.
+   - Send an array of `contact_ids` to remove them from the group.
+
+### Common Errors:
+- **403 Forbidden / 404 Not Found**: Returned if you try to access a group or contacts belonging to a different company.
+- **422 Unprocessable Entity**: Returned if you try to add a contact that is already a member, or if the selected contacts do not belong to your company.
+
 ## Troubleshooting
 - **Connection Refused**: Ensure your Laravel server is running and accessible from Postman.
 - **CSRF Token Mismatch**: API routes are exempt from CSRF protection. Ensure you are calling `/api/...` and not a web route.

@@ -100,7 +100,6 @@
                     <div class="flex flex-wrap gap-4">
                         @foreach([
                             ['key' => 'selected_contacts', 'label' => 'Select Contacts', 'icon' => 'person'],
-                            ['key' => 'tags', 'label' => 'By Tags', 'icon' => 'label'],
                             ['key' => 'groups', 'label' => 'By Groups', 'icon' => 'group'],
                             ['key' => 'filters', 'label' => 'By Filters', 'icon' => 'filter_alt'],
                             ['key' => 'csv', 'label' => 'Import CSV', 'icon' => 'upload_file'],
@@ -115,15 +114,7 @@
                     <div class="min-h-[200px] rounded-2xl border border-slate-100 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-800/30">
                         @if($audience_type === 'selected_contacts')
                             <p class="text-sm text-slate-500 italic">Select individual contacts from your database (Feature coming soon - multi-select from table).</p>
-                        @elseif($audience_type === 'tags')
-                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                                @foreach($tags as $tag)
-                                    <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 cursor-pointer transition-all hover:border-primary dark:border-slate-700 dark:bg-slate-800">
-                                        <input type="checkbox" wire:model="selected_tag_ids" value="{{ $tag->id }}" class="rounded text-primary focus:ring-primary">
-                                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $tag->name }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
+
                         @elseif($audience_type === 'groups')
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                 @foreach($groups as $group)
