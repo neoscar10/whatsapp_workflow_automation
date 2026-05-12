@@ -581,6 +581,161 @@
                     ]
                 },
                 {
+                    "name": "Create Template",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "order_confirmation_v2",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "marketing",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "language_code",
+                                    "value": "en_US",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "header_type",
+                                    "value": "text",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "header_text",
+                                    "value": "Order Status: {{1}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body_text",
+                                    "value": "Hi {{1}}, your order {{2}} has been confirmed!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "footer_text",
+                                    "value": "Thank you for shopping with us!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "example_payload[header_text][]",
+                                    "value": "Confirmed",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "example_payload[body_text][]",
+                                    "value": "John",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "example_payload[body_text][]",
+                                    "value": "ORD-123",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "buttons[0][type]",
+                                    "value": "url",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "buttons[0][text]",
+                                    "value": "Track Order",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "buttons[0][url]",
+                                    "value": "https://example.com/track/{{1}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "buttons[0][example_value]",
+                                    "value": "ORD-123",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "header_sample_file",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Required if header_type is image, video, or document"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/templates",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "templates"
+                            ]
+                        },
+                        "description": "Creates a new WhatsApp template and submits it for review. If using a media header (image, video, document), you must provide a sample file.\n\n**Fields:**\n- `name`: Alphanumeric and underscores only.\n- `category`: marketing, utility, authentication.\n- `language_code`: e.g. en_US, pt_BR.\n- `header_type`: none, text, image, video, document.\n- `header_text`: Required if header_type is text.\n- `body_text`: The main message content. Use {{1}} for variables.\n- `footer_text`: Optional footer.\n- `buttons`: Array of button objects.\n- `example_payload`: Samples for variables in header/body."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Template",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"category\": \"marketing\",\n    \"body_text\": \"Updated body text with {{1}}.\",\n    \"example_payload\": {\n        \"body_text\": [\"Sample Value\"]\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/templates/{{template_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "templates",
+                                "{{template_id}}"
+                            ]
+                        },
+                        "description": "Updates an existing template. Note: Approved templates on Meta have limited update capabilities. This often triggers a re-review."
+                    },
+                    "response": []
+                },
+                {
                     "name": "Show Template",
                     "request": {
                         "method": "GET",
@@ -740,6 +895,74 @@
                             "body": "{\n    \"success\": true,\n    \"message\": \"Templates synced successfully.\",\n    \"data\": {\n        \"status\": \"Successfully synced 5 templates.\"\n    }\n}"
                         }
                     ]
+                },
+                {
+                    "name": "Get Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/templates/helpers/categories",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "templates",
+                                "helpers",
+                                "categories"
+                            ]
+                        },
+                        "description": "Returns supported WhatsApp template categories."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Languages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/templates/helpers/languages",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "templates",
+                                "helpers",
+                                "languages"
+                            ]
+                        },
+                        "description": "Returns supported WhatsApp template languages."
+                    },
+                    "response": []
                 },
                 {
                     "name": "Delete Template",

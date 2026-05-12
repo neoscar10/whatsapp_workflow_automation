@@ -48,9 +48,15 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
             Route::prefix('templates')->name('templates.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'index'])->name('index');
+                Route::post('/', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'store'])->name('store');
                 Route::post('/sync', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'sync'])->name('sync');
                 Route::get('/{id}', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'show'])->name('show');
+                Route::patch('/{id}', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'update'])->name('update');
                 Route::delete('/{id}', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppTemplateController::class, 'destroy'])->name('destroy');
+
+                // Helpers
+                Route::get('/helpers/categories', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppHelperController::class, 'categories'])->name('helpers.categories');
+                Route::get('/helpers/languages', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppHelperController::class, 'languages'])->name('helpers.languages');
             });
         });
 

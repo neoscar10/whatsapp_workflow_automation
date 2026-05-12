@@ -27,7 +27,7 @@ class ContactGroupService
             $query->search($filters['search']);
         }
 
-        return $query->paginate($filters['per_page'] ?? 15);
+        return $query->paginate($filters['per_page'] ?? 15, ['*'], $filters['page_name'] ?? 'page');
     }
 
     /**
@@ -45,7 +45,7 @@ class ContactGroupService
             $query->search($filters['search']);
         }
 
-        return $query->paginate($filters['per_page'] ?? 15);
+        return $query->paginate($filters['per_page'] ?? 15, ['*'], $filters['page_name'] ?? 'page');
     }
 
     /**

@@ -141,11 +141,11 @@
     {{-- Membership Modal --}}
     @if($showMembershipModal && $membershipGroup)
         <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative z-20 max-h-[90vh]">
-                <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-5xl h-[700px] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative z-20 max-h-[95vh]">
+                <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <div>
                         <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Manage Members</h2>
-                        <p class="text-xs text-slate-500 font-medium">Add or remove contacts for <strong>{{ $membershipGroup->name }}</strong> ({{ number_format($membershipGroup->contacts_count) }} members)</p>
+                        <p class="text-[10px] text-slate-500 font-medium">Add or remove contacts for <strong>{{ $membershipGroup->name }}</strong> ({{ number_format($membershipGroup->contacts_count) }} members)</p>
                     </div>
                     <button wire:click="$set('showMembershipModal', false)" class="text-slate-400 hover:text-slate-600 transition-colors"><span class="material-symbols-outlined">close</span></button>
                 </div>
@@ -165,7 +165,7 @@
                             <div class="space-y-2">
                                 @forelse($availableContacts as $contact)
                                     <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
-                                        <input type="checkbox" wire:model="selectedContactIds" value="{{ $contact->id }}" class="rounded border-slate-300 text-primary focus:ring-primary size-4">
+                                        <input type="checkbox" wire:model.live="selectedContactIds" value="{{ $contact->id }}" class="rounded border-slate-300 text-primary focus:ring-primary size-4">
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $contact->name ?: 'Unknown' }}</p>
                                             <p class="text-[10px] text-slate-500 font-medium">{{ $contact->phone }}</p>
@@ -224,7 +224,7 @@
                     </div>
                 </div>
 
-                <div class="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <p class="text-xs font-bold text-slate-500">
                         @if(count($selectedContactIds) > 0)
                             <span class="text-primary">{{ count($selectedContactIds) }}</span> contacts selected

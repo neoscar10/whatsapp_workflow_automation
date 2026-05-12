@@ -154,11 +154,13 @@ class AudienceManagerPage extends Component
             $membershipGroup = ContactGroup::where('company_id', $companyId)->findOrFail($this->membershipGroupId);
             $availableContacts = $service->searchAvailableContactsForGroup(Auth::user(), $membershipGroup, [
                 'search' => $this->availableSearch,
-                'per_page' => 10
+                'per_page' => 10,
+                'page_name' => 'available-page'
             ]);
             $currentMembers = $service->getGroupMembers(Auth::user(), $membershipGroup, [
                 'search' => $this->memberSearch,
-                'per_page' => 10
+                'per_page' => 10,
+                'page_name' => 'member-page'
             ]);
         }
 
