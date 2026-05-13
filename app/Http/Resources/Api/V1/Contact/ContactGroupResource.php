@@ -21,7 +21,9 @@ class ContactGroupResource extends JsonResource
             'description' => $this->description,
             'type' => $this->type,
             'rules' => $this->rules,
-            'contacts_count' => $this->whenCounted('contacts'),
+            'contacts_count' => $this->whenCounted('contacts', $this->contacts_count),
+            'resolved_count' => $this->resolved_count ?? ($this->relationLoaded('contacts') ? $this->contacts_count : 0),
+            'member_count' => $this->resolved_count ?? ($this->relationLoaded('contacts') ? $this->contacts_count : 0),
         ];
     }
 }

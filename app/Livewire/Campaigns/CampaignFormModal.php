@@ -341,9 +341,11 @@ class CampaignFormModal extends Component
 
     public function render()
     {
+        $groups = app(\App\Services\Contact\ContactGroupService::class)->listForCompany(Auth::user()->company_id);
+
         return view('livewire.campaigns.campaign-form-modal', [
             'phoneNumbers' => WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->get(),
-            'groups' => ContactGroup::forCompany(Auth::user()->company_id)->get(),
+            'groups' => $groups,
             'selectedContacts' => \App\Models\Contact\Contact::whereIn('id', $this->selected_contact_ids)->get(),
             'templates' => WhatsAppTemplate::forCompany(Auth::user()->company_id)->where('status', 'approved')->get(),
             'personalizationFields' => app(CampaignTemplateVariableService::class)->provideAvailablePersonalizationFields(),

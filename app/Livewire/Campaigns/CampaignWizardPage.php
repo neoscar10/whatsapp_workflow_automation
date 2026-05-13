@@ -198,9 +198,11 @@ class CampaignWizardPage extends Component
 
     public function render()
     {
+        $groups = app(\App\Services\Contact\ContactGroupService::class)->listForCompany(Auth::user()->company_id);
+
         return view('livewire.campaigns.campaign-wizard-page', [
             'phoneNumbers' => WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->get(),
-            'groups' => ContactGroup::forCompany(Auth::user()->company_id)->get(),
+            'groups' => $groups,
             'templates' => WhatsAppTemplate::forCompany(Auth::user()->company_id)->where('status', 'approved')->get(),
             'personalizationFields' => app(CampaignTemplateVariableService::class)->provideAvailablePersonalizationFields(),
         ])->layout('layouts.panel', ['title' => 'Create Campaign', 'activeNav' => 'campaigns']);
