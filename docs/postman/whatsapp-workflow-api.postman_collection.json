@@ -2148,7 +2148,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"type\": \"template\",\n    \"whatsapp_template_id\": 1,\n    \"template_variable_mapping\": {\n        \"body\": {\n            \"1\": {\n                \"source\": \"contact.first_name\",\n                \"fallback\": \"there\"\n            }\n        }\n    },\n    \"default_variable_values\": {\n        \"body\": {\n            \"1\": \"there\"\n        }\n    }\n}"
+                                    "raw": "{\n    \"type\": \"template\",\n    \"whatsapp_template_id\": 1,\n    \"template_variable_mapping\": {\n        \"header\": {\n            \"1\": {\n                \"source\": \"static\",\n                \"value\": \"Flash Sale!\"\n            }\n        },\n        \"body\": {\n            \"user_name\": {\n                \"source\": \"contact.name\",\n                \"fallback\": \"Customer\"\n            },\n            \"1\": {\n                \"source\": \"contact.first_name\",\n                \"fallback\": \"there\"\n            }\n        },\n        \"button\": {\n            \"0\": {\n                \"0\": {\n                    \"source\": \"static\",\n                    \"value\": \"DISCOUNT20\"\n                }\n            }\n        }\n    },\n    \"default_variable_values\": {\n        \"body\": {\n            \"1\": \"there\"\n        }\n    }\n}"
                                 },
                                 "url": {
                                     "raw": "{{base_url}}/api/{{api_version}}/campaigns/{{campaign_id}}/content",
@@ -2264,7 +2264,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"audience_type\": \"selected_contacts\",\n    \"contact_ids\": [\n        1,\n        2,\n        3\n    ]\n}"
+                                    "raw": "{\n    \"audience_type\": \"filters\",\n    \"filters\": {\n        \"status\": \"active\",\n        \"source\": \"manual\",\n        \"search\": \"John\"\n    }\n}"
                                 },
                                 "url": {
                                     "raw": "{{base_url}}/api/{{api_version}}/campaigns/{{campaign_id}}/audience",

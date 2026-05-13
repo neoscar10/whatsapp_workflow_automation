@@ -37,9 +37,7 @@ class CampaignTemplateVariableService
         
         $components = [];
         
-        // WhatsApp templates usually have 'header', 'body', 'button' components
-        // For simplicity, we focus on 'body' and 'header' variables
-        
+        // Body params
         $bodyParams = $this->resolveParamsForComponent('body', $mapping, $defaults, $personalization, $contact);
         if (!empty($bodyParams)) {
             $components[] = [
@@ -48,6 +46,7 @@ class CampaignTemplateVariableService
             ];
         }
 
+        // Header params
         $headerParams = $this->resolveParamsForComponent('header', $mapping, $defaults, $personalization, $contact);
         if (!empty($headerParams)) {
             $components[] = [
@@ -56,7 +55,48 @@ class CampaignTemplateVariableService
             ];
         }
 
+        // Button params (specifically for dynamic URLs)
+        $buttonParams = $this->resolveButtonParams($campaign, $recipient);
+        if (!empty($buttonParams)) {
+            foreach ($buttonParams as $btnIndex => $params) {
+                $components[] = [
+                    'type' => 'button',
+                    'sub_type' => 'url',
+                    'index' => (string)$btnIndex,
+                    'parameters' => $params
+                ];
+            }
+        }
+
         return $components;
+    }
+
+    /**
+     * Resolve parameters for buttons.
+     */
+    protected function resolveButtonParams(Campaign $campaign, CampaignRecipient $recipient): array
+    {
+        $mapping = $campaign->template_variable_mapping['button'] ?? [];
+        $contact = $recipient->contact;
+        $personalization = $recipient->personalization_data ?? [];
+        
+        $buttonParams = [];
+
+        foreach ($mapping as $btnIndex => $vars) {
+            $params = [];
+            foreach ($vars as $varIndex => $config) {
+                $value = $this->resolveValue($config, $personalization, $contact);
+                $params[] = [
+                    'type' => 'text',
+                    'text' => (string)($value ?? '')
+                ];
+            }
+            if (!empty($params)) {
+                $buttonParams[$btnIndex] = $params;
+            }
+        }
+
+        return $buttonParams;
     }
 
     /**
@@ -65,14 +105,6 @@ class CampaignTemplateVariableService
     protected function resolveParamsForComponent(string $type, array $mapping, array $defaults, array $personalization, ?Contact $contact): array
     {
         $params = [];
-        
-        // Mapping structure expected:
-        // [
-        //   "body" => [
-        //      "1" => ["source" => "contact.first_name", "fallback" => "there"],
-        //      "2" => ["source" => "static", "value" => "Gold"]
-        //   ]
-        // ]
         
         if (!isset($mapping[$type])) {
             return [];
@@ -145,35 +177,52 @@ class CampaignTemplateVariableService
     }
 
     /**
-     * Extract variable placeholders from template text components.
+     * Extract variable placeholders from template components.
      */
     public function extractVariables(\App\Models\WhatsApp\WhatsAppTemplate $template): array
     {
-        $variables = [];
+        $variables = [
+            'header' => [],
+            'body' => [],
+            'button' => []
+        ];
 
         // Body
-        preg_match_all('/{{(\d+)}}/', $template->body_text, $bodyMatches);
+        preg_match_all('/\{\{(.+?)\}\}/', $template->body_text, $bodyMatches);
         if (!empty($bodyMatches[1])) {
-            foreach ($bodyMatches[1] as $index) {
-                $variables[] = [
+            foreach (array_unique($bodyMatches[1]) as $index) {
+                $variables['body'][$index] = [
                     'key' => $index,
-                    'component' => 'body',
                     'example' => $template->example_payload['body'][$index] ?? "Value for {{ {$index} }}",
                 ];
             }
+            ksort($variables['body']);
         }
 
         // Header
         if ($template->header_type === 'text' && !empty($template->header_text)) {
-            preg_match_all('/{{(\d+)}}/', $template->header_text, $headerMatches);
+            preg_match_all('/\{\{(.+?)\}\}/', $template->header_text, $headerMatches);
             if (!empty($headerMatches[1])) {
-                foreach ($headerMatches[1] as $index) {
-                    $variables[] = [
+                foreach (array_unique($headerMatches[1]) as $index) {
+                    $variables['header'][$index] = [
                         'key' => $index,
-                        'component' => 'header',
                         'example' => $template->example_payload['header'][$index] ?? "Header value for {{ {$index} }}",
                     ];
                 }
+                ksort($variables['header']);
+            }
+        }
+
+        // Buttons (Dynamic URLs)
+        foreach ($template->buttons as $btnIndex => $button) {
+            if ($button->type === 'URL' && str_contains($button->url, '{{1}}')) {
+                // WhatsApp currently only supports one variable {{1}} in URLs
+                $variables['button'][$btnIndex][1] = [
+                    'key' => 1,
+                    'button_text' => $button->text,
+                    'url_preview' => $button->url,
+                    'example' => $button->example_value ?? "Link parameter",
+                ];
             }
         }
 

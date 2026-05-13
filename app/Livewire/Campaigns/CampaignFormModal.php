@@ -23,6 +23,8 @@ class CampaignFormModal extends Component
     public $show = false;
     public $campaignId;
     public $step = 1;
+    public $show_filters = false;
+    public $send_to_all_filtered = false;
 
     // Step 1: Details
     public $name = '';
@@ -35,13 +37,11 @@ class CampaignFormModal extends Component
     // Step 2: Audience
     public $audience_type = 'selected_contacts';
     public $selected_contact_ids = [];
-    public $selected_tag_ids = [];
     public $selected_group_ids = [];
     public $audience_filters = [
         'source' => '',
         'status' => '',
         'has_opted_in' => '',
-        'tag_ids' => [],
         'group_ids' => [],
     ];
     public $csv_file;
@@ -76,12 +76,60 @@ class CampaignFormModal extends Component
             $this->template_variable_mapping = array_merge($this->template_variable_mapping, $campaign->template_variable_mapping ?? []);
             $this->message_body = $campaign->message_body;
             $this->scheduled_at = $campaign->scheduled_at?->format('Y-m-d\TH:i');
+
+            // Ensure mapping is initialized for the selected template
+            if ($this->whatsapp_template_id) {
+                $this->initializeTemplateMapping($this->whatsapp_template_id);
+            }
         } else {
             // Default phone number
             $this->whatsapp_phone_number_id = WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->first()?->id;
         }
 
         $this->updatedContactSearch();
+    }
+
+    protected function initializeTemplateMapping($templateId)
+    {
+        $template = WhatsAppTemplate::find($templateId);
+        if (!$template) return;
+
+        $variables = app(CampaignTemplateVariableService::class)->extractVariables($template);
+        
+        $currentMapping = $this->template_variable_mapping;
+
+        foreach ($variables['header'] as $index => $var) {
+            if (!isset($currentMapping['header'][$index])) {
+                $currentMapping['header'][$index] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+            }
+        }
+
+        foreach ($variables['body'] as $index => $var) {
+            if (!isset($currentMapping['body'][$index])) {
+                $currentMapping['body'][$index] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+            }
+        }
+
+        foreach ($variables['button'] as $btnIndex => $vars) {
+            foreach ($vars as $varIndex => $var) {
+                if (!isset($currentMapping['button'][$btnIndex][$varIndex])) {
+                    $currentMapping['button'][$btnIndex][$varIndex] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+                }
+            }
+        }
+
+        $this->template_variable_mapping = $currentMapping;
+    }
+
+    public function updatedWhatsappTemplateId($value)
+    {
+        if (!$value) {
+            $this->template_variable_mapping = ['header' => [], 'body' => [], 'button' => []];
+            return;
+        }
+
+        $this->template_variable_mapping = ['header' => [], 'body' => [], 'button' => []];
+        $this->initializeTemplateMapping($value);
     }
 
     public function close()
@@ -94,16 +142,27 @@ class CampaignFormModal extends Component
         $this->reset([
             'campaignId', 'step', 'name', 'description', 'type', 'whatsapp_phone_number_id',
             'send_mode', 'scheduled_at', 'audience_type', 'selected_contact_ids',
-            'selected_tag_ids', 'selected_group_ids', 'csv_file', 'import_summary',
+            'selected_group_ids', 'csv_file', 'import_summary',
             'whatsapp_template_id', 'template_variable_mapping', 'message_body'
         ]);
         $this->audience_filters = [
             'source' => '',
             'status' => '',
             'has_opted_in' => '',
-            'tag_ids' => [],
             'group_ids' => [],
         ];
+    }
+
+    public function updatedSendToAllFiltered($value)
+    {
+        $this->audience_type = $value ? 'filters' : 'selected_contacts';
+    }
+
+    public function updatedAudienceType($value)
+    {
+        if ($value !== 'filters') {
+            $this->send_to_all_filtered = false;
+        }
     }
 
     public function updatedContactSearch()
@@ -127,14 +186,24 @@ class CampaignFormModal extends Component
             ->toArray();
     }
 
-    public function selectContact($contactId, $name, $phone)
+    public function toggleContact($contactId)
     {
-        if (!in_array($contactId, $this->selected_contact_ids)) {
+        if (in_array($contactId, $this->selected_contact_ids)) {
+            $this->selected_contact_ids = array_filter($this->selected_contact_ids, fn($id) => $id != $contactId);
+        } else {
             $this->selected_contact_ids[] = $contactId;
         }
-        $this->contact_search = '';
-        $this->search_results = [];
     }
+
+    public function selectAllSearchResults()
+    {
+        foreach ($this->search_results as $result) {
+            if (!in_array($result['id'], $this->selected_contact_ids)) {
+                $this->selected_contact_ids[] = $result['id'];
+            }
+        }
+    }
+
 
     public function removeContact($contactId)
     {
@@ -199,7 +268,6 @@ class CampaignFormModal extends Component
         $selection = [
             'type' => $this->audience_type,
             'contact_ids' => $this->selected_contact_ids,
-            'tag_ids' => $this->selected_tag_ids,
             'group_ids' => $this->selected_group_ids,
             'filters' => $this->audience_filters,
         ];
@@ -275,7 +343,6 @@ class CampaignFormModal extends Component
     {
         return view('livewire.campaigns.campaign-form-modal', [
             'phoneNumbers' => WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->get(),
-            'tags' => ContactTag::forCompany(Auth::user()->company_id)->get(),
             'groups' => ContactGroup::forCompany(Auth::user()->company_id)->get(),
             'selectedContacts' => \App\Models\Contact\Contact::whereIn('id', $this->selected_contact_ids)->get(),
             'templates' => WhatsAppTemplate::forCompany(Auth::user()->company_id)->where('status', 'approved')->get(),

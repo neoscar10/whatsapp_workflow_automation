@@ -125,9 +125,6 @@ class CampaignAudienceService
             case 'selected_contacts':
                 $query->whereIn('id', $selection['contact_ids'] ?? []);
                 break;
-            case 'tags':
-                $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', $selection['tag_ids'] ?? []));
-                break;
             case 'groups':
                 $groupIds = $selection['group_ids'] ?? [];
                 $groups = \App\Models\Contact\ContactGroup::whereIn('id', $groupIds)->get();
@@ -171,9 +168,6 @@ class CampaignAudienceService
         }
         if (isset($filters['do_not_message'])) {
             $query->where('do_not_message', (bool)$filters['do_not_message']);
-        }
-        if (!empty($filters['tag_ids'])) {
-            $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', $filters['tag_ids']));
         }
         if (!empty($filters['group_ids'])) {
             $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', $filters['group_ids']));
