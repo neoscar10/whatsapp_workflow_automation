@@ -1032,6 +1032,253 @@
             ]
         },
         {
+            "name": "WhatsApp Setup",
+            "item": [
+                {
+                    "name": "Get Account Setup",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/account",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "account"
+                            ]
+                        },
+                        "description": "Returns the current WhatsApp account configuration."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Account Setup",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"waba_id\": \"123456789\",\n    \"business_id\": \"987654321\",\n    \"access_token\": \"EAAG...\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/account",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "account"
+                            ]
+                        },
+                        "description": "Updates the WhatsApp account configuration (WABA ID, Business ID, Access Token)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Phone Numbers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/phone-numbers?search=&status=&per_page=15",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "phone-numbers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "status",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "15"
+                                }
+                            ]
+                        },
+                        "description": "Lists WhatsApp phone numbers for the company."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Phone Number",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"display_name\": \"Customer Support\",\n    \"phone_number_id\": \"1029384756\",\n    \"phone_number\": \"+1234567890\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/phone-numbers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "phone-numbers"
+                            ]
+                        },
+                        "description": "Adds a new WhatsApp phone number to the account."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Phone Number",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"display_name\": \"Customer Support Updated\",\n    \"phone_number_id\": \"1029384756\",\n    \"phone_number\": \"+1234567890\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/phone-numbers/{{phone_number_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "phone-numbers",
+                                "{{phone_number_id}}"
+                            ]
+                        },
+                        "description": "Updates an existing WhatsApp phone number."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Toggle Phone Number Status",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/whatsapp/setup/phone-numbers/{{phone_number_id}}/toggle-status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "whatsapp",
+                                "setup",
+                                "phone-numbers",
+                                "{{phone_number_id}}",
+                                "toggle-status"
+                            ]
+                        },
+                        "description": "Toggles the status (active/inactive) of a WhatsApp phone number."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
             "name": "Contacts Management",
             "item": [
                 {

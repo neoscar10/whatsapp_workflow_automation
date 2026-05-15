@@ -58,6 +58,16 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 Route::get('/helpers/categories', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppHelperController::class, 'categories'])->name('helpers.categories');
                 Route::get('/helpers/languages', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppHelperController::class, 'languages'])->name('helpers.languages');
             });
+
+            Route::prefix('setup')->name('setup.')->group(function () {
+                Route::get('/account', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'account'])->name('account');
+                Route::patch('/account', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'updateAccount'])->name('account.update');
+                
+                Route::get('/phone-numbers', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'phoneNumbers'])->name('phone-numbers.index');
+                Route::post('/phone-numbers', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'storePhoneNumber'])->name('phone-numbers.store');
+                Route::patch('/phone-numbers/{id}', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'updatePhoneNumber'])->name('phone-numbers.update');
+                Route::post('/phone-numbers/{id}/toggle-status', [\App\Http\Controllers\Api\V1\WhatsApp\WhatsAppSetupController::class, 'togglePhoneNumberStatus'])->name('phone-numbers.toggle-status');
+            });
         });
 
         Route::prefix('contacts')->name('contacts.')->group(function () {
