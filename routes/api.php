@@ -73,6 +73,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::prefix('contacts')->name('contacts.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'store'])->name('store');
+            Route::post('/import', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'import'])->name('import');
+            Route::get('/import/template', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'importTemplate'])->name('import-template');
+            Route::get('/export', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'export'])->name('export');
             Route::get('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'show'])->name('show');
             Route::patch('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'update'])->name('update');
             Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'destroy'])->name('destroy');

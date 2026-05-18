@@ -8,10 +8,14 @@ use App\Http\Requests\Api\V1\Contact\StoreContactRequest;
 use App\Http\Requests\Api\V1\Contact\UpdateContactRequest;
 use App\Http\Resources\Api\V1\Contact\ContactResource;
 use App\Models\Contact\Contact;
+use App\Http\Requests\Api\V1\Contact\ImportContactsRequest;
 use App\Services\Contact\ContactService;
 use App\Services\Contact\ContactSyncService;
+use App\Services\Contact\ContactImportService;
+use App\Services\Contact\ContactExportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactController extends Controller
 {
@@ -19,7 +23,9 @@ class ContactController extends Controller
 
     public function __construct(
         protected ContactService $contactService,
-        protected ContactSyncService $syncService
+        protected ContactSyncService $syncService,
+        protected ContactImportService $importService,
+        protected ContactExportService $exportService
     ) {}
 
     /**
@@ -135,5 +141,46 @@ class ContactController extends Controller
         $stats = $this->syncService->backfillFromConversations($request->user()->company_id);
 
         return $this->successResponse($stats, 'Sync completed successfully.');
+    }
+
+    /**
+     * Import contacts from a CSV file.
+     */
+    public function import(ImportContactsRequest $request): JsonResponse
+    {
+        try {
+            $stats = $this->importService->importFromCsv($request->user(), $request->file('file'));
+            return $this->successResponse($stats, 'Contacts imported successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), [], 422);
+        }
+    }
+
+    /**
+     * Export all contacts to a CSV file.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        return response()->streamDownload(
+            $this->exportService->exportToCsv($request->user()->company_id),
+            'contacts-export-' . now()->format('Y-m-d') . '.csv',
+            [
+                'Content-Type' => 'text/csv',
+            ]
+        );
+    }
+
+    /**
+     * Download CSV import template.
+     */
+    public function importTemplate(): StreamedResponse
+    {
+        return response()->streamDownload(
+            $this->exportService->getImportTemplate(),
+            'contacts-import-template.csv',
+            [
+                'Content-Type' => 'text/csv',
+            ]
+        );
     }
 }
