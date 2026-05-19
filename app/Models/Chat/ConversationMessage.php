@@ -43,7 +43,7 @@ class ConversationMessage extends Model
             // For inbound messages with a media_id, return the server-side proxy URL
             $mediaId = $this->media_meta['media_id'] ?? null;
             if ($mediaId && $this->direction === 'inbound') {
-                return route('chat.media.proxy', ['messageId' => $this->id]);
+                return url('/chat-media/' . $this->id);
             }
 
             // Check if we have a local path stored in meta (outbound messages)
