@@ -95,9 +95,15 @@ class Contact extends Model
      */
     public function scopeMessageable($query)
     {
-        return $query->where('status', '!=', 'blocked')
-                     ->where('do_not_message', false)
-                     ->whereNull('opted_out_at');
+        return $query->where(function ($q) {
+            $q->where('status', '!=', 'blocked')
+              ->orWhereNull('status');
+        })
+        ->where(function ($q) {
+            $q->where('do_not_message', false)
+              ->orWhereNull('do_not_message');
+        })
+        ->whereNull('opted_out_at');
     }
 
     /**
