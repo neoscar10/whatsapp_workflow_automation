@@ -102,8 +102,7 @@ class Contact extends Model
         ->where(function ($q) {
             $q->where('do_not_message', false)
               ->orWhereNull('do_not_message');
-        })
-        ->whereNull('opted_out_at');
+        });
     }
 
     /**
@@ -111,8 +110,7 @@ class Contact extends Model
      */
     public function isMessageable(): bool
     {
-        return $this->status !== 'blocked' 
-            && !$this->do_not_message 
-            && is_null($this->opted_out_at);
+        return ($this->status ?? 'active') !== 'blocked' 
+            && !$this->do_not_message;
     }
 }
