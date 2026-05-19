@@ -49,6 +49,7 @@
                     <div class="mb-4 flex gap-2">
                         <button
                             type="button"
+                            wire:click="openInitiateChatModal"
                             class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
                         >
                             <span class="material-symbols-outlined text-sm">add</span>
@@ -670,4 +671,5 @@
 
     @include('livewire.web.chats.partials.assign-agent-modal')
     @include('livewire.web.chats.partials.select-template-modal')
+    @include('livewire.web.chats.partials.initiate-chat-modal')
 </div>

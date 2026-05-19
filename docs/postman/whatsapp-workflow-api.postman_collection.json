@@ -1871,6 +1871,45 @@
             "name": "Chats",
             "item": [
                 {
+                    "name": "Initiate Chat",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"contact_id\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/chats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "chats"
+                            ]
+                        },
+                        "description": "Initiates a new conversation with a contact."
+                    }
+                },
+                {
                     "name": "List Chats",
                     "event": [
                         {

@@ -2,16 +2,74 @@
 
 namespace App\Services\Chat;
 
+use App\Models\Chat\Conversation;
 use App\Models\Chat\ConversationNote;
 use App\Models\User;
+use App\Models\WhatsApp\WhatsAppPhoneNumber;
 
 class ChatConversationActionService
 {
-    private ChatInboxService $inboxService;
+    public function __construct(
+        protected ChatInboxService $inboxService,
+        protected ChatChannelAvailabilityService $availabilityService
+    ) {}
 
-    public function __construct(ChatInboxService $inboxService)
+    /**
+     * Start/Initiate a conversation with a contact.
+     *
+     * @param User $user
+     * @param int $contactId
+     * @return Conversation
+     * @throws \Exception
+     */
+    public function startConversation(User $user, int $contactId): Conversation
     {
-        $this->inboxService = $inboxService;
+        $contact = \App\Models\Contact\Contact::where('company_id', $user->company_id)->findOrFail($contactId);
+
+        if (!$contact->isMessageable()) {
+            throw new \Exception('This contact is blocked or has opted out of messaging.');
+        }
+
+        // Determine which WhatsApp phone number to use:
+        // 1. If the contact is associated with a specific active whatsapp_phone_number_id, use it if chat eligible.
+        $whatsappPhoneNumber = null;
+        if ($contact->whatsapp_phone_number_id) {
+            $phoneNumber = WhatsAppPhoneNumber::find($contact->whatsapp_phone_number_id);
+            if ($phoneNumber && $this->availabilityService->isNumberChatEligible($phoneNumber)) {
+                $whatsappPhoneNumber = $phoneNumber;
+            }
+        }
+
+        // 2. Otherwise, fall back to the default available number for the user's company.
+        if (!$whatsappPhoneNumber) {
+            $whatsappPhoneNumber = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
+        }
+
+        if (!$whatsappPhoneNumber) {
+            throw new \Exception('No active WhatsApp phone number is connected or configured for your company.');
+        }
+
+        // Find or create the conversation record
+        $conversation = Conversation::firstOrCreate(
+            [
+                'company_id' => $user->company_id,
+                'contact_id' => $contact->id,
+            ],
+            [
+                'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
+                'contact_name' => $contact->name ?? $contact->phone,
+                'contact_phone' => $contact->phone,
+                'status' => 'open',
+                'assignment_status' => 'unassigned',
+            ]
+        );
+
+        // Ensure the conversation is open if it was closed
+        if ($conversation->status !== 'open') {
+            $conversation->update(['status' => 'open']);
+        }
+
+        return $conversation;
     }
 
     /**

@@ -12,6 +12,7 @@ use App\Services\Chat\ChatConversationActionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Api\V1\Chat\StoreChatRequest;
 
 class ChatController extends Controller
 {
@@ -83,6 +84,30 @@ class ChatController extends Controller
             new ChatConversationResource($conversation->load(['assignee'])),
             'Conversation retrieved successfully.'
         );
+    }
+
+    /**
+     * Initiate a new chat conversation with a contact.
+     *
+     * @param StoreChatRequest $request
+     * @return JsonResponse
+     */
+    public function store(StoreChatRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $contactId = $request->validated()['contact_id'];
+        
+        try {
+            $conversation = $this->actionService->startConversation($user, $contactId);
+            
+            return $this->successResponse(
+                new ChatConversationResource($conversation->load(['assignee'])),
+                'Conversation initiated successfully.',
+                201
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), [], 422);
+        }
     }
 
     /**

@@ -30,6 +30,12 @@ class ChatInboxPage extends Component
     public ?string $errorMessage = null;
     public ?string $successMessage = null;
 
+    // Initiate Chat Modal State
+    public bool $showInitiateChatModal = false;
+    public string $contactSearch = '';
+    public ?int $selectedContactId = null;
+    public array $contactsForInitiation = [];
+
     // Assign Agent Modal State
     public bool $showAssignAgentModal = false;
     public string $agentSearch = '';
@@ -335,6 +341,69 @@ class ChatInboxPage extends Component
     {
         $this->showTemplateModal = false;
         $this->resetTemplateModalState();
+    }
+
+    public function openInitiateChatModal()
+    {
+        $this->resetMessages();
+        $this->showInitiateChatModal = true;
+        $this->contactSearch = '';
+        $this->selectedContactId = null;
+        $this->loadInitiateContacts();
+    }
+
+    public function closeInitiateChatModal()
+    {
+        $this->showInitiateChatModal = false;
+        $this->contactSearch = '';
+        $this->selectedContactId = null;
+    }
+
+    public function updatedContactSearch()
+    {
+        $this->loadInitiateContacts();
+    }
+
+    public function loadInitiateContacts()
+    {
+        $companyId = auth()->user()->company_id;
+        $this->contactsForInitiation = \App\Models\Contact\Contact::where('company_id', $companyId)
+            ->messageable()
+            ->search($this->contactSearch)
+            ->limit(20)
+            ->get()
+            ->map(function ($contact) {
+                return [
+                    'id' => $contact->id,
+                    'name' => $contact->name ?: $contact->phone,
+                    'phone' => $contact->phone,
+                ];
+            })
+            ->toArray();
+    }
+
+    public function selectAndInitiateChat(int $contactId, ChatConversationActionService $actionService)
+    {
+        $this->selectedContactId = $contactId;
+        $this->initiateChat($actionService);
+    }
+
+    public function initiateChat(ChatConversationActionService $actionService)
+    {
+        if (!$this->selectedContactId) {
+            $this->errorMessage = 'Please select a contact to start conversation.';
+            return;
+        }
+
+        try {
+            $conversation = $actionService->startConversation(auth()->user(), $this->selectedContactId);
+            
+            $this->closeInitiateChatModal();
+            $this->selectConversation($conversation->id);
+            $this->successMessage = 'Conversation initiated successfully.';
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Failed to initiate conversation: ' . $e->getMessage();
+        }
     }
 
     public function updatedTemplateSearch(\App\Services\Template\ChatTemplateDirectoryService $directoryService)
