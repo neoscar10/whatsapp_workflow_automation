@@ -428,7 +428,7 @@ class WhatsAppGraphClient
         try {
             $response = Http::withToken($accessToken)
                 ->timeout(15)
-                ->get($url);
+                ->get($url, ['access_token' => $accessToken]);
 
             if ($response->failed()) {
                 $error = $response->json('error.message', 'Failed to retrieve media URL');
