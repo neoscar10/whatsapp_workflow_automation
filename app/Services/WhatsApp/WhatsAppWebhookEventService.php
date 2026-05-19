@@ -90,7 +90,7 @@ class WhatsAppWebhookEventService
             return;
         }
 
-        $localNumber = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)->first();
+        $localNumber = WhatsAppPhoneNumber::with('account')->where('phone_number_id', $phoneNumberId)->first();
         if (!$localNumber) {
             Log::error("WhatsApp Webhook: Local number not found", [
                 'phone_number_id' => $phoneNumberId,
