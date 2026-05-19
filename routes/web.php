@@ -55,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/panel', function () {
         return redirect()->route('dashboard');
     })->name('panel.home');
+
+    // Chat media proxy — streams inbound WhatsApp media on-demand
+    Route::get('/chat-media/{messageId}', [\App\Http\Controllers\Chat\ChatMediaProxyController::class, 'show'])->name('chat.media.proxy');
 });
 
 // Public Webhooks

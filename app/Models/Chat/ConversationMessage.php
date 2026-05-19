@@ -40,7 +40,13 @@ class ConversationMessage extends Model
         $url = $this->media_url;
 
         if (empty($url)) {
-            // Check if we have a local path stored in meta
+            // For inbound messages with a media_id, return the server-side proxy URL
+            $mediaId = $this->media_meta['media_id'] ?? null;
+            if ($mediaId && $this->direction === 'inbound') {
+                return route('chat.media.proxy', ['messageId' => $this->id]);
+            }
+
+            // Check if we have a local path stored in meta (outbound messages)
             $localPath = $this->media_meta['local_path'] ?? null;
             if ($localPath) {
                 return \Illuminate\Support\Facades\Storage::disk('public')->url($localPath);
@@ -53,8 +59,7 @@ class ConversationMessage extends Model
             return $url;
         }
 
-        // Handle relative paths (e.g. 'chat_media/filename.jpg')
-        // We use the public disk explicitly for outbound media
+        // Handle relative paths (e.g. 'chat_media/filename.jpg') — outbound media
         return \Illuminate\Support\Facades\Storage::disk('public')->url($url);
     }
 }

@@ -67,83 +67,16 @@ class ChatConversationResolverService
             $caption = $mediaData['caption'] ?? ($mediaData['filename'] ?? null);
 
             $body = $caption ?: ucfirst($type);
+
+            // Store media metadata only — the proxy route /chat-media/{id} streams
+            // the file on-demand using the stored media_id and the live access token.
+            // This avoids the 401 issue that occurs when trying to download at webhook time.
             $mediaMeta = [
                 'media_id' => $mediaId,
                 'mime_type' => $mimeType,
                 'filename' => $mediaData['filename'] ?? (time() . '.' . (explode('/', $mimeType)[1] ?? 'bin')),
             ];
 
-            if ($mediaId) {
-                $accessToken = $localNumber->account->access_token ?? null;
-                if (!$accessToken) {
-                    Log::error("INBOUND_MEDIA: No access token found for phone number", [
-                        'phone_number_id' => $localNumber->id,
-                        'media_id' => $mediaId,
-                    ]);
-                } else {
-                    try {
-                        $graphClient = app(\App\Services\WhatsApp\WhatsAppGraphClient::class);
-
-                        // 1. Get media info (download URL) from Meta
-                        $mediaInfo = $graphClient->getMedia($mediaId, $accessToken);
-                        Log::info("INBOUND_MEDIA: getMedia result", ['media_id' => $mediaId, 'result' => $mediaInfo]);
-
-                        if (!$mediaInfo['success']) {
-                            Log::error("INBOUND_MEDIA: getMedia failed", ['media_id' => $mediaId, 'error' => $mediaInfo['error'] ?? 'unknown']);
-                        } else {
-                            $downloadUrl = $mediaInfo['url'];
-
-                            // 2. Download binary content from Meta
-                            $fileContents = $graphClient->downloadMediaFile($downloadUrl, $accessToken);
-
-                            if (!$fileContents) {
-                                Log::error("INBOUND_MEDIA: downloadMediaFile returned empty", ['url' => $downloadUrl]);
-                            } else {
-                                // 3. Determine file extension from mime type
-                                $ext = explode('/', $mediaInfo['mime_type'] ?? $mimeType)[1] ?? 'bin';
-                                if (str_contains($ext, ';')) {
-                                    $ext = explode(';', $ext)[0];
-                                }
-                                $filename = time() . '_' . $mediaId . '.' . $ext;
-                                $localPath = 'chat_media/' . $filename;
-
-                                // 4. Save to public disk
-                                $disk = \Illuminate\Support\Facades\Storage::disk('public');
-                                $rootPath = $disk->path(''); // Actual filesystem root of the disk
-                                Log::info("INBOUND_MEDIA: Disk root path is: {$rootPath}");
-
-                                if (!$disk->exists('chat_media')) {
-                                    $disk->makeDirectory('chat_media');
-                                }
-
-                                $saved = $disk->put($localPath, $fileContents);
-                                Log::info("INBOUND_MEDIA: put() result", [
-                                    'saved' => $saved,
-                                    'local_path' => $localPath,
-                                    'disk_root' => $rootPath,
-                                    'full_path' => $rootPath . DIRECTORY_SEPARATOR . $localPath,
-                                    'file_exists' => file_exists($rootPath . DIRECTORY_SEPARATOR . $localPath),
-                                ]);
-
-                                if ($saved) {
-                                    $mediaUrl = $localPath;
-                                    $mediaMeta['local_path'] = $localPath;
-                                    $mediaMeta['size'] = $mediaInfo['file_size'] ?? null;
-                                } else {
-                                    Log::error("INBOUND_MEDIA: Failed to save file to disk", ['local_path' => $localPath]);
-                                }
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        Log::error("INBOUND_MEDIA: Uncaught exception during media download: " . $e->getMessage(), [
-                            'media_id' => $mediaId,
-                            'type' => $type,
-                            'file' => $e->getFile(),
-                            'line' => $e->getLine(),
-                        ]);
-                    }
-                }
-            }
         } else {
             $body = "[Unsupported Message Type: {$type}]";
         }
