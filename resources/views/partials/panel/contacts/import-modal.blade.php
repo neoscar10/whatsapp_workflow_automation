@@ -30,7 +30,7 @@
                                 <p class="text-xs font-black text-white uppercase tracking-widest">Required Columns</p>
                                 <button wire:click="downloadImportTemplate" class="text-[10px] font-black uppercase text-white/90 hover:text-white hover:underline flex items-center gap-1 transition-colors">
                                     <span class="material-symbols-outlined text-[14px]">download</span>
-                                    Download Sample Template
+                                    Download Sample CSV
                                 </button>
                             </div>
                             <p class="text-[11px] text-white/80 leading-relaxed">

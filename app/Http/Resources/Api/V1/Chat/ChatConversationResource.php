@@ -16,6 +16,7 @@ class ChatConversationResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'contact_id' => $this->contact_id,
             'contact_name' => $this->contact_name,
             'contact_phone' => $this->contact_phone,
             'status' => $this->status,

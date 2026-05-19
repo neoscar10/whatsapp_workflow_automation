@@ -46,6 +46,8 @@ class ChatConversationResolverService
         // 2. Prepare message body based on type
         $type = $messageData['type'] ?? 'text';
         $body = '';
+        $mediaUrl = null;
+        $mediaMeta = [];
 
         if ($type === 'text') {
             $body = $messageData['text']['body'] ?? '';
@@ -57,6 +59,61 @@ class ChatConversationResolverService
                 $body = $interactive['button_reply']['title'] ?? '[Button Reply]';
             } elseif ($interactive['type'] === 'list_reply') {
                 $body = $interactive['list_reply']['title'] ?? '[List Reply]';
+            }
+        } elseif (in_array($type, ['image', 'video', 'audio', 'document'])) {
+            $mediaData = $messageData[$type] ?? [];
+            $mediaId = $mediaData['id'] ?? null;
+            $mimeType = $mediaData['mime_type'] ?? '';
+            $caption = $mediaData['caption'] ?? ($mediaData['filename'] ?? null);
+            
+            $body = $caption ?: ucfirst($type);
+            $mediaMeta = [
+                'media_id' => $mediaId,
+                'mime_type' => $mimeType,
+                'filename' => $mediaData['filename'] ?? (time() . '.' . (explode('/', $mimeType)[1] ?? 'bin')),
+            ];
+
+            if ($mediaId) {
+                try {
+                    $graphClient = app(\App\Services\WhatsApp\WhatsAppGraphClient::class);
+                    $accessToken = $localNumber->account->access_token;
+                    
+                    // 1. Get media info (download URL)
+                    $mediaInfo = $graphClient->getMedia($mediaId, $accessToken);
+                    if ($mediaInfo['success']) {
+                        $downloadUrl = $mediaInfo['url'];
+                        
+                        // 2. Download the binary content
+                        $fileContents = $graphClient->downloadMediaFile($downloadUrl, $accessToken);
+                        if ($fileContents) {
+                            // Determine a unique local filename
+                            $ext = explode('/', $mediaInfo['mime_type'])[1] ?? 'bin';
+                            if (str_contains($ext, ';')) {
+                                $ext = explode(';', $ext)[0];
+                            }
+                            $filename = time() . '_' . $mediaId . '.' . $ext;
+                            $localPath = 'chat_media/' . $filename;
+                            
+                            // Ensure the permanent directory exists
+                            $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                            if (!$disk->exists('chat_media')) {
+                                $disk->makeDirectory('chat_media');
+                            }
+
+                            // 3. Save to public disk directly
+                            $disk->put($localPath, $fileContents);
+                            
+                            $mediaUrl = $localPath;
+                            $mediaMeta['local_path'] = $localPath;
+                            $mediaMeta['size'] = $mediaInfo['file_size'];
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to download inbound WhatsApp media: " . $e->getMessage(), [
+                        'media_id' => $mediaId,
+                        'type' => $type
+                    ]);
+                }
             }
         } else {
             $body = "[Unsupported Message Type: {$type}]";
@@ -71,9 +128,11 @@ class ChatConversationResolverService
         $msg = $conversation->messages()->create([
             'external_message_id' => $messageId,
             'direction' => 'inbound',
-            'message_type' => $type === 'text' ? 'text' : 'other',
+            'message_type' => in_array($type, ['text', 'image', 'video', 'audio', 'document']) ? $type : 'other',
             'body' => $body,
             'status' => 'received',
+            'media_url' => $mediaUrl,
+            'media_meta' => $mediaMeta,
             'meta_payload' => $messageData,
             'sent_at' => now(), // Meta timestamp is in seconds, for now we use 'now'
         ]);

@@ -417,4 +417,65 @@ class WhatsAppGraphClient
             ];
         }
     }
+
+    /**
+     * Get the media download URL from Meta using the media ID.
+     */
+    public function getMedia(string $mediaId, string $accessToken): array
+    {
+        $url = "{$this->baseUrl}/{$this->version}/{$mediaId}";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->timeout(15)
+                ->get($url);
+
+            if ($response->failed()) {
+                $error = $response->json('error.message', 'Failed to retrieve media URL');
+                Log::error("WhatsApp API Error (getMedia): {$error}", [
+                    'media_id' => $mediaId,
+                    'status' => $response->status()
+                ]);
+                return ['success' => false, 'error' => $error];
+            }
+
+            return [
+                'success' => true,
+                'url' => $response->json('url'),
+                'mime_type' => $response->json('mime_type'),
+                'file_size' => $response->json('file_size'),
+            ];
+        } catch (\Exception $e) {
+            Log::error("WhatsApp API Exception (getMedia): " . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Download the binary media file content from the Meta direct URL.
+     */
+    public function downloadMediaFile(string $downloadUrl, string $accessToken): ?string
+    {
+        try {
+            $response = Http::withToken($accessToken)
+                ->withHeaders([
+                    'User-Agent' => 'curl/7.64.1',
+                ])
+                ->timeout(30)
+                ->get($downloadUrl);
+
+            if ($response->failed()) {
+                Log::error("WhatsApp Media Download Failure", [
+                    'status' => $response->status(),
+                    'url' => $downloadUrl
+                ]);
+                return null;
+            }
+
+            return $response->body();
+        } catch (\Exception $e) {
+            Log::error("WhatsApp Media Download Exception: " . $e->getMessage());
+            return null;
+        }
+    }
 }
