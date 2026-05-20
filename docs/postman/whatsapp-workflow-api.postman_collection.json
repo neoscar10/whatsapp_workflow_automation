@@ -2271,6 +2271,132 @@
                     }
                 },
                 {
+                    "name": "Send Template Message",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"template_id\": {{template_id}},\n    \"components\": [\n        {\n            \"type\": \"body\",\n            \"parameters\": [\n                {\n                    \"type\": \"text\",\n                    \"text\": \"John Doe\"\n                },\n                {\n                    \"type\": \"text\",\n                    \"text\": \"ORD-12345\"\n                }\n            ]\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/{{api_version}}/chats/{{conversation_id}}/messages/template",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "{{api_version}}",
+                                "chats",
+                                "{{conversation_id}}",
+                                "messages",
+                                "template"
+                            ]
+                        },
+                        "description": "Sends a WhatsApp template message to the contact in a conversation. Use this when the 24-hour messaging window has expired and you need to re-initiate contact, or when sending pre-approved template messages.\n\n**Body Parameters:**\n- `template_id`: Required. The ID of the WhatsApp template to send (must be approved).\n- `components`: Optional. Array of component objects following the WhatsApp Cloud API format. Each component has a `type` (body, header, button) and `parameters` array with the variable values.\n\n**Example with no variables (static template):**\n```json\n{\n    \"template_id\": 1\n}\n```\n\n**Example with body variables:**\n```json\n{\n    \"template_id\": 1,\n    \"components\": [\n        {\n            \"type\": \"body\",\n            \"parameters\": [\n                { \"type\": \"text\", \"text\": \"John\" },\n                { \"type\": \"text\", \"text\": \"ORD-123\" }\n            ]\n        }\n    ]\n}\n```"
+                    },
+                    "response": [
+                        {
+                            "name": "Success",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{auth_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"template_id\": 1,\n    \"components\": []\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/{{api_version}}/chats/{{conversation_id}}/messages/template",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "{{api_version}}",
+                                        "chats",
+                                        "{{conversation_id}}",
+                                        "messages",
+                                        "template"
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [],
+                            "cookie": [],
+                            "body": "{\n    \"success\": true,\n    \"message\": \"Template message sent successfully.\",\n    \"data\": {\n        \"id\": 103,\n        \"direction\": \"outbound\",\n        \"type\": \"template\",\n        \"body\": \"Hi John, your order ORD-12345 has been confirmed!\",\n        \"status\": \"pending\"\n    }\n}"
+                        },
+                        {
+                            "name": "Template Not Found",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{auth_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"template_id\": 999\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/{{api_version}}/chats/{{conversation_id}}/messages/template",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "{{api_version}}",
+                                        "chats",
+                                        "{{conversation_id}}",
+                                        "messages",
+                                        "template"
+                                    ]
+                                }
+                            },
+                            "status": "Unprocessable Entity",
+                            "code": 422,
+                            "_postman_previewlanguage": "json",
+                            "header": [],
+                            "cookie": [],
+                            "body": "{\n    \"success\": false,\n    \"message\": \"The selected template id is invalid.\",\n    \"errors\": {\n        \"template_id\": [\"The selected template id is invalid.\"]\n    }\n}"
+                        }
+                    ]
+                },
+                {
                     "name": "Mark as Read",
                     "request": {
                         "method": "POST",
