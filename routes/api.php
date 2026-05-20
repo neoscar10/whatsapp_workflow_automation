@@ -43,6 +43,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'index'])->name('index');
                 Route::post('/text', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'sendText'])->name('text');
                 Route::post('/media', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'sendMedia'])->name('media');
+                Route::post('/template', [\App\Http\Controllers\Api\V1\Chat\ChatMessageController::class, 'sendTemplate'])->name('template');
             });
         });
 

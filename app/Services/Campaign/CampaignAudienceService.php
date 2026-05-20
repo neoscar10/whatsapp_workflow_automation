@@ -104,7 +104,7 @@ class CampaignAudienceService
 
             // Update campaign counters
             $campaign->update([
-                'audience_type' => $selection['type'] ?? 'mixed',
+                'audience_type' => $selection['audience_type'] ?? $selection['type'] ?? 'mixed',
                 'audience_filters' => $selection['filters'] ?? [],
             ]);
 
@@ -119,7 +119,7 @@ class CampaignAudienceService
     {
         $query = Contact::forCompany($companyId);
 
-        $type = $selection['type'] ?? 'selected_contacts';
+        $type = $selection['audience_type'] ?? $selection['type'] ?? 'selected_contacts';
 
         switch ($type) {
             case 'selected_contacts':

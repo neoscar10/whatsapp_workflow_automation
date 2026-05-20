@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
 use App\Http\Requests\Api\V1\Chat\SendTextMessageRequest;
 use App\Http\Requests\Api\V1\Chat\SendMediaMessageRequest;
+use App\Http\Requests\Api\V1\Chat\SendTemplateMessageRequest;
 use App\Http\Resources\Api\V1\Chat\ChatMessageResource;
 use App\Services\Chat\ChatInboxService;
 use App\Services\Chat\ChatMessageService;
@@ -122,6 +123,38 @@ class ChatMessageController extends Controller
         } catch (\Exception $e) {
             Log::error('API Send Media Message Error', ['error' => $e->getMessage(), 'conversation_id' => $conversationId]);
             return $this->errorResponse('Failed to send media message: ' . $e->getMessage(), [], 500);
+        }
+    }
+
+    /**
+     * Send a template message.
+     *
+     * @param SendTemplateMessageRequest $request
+     * @param int $conversationId
+     * @param \App\Services\Chat\ChatTemplateSendService $templateService
+     * @return JsonResponse
+     */
+    public function sendTemplate(
+        SendTemplateMessageRequest $request, 
+        int $conversationId,
+        \App\Services\Chat\ChatTemplateSendService $templateService
+    ): JsonResponse {
+        $user = $request->user();
+        
+        try {
+            $result = $templateService->sendTemplateToConversation(
+                $user,
+                $conversationId,
+                $request->template_id,
+                ['components' => $request->components ?? []]
+            );
+
+            $message = \App\Models\Chat\ChatMessage::find($result['message_id']);
+
+            return $this->successResponse(new ChatMessageResource($message), 'Template message sent successfully.');
+        } catch (\Exception $e) {
+            Log::error('API Send Template Message Error', ['error' => $e->getMessage(), 'conversation_id' => $conversationId]);
+            return $this->errorResponse('Failed to send template message: ' . $e->getMessage(), [], 500);
         }
     }
 
