@@ -149,7 +149,7 @@ class ChatMessageController extends Controller
                 ['components' => $request->components ?? []]
             );
 
-            $message = \App\Models\Chat\ChatMessage::find($result['message_id']);
+            $message = \App\Models\Chat\ConversationMessage::find($result['message_id']);
 
             return $this->successResponse(new ChatMessageResource($message), 'Template message sent successfully.');
         } catch (\Exception $e) {
