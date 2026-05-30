@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: Wallet & Payment API
+  description: Mobile-ready API endpoints for WhatsApp Workflow Automation Wallet Funding & Ledger system.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Local development environment
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate mobile client
+      description: Returns a Tymon JWT bearer token for subsequent requests.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                device_name:
+                  type: string
+                  default: mobile_app
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: Bearer
+                      user:
+                        type: object
+
+  /wallet:
+    get:
+      summary: Retrieve wallet balance & metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Wallet details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      balance:
+                        type: string
+                        example: "150.0000"
+                      currency:
+                        type: string
+                        example: "INR"
+                      status:
+                        type: string
+                        example: "active"
+                      last_transaction_at:
+                        type: string
+                        format: date-time
+                      total_funded:
+                        type: string
+                        example: "200.0000"
+                      total_spent:
+                        type: string
+                        example: "50.0000"
+
+  /wallet/transactions:
+    get:
+      summary: Retrieve paginated transaction ledger
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+        - name: type
+          in: query
+          description: Filter by type (credit or debit)
+          schema:
+            type: string
+            enum: [credit, debit]
+        - name: category
+          in: query
+          description: Filter by category (funding, usage, refund, transfer, fee)
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          description: Date filter start
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: Date filter end
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: Search term matching reference or description
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated transaction collection retrieved
+
+  /wallet/transactions/{id}:
+    get:
+      summary: View transaction detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transaction detail retrieved
+        '404':
+          description: Transaction not found or unauthorized
+
+  /wallet/funding-methods:
+    get:
+      summary: Retrieve available payment gateways
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of gateways
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gateway:
+                          type: string
+                          example: razorpay
+                        enabled:
+                          type: boolean
+                          example: true
+
+  /wallet/fund/initialize:
+    post:
+      summary: Initialize wallet funding session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - gateway
+              properties:
+                amount:
+                  type: number
+                  minimum: 1.00
+                gateway:
+                  type: string
+                  enum: [razorpay, cashfree]
+      responses:
+        '201':
+          description: Payment initialization successful
+
+  /wallet/fund/{transactionId}/verify:
+    post:
+      summary: Verify funding completion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                razorpay_payment_id:
+                  type: string
+                razorpay_order_id:
+                  type: string
+                razorpay_signature:
+                  type: string
+                cf_payment_id:
+                  type: string
+                cf_signature:
+                  type: string
+      responses:
+        '200':
+          description: Payment verified and credited successfully
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

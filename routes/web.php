@@ -58,6 +58,9 @@ Route::middleware('auth')->group(function () {
 
     // Chat media proxy — streams inbound WhatsApp media on-demand
     Route::get('/chat-media/{messageId}', [\App\Http\Controllers\Chat\ChatMediaProxyController::class, 'show'])->name('chat.media.proxy');
+
+    // Wallet Dashboard
+    Route::get('/wallet', \App\Livewire\Wallet\WalletDashboard::class)->name('wallet.index');
 });
 
 // Public Webhooks

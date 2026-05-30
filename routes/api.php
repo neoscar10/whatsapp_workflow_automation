@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Broadcast;
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
+    // Razorpay Webhook
+    Route::post('/webhooks/razorpay', [\App\Http\Controllers\Api\V1\Payment\RazorpayWebhookController::class, 'handle'])->name('webhooks.razorpay');
+    
+    // Cashfree Webhook
+    Route::post('/webhooks/cashfree', [\App\Http\Controllers\Api\V1\Payment\CashfreeWebhookController::class, 'handle'])->name('webhooks.cashfree');
+
     // Mobile Broadcasting Auth
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
@@ -147,4 +153,16 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             });
         });
     });
+
+    // Wallet Management
+    Route::prefix('wallet')->name('wallet.')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Wallet\WalletController::class, 'show'])->name('show');
+        Route::get('/transactions', [\App\Http\Controllers\Api\V1\Wallet\WalletController::class, 'transactions'])->name('transactions');
+        Route::get('/transactions/{id}', [\App\Http\Controllers\Api\V1\Wallet\WalletController::class, 'showTransaction'])->name('transactions.show');
+        Route::get('/funding-methods', [\App\Http\Controllers\Api\V1\Wallet\WalletController::class, 'fundingMethods'])->name('funding-methods');
+        Route::post('/fund/initialize', [\App\Http\Controllers\Api\V1\Wallet\WalletFundingController::class, 'initialize'])->name('fund.initialize');
+        Route::post('/fund/{transactionId}/verify', [\App\Http\Controllers\Api\V1\Wallet\WalletFundingController::class, 'verify'])->name('fund.verify');
+    });
 });
+
+

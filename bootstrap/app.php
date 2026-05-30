@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/whatsapp/meta',
             'webhooks/whatsapp/meta/',
             'api/v1/automation/webhooks/*',
+            'api/v1/wallet/fund/*/verify',  // Secured by Razorpay HMAC signature instead
+            'api/v1/webhooks/razorpay',
+            'api/v1/webhooks/cashfree',
+        ]);
+
+        // Allow Sanctum to authenticate API requests using the browser session cookie
+        // (required for Livewire frontend fetch calls to auth:sanctum protected endpoints)
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

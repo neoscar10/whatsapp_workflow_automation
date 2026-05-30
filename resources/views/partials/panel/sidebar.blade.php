@@ -80,6 +80,12 @@
                 <p class="text-sm font-bold">WhatsApp Setup</p>
             </a>
 
+            <a href="{{ route('wallet.index') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'wallet' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'wallet' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">account_balance_wallet</span>
+                <p class="text-sm font-bold">My Wallet</p>
+            </a>
+
             <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
 
             <a href="javascript:void(0)"
