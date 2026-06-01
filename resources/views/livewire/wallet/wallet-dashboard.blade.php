@@ -140,7 +140,7 @@
                     </thead>
                     <tbody>
                         @foreach($transactions as $txn)
-                            <tr class="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                            <tr class="border-b border-slate-200 dark:border-slate-700/50">
                                 <td class="p-4">
                                     <span class="font-mono text-[12px] font-medium text-slate-700 dark:text-slate-300">{{ $txn->reference }}</span>
                                     @if($txn->description)

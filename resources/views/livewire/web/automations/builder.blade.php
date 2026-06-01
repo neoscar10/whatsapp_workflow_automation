@@ -4,6 +4,14 @@
         panX: @entangle('canvasMeta.pan_x'),
         panY: @entangle('canvasMeta.pan_y'),
         selectedNodeId: @entangle('selectedNodeId'),
+        connectionSourceNodeId: @entangle('connectionSourceNodeId'),
+        isConnectionMode: @entangle('isConnectionMode'),
+        isWaitingForTargetNode: @entangle('isWaitingForTargetNode'),
+        selectedConnectionId: @entangle('selectedConnectionId'),
+        showConnectionModal: @entangle('showConnectionModal'),
+        draggedDistance: 0,
+        dragStartX: 0,
+        dragStartY: 0,
         draggingNodeId: null,
         offsetX: 0,
         offsetY: 0,
@@ -50,7 +58,9 @@
         startDrag(e, nodeId, x, y) {
              if (this.panModeActive) return;
              this.draggingNodeId = nodeId;
-             this.selectedNodeId = nodeId;
+             this.dragStartX = e.clientX;
+             this.dragStartY = e.clientY;
+             this.draggedDistance = 0;
              
              const scale = this.zoom / 100;
              this.offsetX = (e.clientX / scale) - x;
@@ -62,6 +72,10 @@
             const scale = this.zoom / 100;
             const newX = Math.round((e.clientX / scale) - this.offsetX);
             const newY = Math.round((e.clientY / scale) - this.offsetY);
+            
+            const dx = e.clientX - this.dragStartX;
+            const dy = e.clientY - this.dragStartY;
+            this.draggedDistance = Math.sqrt(dx*dx + dy*dy);
             
             // Local update for smoothness
             const el = document.getElementById('node-' + this.draggingNodeId);
@@ -78,12 +92,18 @@
             const newX = Math.round((e.clientX / scale) - this.offsetX);
             const newY = Math.round((e.clientY / scale) - this.offsetY);
             
-            @this.updateNodePosition(this.draggingNodeId, newX, newY);
+            const wasClick = this.draggedDistance < 5;
+            const nodeId = this.draggingNodeId;
+            
+            if (wasClick) {
+                this.handleNodeClick(nodeId);
+            } else {
+                @this.updateNodePosition(this.draggingNodeId, newX, newY);
+            }
             this.draggingNodeId = null;
         },
 
         // Connection logic
-        connectingFromNodeId: null,
         connectingFromHandle: null,
         connectingConditionKey: null,
         mouseX: 0,
@@ -91,32 +111,51 @@
         
         startConnecting(e, nodeId, handle, conditionKey = null) {
             e.stopPropagation();
-            this.connectingFromNodeId = nodeId;
+            this.connectionSourceNodeId = nodeId;
             this.connectingFromHandle = handle;
             this.connectingConditionKey = conditionKey;
+            this.isConnectionMode = true;
+            this.isWaitingForTargetNode = true;
+            this.selectedNodeId = nodeId;
             this.updateMousePos(e);
         },
         
         updateMousePos(e) {
-             if (!this.connectingFromNodeId) return;
+             if (!this.connectionSourceNodeId) return;
              const canvas = this.$refs.canvas.getBoundingClientRect();
              this.mouseX = ((e.clientX - canvas.left) / (this.zoom / 100)) - this.panX;
              this.mouseY = ((e.clientY - canvas.top) / (this.zoom / 100)) - this.panY;
          },
         
         completeConnection(targetNodeId, targetHandle) {
-            if (!this.connectingFromNodeId || this.connectingFromNodeId === targetNodeId) {
-                this.connectingFromNodeId = null;
+            if (!this.connectionSourceNodeId || this.connectionSourceNodeId === targetNodeId) {
+                this.cancelConnection();
                 return;
             }
             
-            @this.connectNodes(this.connectingFromNodeId, targetNodeId, this.connectingFromHandle, targetHandle, this.connectingConditionKey);
-            this.connectingFromNodeId = null;
-            this.connectingConditionKey = null;
+            @this.connectNodes(this.connectionSourceNodeId, targetNodeId, this.connectingFromHandle || 'bottom', targetHandle, this.connectingConditionKey);
+            this.cancelConnection();
         },
         
         cancelConnection() {
-            this.connectingFromNodeId = null;
+            this.connectionSourceNodeId = null;
+            this.isConnectionMode = false;
+            this.isWaitingForTargetNode = false;
+            this.connectingFromHandle = null;
+            this.connectingConditionKey = null;
+        },
+
+        handleNodeClick(nodeId) {
+            if (this.isConnectionMode && this.isWaitingForTargetNode && this.connectionSourceNodeId) {
+                this.completeConnection(nodeId, 'top');
+            } else {
+                this.selectedNodeId = nodeId;
+                this.connectionSourceNodeId = nodeId;
+                this.isConnectionMode = true;
+                this.isWaitingForTargetNode = true;
+                this.connectingFromHandle = 'bottom';
+                this.connectingConditionKey = null;
+            }
         },
 
         getAnchorPoint(nodeId, handle, conditionKey = null) {
@@ -154,7 +193,9 @@
         }
      }"
      @mousemove="onDrag($event); onPan($event); updateMousePos($event)"
-     @mouseup="stopDrag($event); stopPanning(); cancelConnection()"
+     @mouseup="stopDrag($event); stopPanning()"
+     @click.self="if (isConnectionMode) cancelConnection()"
+     @keydown.escape.window="if (isConnectionMode) cancelConnection()"
      @keydown.space.window="if (!panModeActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { panModeActive = true; $event.preventDefault(); }"
      @keyup.space.window="if (panModeActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) panModeActive = false"
 >
@@ -354,9 +395,9 @@
             {{-- Drawing Layer for Edges --}}
              <svg class="pointer-events-none absolute inset-0 h-full w-full overflow-visible z-10">
                 {{-- Ghost Connection --}}
-                <template x-if="connectingFromNodeId">
+                <template x-if="connectionSourceNodeId && isConnectionMode">
                     <path 
-                        :d="getPath(getAnchorPoint(connectingFromNodeId, connectingFromHandle, connectingConditionKey).x, getAnchorPoint(connectingFromNodeId, connectingFromHandle, connectingConditionKey).y, mouseX, mouseY)"
+                        :d="getPath(getAnchorPoint(connectionSourceNodeId, connectingFromHandle || 'bottom', connectingConditionKey).x, getAnchorPoint(connectionSourceNodeId, connectingFromHandle || 'bottom', connectingConditionKey).y, mouseX, mouseY)"
                         stroke="rgba(36, 99, 235, 0.5)" 
                         stroke-width="3" 
                         stroke-dasharray="8,8"
@@ -427,7 +468,15 @@
                     <div 
                         id="node-{{ $node->id }}"
                         wire:key="node-{{ $node->id }}"
-                        class="absolute transition-shadow duration-200 cursor-move {{ $selectedNodeId === $node->id ? 'ring-4 ring-primary/30 shadow-2xl' : 'shadow-xl hover:shadow-2xl' }}"
+                        class="absolute transition-all duration-200"
+                        :class="{
+                            'cursor-crosshair': isConnectionMode && connectionSourceNodeId !== {{ $node->id }},
+                            'cursor-move': !isConnectionMode,
+                            'ring-4 ring-primary shadow-[0_0_30px_rgba(59,130,246,0.6)] shadow-2xl': connectionSourceNodeId === {{ $node->id }} && isConnectionMode,
+                            'ring-4 ring-primary/30 shadow-2xl': selectedNodeId === {{ $node->id }} && connectionSourceNodeId !== {{ $node->id }},
+                            'shadow-xl hover:shadow-2xl hover:ring-2 hover:ring-white/10': selectedNodeId !== {{ $node->id }} && connectionSourceNodeId !== {{ $node->id }},
+                            'ring-2 ring-white/20': isConnectionMode && connectionSourceNodeId !== {{ $node->id }} && selectedNodeId !== {{ $node->id }}
+                        }"
                         style="left: {{ $node->position_x }}px; top: {{ $node->position_y }}px;"
                         @mousedown="startDrag($event, {{ $node->id }}, {{ $node->position_x }}, {{ $node->position_y }})"
                     >
@@ -528,6 +577,29 @@
                 <button class="p-1 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition-colors" title="Toggle Grid">
                     <span class="material-symbols-outlined text-xl">grid_on</span>
                 </button>
+            </div>
+
+            {{-- Connection Mode Banner --}}
+            <div 
+                x-show="isConnectionMode && isWaitingForTargetNode"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-2"
+                class="absolute bottom-8 left-1/2 -translate-x-1/2 z-30"
+            >
+                <div class="flex items-center gap-3 bg-primary/90 backdrop-blur-md border border-primary/50 rounded-full px-6 py-3 shadow-2xl shadow-primary/30">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    <span class="text-[11px] font-black text-white uppercase tracking-widest">Click a node to connect &mdash; or press Esc to cancel</span>
+                    <button @click="cancelConnection()" class="ml-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
             </div>
         </main>
 
@@ -641,4 +713,121 @@
         </div>
     </div>
     @endif
+
+    {{-- Connection Modal --}}
+    @if($showConnectionModal)
+    <div class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="w-full max-w-lg bg-[#081427] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden" style="animation: fadeInScale 0.2s ease-out;">
+            <div class="p-8 space-y-6">
+
+                {{-- Modal Header --}}
+                <div class="flex items-center justify-between">
+                    <div class="space-y-1">
+                        <h3 class="text-lg font-black text-white uppercase tracking-wider flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">cable</span>
+                            Add Connection
+                        </h3>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Connect two nodes in your workflow</p>
+                    </div>
+                    <button wire:click="$set('showConnectionModal', false)" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-xl">close</span>
+                    </button>
+                </div>
+
+                {{-- FROM node (read-only) --}}
+                @php $sourceNode = $nodes->firstWhere('id', $selectedNodeId); @endphp
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">From Node</label>
+                    <div class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 flex items-center gap-3">
+                        @if($sourceNode)
+                            @php
+                                $srcColor = match($sourceNode->type) {
+                                    'trigger' => 'text-emerald-500',
+                                    'action'  => 'text-blue-500',
+                                    'condition' => 'text-amber-500',
+                                    default => 'text-slate-400'
+                                };
+                            @endphp
+                            <span class="material-symbols-outlined {{ $srcColor }}" style="font-variation-settings: 'FILL' 1;">radio_button_checked</span>
+                            <div>
+                                <div class="text-[9px] font-black uppercase tracking-wider {{ $srcColor }} opacity-80">{{ $sourceNode->type }}</div>
+                                <div class="font-black text-white text-sm">{{ $sourceNode->label }}</div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- TO node (dropdown) --}}
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">To Node</label>
+                    <select
+                        wire:model="modalTargetNodeId"
+                        id="modal-target-node-select"
+                        class="w-full bg-[#101d39] border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:ring-2 focus:ring-primary shadow-xl transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="" class="bg-[#101d39]">— Select target node —</option>
+                        @foreach($nodes as $node)
+                            @if($node->id !== $selectedNodeId && $node->type !== 'trigger')
+                                <option value="{{ $node->id }}" class="bg-[#101d39]">
+                                    [{{ ucfirst($node->type) }}] {{ $node->label }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Connection Type (Condition key) --}}
+                @if($sourceNode && $sourceNode->type === 'condition')
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Connection Branch</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button
+                            type="button"
+                            wire:click="$set('modalConditionKey', null)"
+                            class="py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ is_null($modalConditionKey) ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10' }}"
+                        >Default</button>
+                        <button
+                            type="button"
+                            wire:click="$set('modalConditionKey', 'yes')"
+                            class="py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $modalConditionKey === 'yes' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10' }}"
+                        >Yes</button>
+                        <button
+                            type="button"
+                            wire:click="$set('modalConditionKey', 'no')"
+                            class="py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ $modalConditionKey === 'no' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10' }}"
+                        >No</button>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Actions --}}
+                <div class="pt-2 flex gap-3">
+                    <button
+                        wire:click="$set('showConnectionModal', false)"
+                        class="flex-1 py-4 bg-white/5 border border-white/10 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        wire:click="createConnectionFromModal"
+                        wire:loading.attr="disabled"
+                        class="flex-1 py-4 bg-primary text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-blue-600 shadow-[0_10px_20px_rgba(59,130,246,0.25)] transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        <span wire:loading.remove wire:target="createConnectionFromModal" class="flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-base">add_link</span>
+                            Save Connection
+                        </span>
+                        <span wire:loading wire:target="createConnectionFromModal">Connecting...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+<style>
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>

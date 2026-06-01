@@ -6,6 +6,14 @@
         >
             Save {{ ucfirst($activeNode->type) }}
         </button>
+
+        <button
+            wire:click="$set('showConnectionModal', true)"
+            class="w-full py-3 bg-white/5 border border-white/10 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all flex items-center justify-center gap-2 group"
+        >
+            <span class="material-symbols-outlined text-base group-hover:scale-110 transition-transform">add_link</span>
+            Add Connection
+        </button>
         
         <div class="flex gap-3">
             <button 

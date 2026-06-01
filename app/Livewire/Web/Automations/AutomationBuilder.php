@@ -30,6 +30,17 @@ class AutomationBuilder extends Component
     public string $newTriggerName = '';
     public string $newTriggerDescription = '';
 
+    // AnthroConnect Connection System States
+    public ?int $connectionSourceNodeId = null;
+    public bool $isConnectionMode = false;
+    public bool $isWaitingForTargetNode = false;
+    public ?int $selectedConnectionId = null;
+
+    // Modal Connection Properties
+    public bool $showConnectionModal = false;
+    public ?int $modalTargetNodeId = null;
+    public ?string $modalConditionKey = null;
+
     public array $canvasMeta = [
         'zoom' => 100,
         'pan_x' => 0,
@@ -665,25 +676,42 @@ class AutomationBuilder extends Component
         // the frontend will calculate paths based on the updated node positions.
     }
 
-    public function connectNodes(int $sourceNodeId, int $targetNodeId, string $sourceHandle = 'bottom', string $targetHandle = 'top', ?string $conditionKey = null)
+    public function validateConnection(int $sourceNodeId, int $targetNodeId, ?string $conditionKey = null): ?string
     {
-        // 1. Validation
         if ($sourceNodeId === $targetNodeId) {
-            $this->dispatch('notify', ['type' => 'error', 'message' => 'Cannot connect a node to itself']);
-            return;
+            return 'Cannot connect a node to itself';
         }
 
-        // 2. Check for existing identical connection
+        $targetNode = $this->nodes->firstWhere('id', $targetNodeId);
+        if (!$targetNode) {
+            return 'Target node not found';
+        }
+
+        if ($targetNode->type === 'trigger') {
+            return 'Cannot connect to a trigger node';
+        }
+
+        // Check for existing identical connection
         $exists = AutomationConnection::where([
             'automation_flow_id' => $this->automation->id,
             'source_node_id' => $sourceNodeId,
             'target_node_id' => $targetNodeId,
-            'source_handle' => $sourceHandle,
+            'source_handle' => 'bottom',
             'condition_key' => $conditionKey,
         ])->exists();
 
         if ($exists) {
-            $this->dispatch('notify', ['type' => 'info', 'message' => 'Connection already exists']);
+            return 'Connection already exists';
+        }
+
+        return null;
+    }
+
+    public function connectNodes(int $sourceNodeId, int $targetNodeId, string $sourceHandle = 'bottom', string $targetHandle = 'top', ?string $conditionKey = null)
+    {
+        $validationError = $this->validateConnection($sourceNodeId, $targetNodeId, $conditionKey);
+        if ($validationError) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => $validationError]);
             return;
         }
 
@@ -701,6 +729,36 @@ class AutomationBuilder extends Component
         $this->connections->push($connection);
 
         $this->dispatch('notify', ['type' => 'success', 'message' => 'Nodes connected']);
+    }
+
+    public function createConnectionFromModal()
+    {
+        if (!$this->selectedNodeId) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'No source node selected']);
+            return;
+        }
+
+        $sourceNodeId = $this->selectedNodeId;
+        $targetNodeId = $this->modalTargetNodeId;
+        $conditionKey = $this->modalConditionKey;
+
+        if (!$targetNodeId) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Please select a target node']);
+            return;
+        }
+
+        $validationError = $this->validateConnection($sourceNodeId, (int)$targetNodeId, $conditionKey);
+        if ($validationError) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => $validationError]);
+            return;
+        }
+
+        $this->connectNodes($sourceNodeId, (int)$targetNodeId, 'bottom', 'top', $conditionKey);
+
+        // Reset modal fields and close modal
+        $this->showConnectionModal = false;
+        $this->modalTargetNodeId = null;
+        $this->modalConditionKey = null;
     }
 
     public function removeConnection(int $id)
