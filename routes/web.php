@@ -71,3 +71,28 @@ Route::post('/api/v1/automation/webhooks/{uuid}', [\App\Http\Controllers\Webhook
 Route::get('/privacy-policy', function () {
     return view('pages.privacy');
 })->name('privacy-policy');
+
+// Super Admin Route Group
+Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->group(function () {
+    Route::get('/dashboard', \App\Livewire\SuperAdmin\SuperAdminDashboard::class)->name('superadmin.dashboard');
+    Route::get('/companies', \App\Livewire\SuperAdmin\CompanyIndex::class)->name('superadmin.companies');
+    Route::get('/whatsapp-setup', \App\Livewire\SuperAdmin\SuperAdminWhatsAppSetup::class)->name('superadmin.whatsapp-setup');
+    Route::get('/wallets', \App\Livewire\SuperAdmin\WalletIndex::class)->name('superadmin.wallets');
+    Route::get('/funding', \App\Livewire\SuperAdmin\FundingConfig::class)->name('superadmin.funding');
+});
+
+Route::middleware(['auth'])->get('/super-admin/stop-impersonating', function () {
+    if (!session()->has('impersonator_user_id')) {
+        return redirect()->route('dashboard');
+    }
+
+    $impersonatorId = session()->pull('impersonator_user_id');
+    $superAdmin = \App\Models\User::find($impersonatorId);
+
+    if ($superAdmin) {
+        \Illuminate\Support\Facades\Auth::login($superAdmin);
+        return redirect()->route('superadmin.companies');
+    }
+
+    return redirect()->route('login');
+})->name('superadmin.stop-impersonating');

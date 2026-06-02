@@ -27,7 +27,7 @@ class ApiAuthService
         }
 
         // Verify company status
-        if ($user->company && !in_array($user->company->status, ['trial', 'active'])) {
+        if ($user->company && !in_array($user->company->status, ['active', 'demo'])) {
             throw ValidationException::withMessages([
                 'email' => ['Your company account is currently ' . $user->company->status . '. Please contact support.'],
             ]);

@@ -6,8 +6,8 @@
                 Configure and manage your WhatsApp Cloud API phone numbers and their statuses.
             </p>
 
-            @unless($hasConnectedAccount)
-                <div class="mt-4 inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/20 dark:text-amber-300">
+            @unless(auth()->user()->company?->status === 'demo' || $hasConnectedAccount)
+                <div class="mt-4 inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-900/30 dark:bg-emerald-900/20 dark:text-amber-300">
                     <span class="material-symbols-outlined text-base">info</span>
                     <span>
                         Connect your WhatsApp account before adding numbers.
@@ -18,7 +18,12 @@
         </div>
 
         <div class="flex items-center gap-3">
-            @if($hasConnectedAccount)
+            @if(auth()->user()->company?->status === 'demo')
+                <div class="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-bold text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/20 dark:text-amber-300 select-none">
+                    <span class="material-symbols-outlined text-sm">info</span>
+                    <span>Demo Mode Enabled: Account setup functions are locked.</span>
+                </div>
+            @elseif($hasConnectedAccount)
                 <button type="button"
                         wire:click="syncFromMeta"
                         wire:loading.attr="disabled"
@@ -172,17 +177,21 @@
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-5 text-right space-x-3">
-                                <button type="button"
-                                        wire:click="openEditModal({{ $number->id }})"
-                                        class="text-sm font-semibold text-primary hover:text-primary/80">
-                                    Edit
-                                </button>
+                                @if(auth()->user()->company?->status === 'demo')
+                                    <span class="text-xs text-slate-400 font-bold uppercase">Locked</span>
+                                @else
+                                    <button type="button"
+                                            wire:click="openEditModal({{ $number->id }})"
+                                            class="text-sm font-semibold text-primary hover:text-primary/80">
+                                        Edit
+                                    </button>
 
-                                <button type="button"
-                                        wire:click="toggleNumberStatus({{ $number->id }})"
-                                        class="text-sm font-semibold transition-colors {{ $number->status === 'active' ? 'text-slate-400 hover:text-red-500' : 'text-primary hover:text-primary/80' }}">
-                                    {{ $number->status === 'active' ? 'Disable' : 'Enable' }}
-                                </button>
+                                    <button type="button"
+                                            wire:click="toggleNumberStatus({{ $number->id }})"
+                                            class="text-sm font-semibold transition-colors {{ $number->status === 'active' ? 'text-slate-400 hover:text-red-500' : 'text-primary hover:text-primary/80' }}">
+                                        {{ $number->status === 'active' ? 'Disable' : 'Enable' }}
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @empty

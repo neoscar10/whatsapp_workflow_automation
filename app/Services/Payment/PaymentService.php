@@ -268,6 +268,46 @@ class PaymentService extends Manager
                 ]),
             ]);
 
+            // Save purchased package details to company_packages table
+            $company = $transaction->user->company ?? null;
+            if ($company) {
+                $package = \App\Models\FundingPackage::where('is_active', true)
+                    ->where('amount', $transaction->amount)
+                    ->first();
+
+                if (!$package) {
+                    $package = \App\Models\FundingPackage::where('amount', $transaction->amount)->first();
+                }
+
+                if ($package) {
+                    \App\Models\CompanyPackage::create([
+                        'company_id' => $company->id,
+                        'payment_transaction_id' => $transaction->id,
+                        'amount' => $transaction->amount,
+                        'remaining_balance' => $transaction->amount,
+                        'text_rate' => $package->text_rate,
+                        'template_utility_rate' => $package->template_utility_rate,
+                        'template_auth_rate' => $package->template_auth_rate,
+                        'template_marketing_rate' => $package->template_marketing_rate,
+                        'automation_rate' => $package->automation_rate,
+                        'status' => 'active',
+                    ]);
+                } else {
+                    \App\Models\CompanyPackage::create([
+                        'company_id' => $company->id,
+                        'payment_transaction_id' => $transaction->id,
+                        'amount' => $transaction->amount,
+                        'remaining_balance' => $transaction->amount,
+                        'text_rate' => 0.1000,
+                        'template_utility_rate' => 0.3000,
+                        'template_auth_rate' => 0.1500,
+                        'template_marketing_rate' => 0.5000,
+                        'automation_rate' => 0.0500,
+                        'status' => 'active',
+                    ]);
+                }
+            }
+
             // Dispatch monitoring & metrics telemetry event
             event(new \App\Events\Payment\PaymentVerified($transaction, $payload));
 

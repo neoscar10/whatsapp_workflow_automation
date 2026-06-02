@@ -23,6 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/v1/webhooks/cashfree',
         ]);
 
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckCompanyDemoStatus::class,
+        ]);
+
+        $middleware->alias([
+            'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+        ]);
+
         // Allow Sanctum to authenticate API requests using the browser session cookie
         // (required for Livewire frontend fetch calls to auth:sanctum protected endpoints)
         $middleware->api(prepend: [

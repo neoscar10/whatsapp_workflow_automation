@@ -1,3 +1,31 @@
+@if(auth()->user()->company?->status === 'demo')
+    <div class="mx-auto w-full max-w-[1400px] space-y-8 p-10">
+        <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+                <h1 class="mb-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">Connect WhatsApp Account</h1>
+                <p class="text-slate-500 dark:text-slate-400">
+                    Your account is currently in Demo Mode.
+                </p>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border px-4 py-2 border-emerald-200 bg-emerald-50 dark:border-emerald-800/30 dark:bg-emerald-900/20">
+                <div class="h-2 w-2 rounded-full bg-emerald-500"></div>
+                <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Demo Active</span>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900 text-center space-y-4">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 border border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800">
+                <span class="material-symbols-outlined text-[24px]">verified</span>
+            </div>
+            <div class="max-w-md mx-auto space-y-2">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Using Demo WhatsApp Configuration</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Your company is set to Demo Mode. You are automatically using the shared demo WhatsApp numbers and settings configured by the Super Admin. No credentials setup is required from your side.
+                </p>
+            </div>
+        </div>
+    </div>
+@else
 <div class="mx-auto w-full max-w-[1400px] space-y-8 p-10">
     <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -199,3 +227,4 @@
 
     @include('partials.panel.whatsapp.webhook-setup-modal')
 </div>
+@endif

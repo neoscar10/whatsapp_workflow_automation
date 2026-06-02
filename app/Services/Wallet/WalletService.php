@@ -69,13 +69,20 @@ class WalletService
         return DB::transaction(function () use ($wallet, $amount, $category, $description, $providerReference, $metadata, $createdBy) {
             // Lock wallet row for update
             $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->firstOrFail();
+            $company = $wallet->user?->company;
+            $isDemo = $company && $company->status === 'demo';
 
-            if ($wallet->status !== WalletStatus::ACTIVE) {
-                throw new WalletOperationException("Cannot credit a wallet with status: " . $wallet->status->value);
+            if ($isDemo) {
+                $balanceBefore = $company->demo_credits;
+                $balanceAfter = bcadd((string) $balanceBefore, (string) $amount, 4);
+                $company->update(['demo_credits' => $balanceAfter]);
+            } else {
+                if ($wallet->status !== WalletStatus::ACTIVE) {
+                    throw new WalletOperationException("Cannot credit a wallet with status: " . $wallet->status->value);
+                }
+                $balanceBefore = $wallet->balance;
+                $balanceAfter = bcadd((string) $balanceBefore, (string) $amount, 4);
             }
-
-            $balanceBefore = $wallet->balance;
-            $balanceAfter = bcadd((string) $balanceBefore, (string) $amount, 4);
 
             // Generate unique reference
             $reference = 'TXN_' . Str::upper(Str::random(12));
@@ -92,15 +99,21 @@ class WalletService
                 'provider_reference' => $providerReference,
                 'status' => WalletTransactionStatus::SUCCESSFUL,
                 'metadata' => $metadata,
-                'description' => $description,
+                'description' => $description . ($isDemo ? ' (Demo Mode)' : ''),
                 'created_by' => $createdBy?->id,
             ]);
 
             // Update wallet balance and last transaction timestamp
-            $wallet->update([
-                'balance' => $balanceAfter,
-                'last_transaction_at' => now(),
-            ]);
+            if (!$isDemo) {
+                $wallet->update([
+                    'balance' => $balanceAfter,
+                    'last_transaction_at' => now(),
+                ]);
+            } else {
+                $wallet->update([
+                    'last_transaction_at' => now(),
+                ]);
+            }
 
             return $transaction;
         });
@@ -136,17 +149,26 @@ class WalletService
         return DB::transaction(function () use ($wallet, $amount, $category, $description, $providerReference, $metadata, $createdBy) {
             // Lock wallet row for update
             $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->firstOrFail();
+            $company = $wallet->user?->company;
+            $isDemo = $company && $company->status === 'demo';
 
-            if ($wallet->status !== WalletStatus::ACTIVE) {
-                throw new WalletOperationException("Cannot debit a wallet with status: " . $wallet->status->value);
+            if ($isDemo) {
+                if (!$this->hasSufficientBalance($wallet, $amount)) {
+                    throw new InsufficientWalletBalanceException();
+                }
+                $balanceBefore = $company->demo_credits;
+                $balanceAfter = bcsub((string) $balanceBefore, (string) $amount, 4);
+                $company->update(['demo_credits' => $balanceAfter]);
+            } else {
+                if ($wallet->status !== WalletStatus::ACTIVE) {
+                    throw new WalletOperationException("Cannot debit a wallet with status: " . $wallet->status->value);
+                }
+                if (!$this->hasSufficientBalance($wallet, $amount)) {
+                    throw new InsufficientWalletBalanceException();
+                }
+                $balanceBefore = $wallet->balance;
+                $balanceAfter = bcsub((string) $balanceBefore, (string) $amount, 4);
             }
-
-            if (!$this->hasSufficientBalance($wallet, $amount)) {
-                throw new InsufficientWalletBalanceException();
-            }
-
-            $balanceBefore = $wallet->balance;
-            $balanceAfter = bcsub((string) $balanceBefore, (string) $amount, 4);
 
             // Generate unique reference
             $reference = 'TXN_' . Str::upper(Str::random(12));
@@ -163,15 +185,21 @@ class WalletService
                 'provider_reference' => $providerReference,
                 'status' => WalletTransactionStatus::SUCCESSFUL,
                 'metadata' => $metadata,
-                'description' => $description,
+                'description' => $description . ($isDemo ? ' (Demo Mode)' : ''),
                 'created_by' => $createdBy?->id,
             ]);
 
             // Update wallet balance and last transaction timestamp
-            $wallet->update([
-                'balance' => $balanceAfter,
-                'last_transaction_at' => now(),
-            ]);
+            if (!$isDemo) {
+                $wallet->update([
+                    'balance' => $balanceAfter,
+                    'last_transaction_at' => now(),
+                ]);
+            } else {
+                $wallet->update([
+                    'last_transaction_at' => now(),
+                ]);
+            }
 
             return $transaction;
         });
@@ -186,6 +214,10 @@ class WalletService
      */
     public function hasSufficientBalance(Wallet $wallet, float|string $amount): bool
     {
+        $company = $wallet->user?->company;
+        if ($company && $company->status === 'demo') {
+            return bccomp((string) $company->demo_credits, (string) $amount, 4) >= 0;
+        }
         return bccomp((string) $wallet->balance, (string) $amount, 4) >= 0;
     }
 }

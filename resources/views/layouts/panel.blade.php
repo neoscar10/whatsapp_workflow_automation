@@ -35,6 +35,25 @@
             ])
 
             <div class="flex-1 flex flex-col relative w-full h-full min-h-0">
+                @if(session()->has('impersonator_user_id'))
+                    <div class="bg-red-600 text-white text-xs font-bold px-8 py-2.5 flex items-center justify-between gap-4 select-none shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] animate-pulse">admin_panel_settings</span>
+                            <span>Impersonating <strong>{{ auth()->user()?->company?->name }}</strong> (logged in as {{ auth()->user()?->name }}).</span>
+                        </div>
+                        <a href="{{ route('superadmin.stop-impersonating') }}" class="bg-white text-red-650 hover:bg-slate-100 text-red-600 text-[11px] font-black px-4 py-1.5 rounded-lg uppercase tracking-wider transition-all select-none">
+                            Exit & Return to Admin
+                        </a>
+                    </div>
+                @endif
+                @if(auth()->user()?->company?->status === 'demo')
+                    <div class="bg-amber-500 text-white text-xs font-bold px-8 py-2 flex items-center justify-between gap-4 select-none shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] animate-pulse">info</span>
+                            <span>This company account is currently in <strong>Demo Mode</strong>. Features consumed will use demo credits. Real payments are disabled.</span>
+                        </div>
+                    </div>
+                @endif
                 {{ $slot }}
             </div>
         </main>

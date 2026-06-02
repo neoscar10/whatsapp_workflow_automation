@@ -16,11 +16,16 @@ class Company extends Model
         'description',
         'logo_path',
         'status',
+        'demo_credits',
+        'demo_ends_at',
+        'demo_whatsapp_phone_number_id',
         'trial_starts_at',
         'trial_ends_at',
     ];
 
     protected $casts = [
+        'demo_credits' => 'decimal:4',
+        'demo_ends_at' => 'datetime',
         'trial_starts_at' => 'datetime',
         'trial_ends_at' => 'datetime',
     ];
@@ -38,6 +43,22 @@ class Company extends Model
     public function whatsappPhoneNumbers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\WhatsApp\WhatsAppPhoneNumber::class);
+    }
+
+    public function demoPhoneNumber(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\WhatsApp\WhatsAppPhoneNumber::class, 'demo_whatsapp_phone_number_id');
+    }
+
+    public function checkDemoExpiry()
+    {
+        if ($this->status === 'demo' && $this->demo_ends_at && $this->demo_ends_at->isPast()) {
+            $this->update([
+                'status' => 'active',
+                'demo_ends_at' => null,
+                'demo_whatsapp_phone_number_id' => null,
+            ]);
+        }
     }
 
     public function whatsappTemplates(): \Illuminate\Database\Eloquent\Relations\HasMany

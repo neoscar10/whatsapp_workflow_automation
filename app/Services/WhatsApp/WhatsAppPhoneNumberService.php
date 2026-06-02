@@ -11,6 +11,15 @@ class WhatsAppPhoneNumberService
 {
     public function paginateForUser(User $user, array $filters): LengthAwarePaginator
     {
+        $company = $user->company;
+        if ($company && $company->status === 'demo') {
+            if ($company->demo_whatsapp_phone_number_id) {
+                return WhatsAppPhoneNumber::where('id', $company->demo_whatsapp_phone_number_id)
+                    ->paginate($filters['per_page'] ?? 10);
+            }
+            return WhatsAppPhoneNumber::whereRaw('1 = 0')->paginate($filters['per_page'] ?? 10);
+        }
+
         $query = WhatsAppPhoneNumber::where('company_id', $user->company_id);
 
         if (!empty($filters['search'])) {
@@ -32,6 +41,18 @@ class WhatsAppPhoneNumberService
     public function getPageMetaForUser(User $user): array
     {
         $company = $user->company;
+        if ($company && $company->status === 'demo') {
+            $hasDemoNumber = (bool)$company->demo_whatsapp_phone_number_id;
+            return [
+                'all_count' => $hasDemoNumber ? 1 : 0,
+                'active_count' => $hasDemoNumber ? 1 : 0,
+                'inactive_count' => 0,
+                'has_connected_account' => $hasDemoNumber,
+                'connected_account_id' => null,
+                'account_status' => $hasDemoNumber ? 'connected' : 'not_connected',
+            ];
+        }
+
         $account = $company->whatsappAccount;
         
         return [
@@ -90,6 +111,11 @@ class WhatsAppPhoneNumberService
 
     public function findForUser(User $user, int $numberId): WhatsAppPhoneNumber
     {
+        $company = $user->company;
+        if ($company && $company->status === 'demo' && $company->demo_whatsapp_phone_number_id == $numberId) {
+            return WhatsAppPhoneNumber::findOrFail($numberId);
+        }
+
         return WhatsAppPhoneNumber::where('company_id', $user->company_id)
             ->findOrFail($numberId);
     }

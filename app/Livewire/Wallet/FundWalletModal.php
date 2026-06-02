@@ -16,17 +16,20 @@ class FundWalletModal extends Component
     public $gateway = 'razorpay';
     public $transactionId = null;
     public $checkoutData = null;
-
-    protected $rules = [
-        'amount' => 'required|numeric|min:10',
-        'gateway' => 'required|string|in:razorpay,cashfree',
-    ];
+    public $selectedPackageId = null;
 
     #[On('open-funding-modal')]
     public function open()
     {
         $this->reset(['transactionId', 'checkoutData']);
-        $this->amount = 500;
+        $firstPkg = \App\Models\FundingPackage::where('is_active', true)->orderBy('amount')->first();
+        if ($firstPkg) {
+            $this->selectedPackageId = $firstPkg->id;
+            $this->amount = (float) $firstPkg->amount;
+        } else {
+            $this->selectedPackageId = null;
+            $this->amount = (float) \App\Models\SystemSetting::get('minimum_recharge', 500.00);
+        }
         $this->show = true;
     }
 
@@ -120,14 +123,35 @@ class FundWalletModal extends Component
          }
      }
 
-    /**
-     * Initialize new funding transaction and dispatch checkouts.
-     *
-     * @param PaymentService $paymentService
-     */
     public function initializeFunding(PaymentService $paymentService)
     {
-        $this->validate();
+        $minRecharge = (float) \App\Models\SystemSetting::get('minimum_recharge', 500.00);
+        $activePackages = \App\Models\FundingPackage::where('is_active', true)->get();
+
+        $rules = [
+            'gateway' => 'required|string|in:razorpay,cashfree',
+        ];
+
+        if ($activePackages->isNotEmpty()) {
+            $rules['selectedPackageId'] = [
+                'required',
+                function ($attribute, $value, $fail) use ($activePackages) {
+                    $pkg = $activePackages->firstWhere('id', $value);
+                    if (!$pkg) {
+                        $fail('Please select a valid package.');
+                    }
+                }
+            ];
+        } else {
+            $rules['amount'] = 'required|numeric|min:' . $minRecharge;
+        }
+
+        $this->validate($rules);
+
+        if ($activePackages->isNotEmpty()) {
+            $pkg = $activePackages->firstWhere('id', $this->selectedPackageId);
+            $this->amount = (float) $pkg->amount;
+        }
 
         try {
             $response = $paymentService->initializeWalletFunding(
@@ -174,6 +198,12 @@ class FundWalletModal extends Component
 
     public function render()
     {
-        return view('livewire.wallet.fund-wallet-modal');
+        $packages = \App\Models\FundingPackage::where('is_active', true)->orderBy('amount')->get();
+        $minimumRecharge = (float) \App\Models\SystemSetting::get('minimum_recharge', 500.00);
+
+        return view('livewire.wallet.fund-wallet-modal', [
+            'packages' => $packages,
+            'minimumRecharge' => $minimumRecharge,
+        ]);
     }
 }

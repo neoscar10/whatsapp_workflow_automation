@@ -111,19 +111,6 @@
             </a>
         </nav>
 
-        <div class="mt-auto rounded-2xl bg-slate-50 p-5 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-            <p class="mb-3 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
-                Storage Usage
-            </p>
 
-            <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                <div class="h-full bg-primary shadow-[0_0_8px_rgba(36,99,235,0.4)]" style="width: {{ data_get($storage, 'percent', 65) }}%"></div>
-            </div>
-
-            <p class="mt-3 text-[11px] font-bold text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                <span>{{ data_get($storage, 'label', '6.5GB of 10GB') }}</span>
-                <span class="text-primary">{{ data_get($storage, 'percent', 65) }}%</span>
-            </p>
-        </div>
     </div>
 </aside>

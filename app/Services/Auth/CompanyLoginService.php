@@ -29,7 +29,7 @@ class CompanyLoginService
 
         // Verify company status if needed
         $user = Auth::user();
-        if ($user->company && !in_array($user->company->status, ['trial', 'active'])) {
+        if ($user->company && !in_array($user->company->status, ['active', 'demo'])) {
             Auth::logout();
             throw ValidationException::withMessages([
                 'email' => ['Your company account is currently ' . $user->company->status . '. Please contact support.'],

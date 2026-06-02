@@ -25,6 +25,9 @@ class LoginPage extends Component
     public function mount()
     {
         if (Auth::check()) {
+            if (Auth::user()->role === 'super_admin') {
+                return redirect()->route('superadmin.dashboard');
+            }
             return redirect()->intended(route('dashboard'));
         }
     }
@@ -47,6 +50,10 @@ class LoginPage extends Component
                 'email' => $this->email,
                 'password' => $this->password,
             ], $this->remember);
+
+            if (Auth::user()->role === 'super_admin') {
+                return redirect()->route('superadmin.dashboard');
+            }
 
             return redirect()->intended(route('dashboard'));
         } catch (\Illuminate\Validation\ValidationException $e) {

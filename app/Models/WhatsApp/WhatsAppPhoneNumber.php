@@ -50,6 +50,13 @@ class WhatsAppPhoneNumber extends Model
      */
     public function scopeForCompany($query, $companyId)
     {
+        $company = \App\Models\Company::find($companyId);
+        if ($company && $company->status === 'demo') {
+            if ($company->demo_whatsapp_phone_number_id) {
+                return $query->where('id', $company->demo_whatsapp_phone_number_id);
+            }
+            return $query->whereRaw('1 = 0');
+        }
         return $query->where('company_id', $companyId);
     }
 }

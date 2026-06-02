@@ -141,13 +141,25 @@ class WalletDashboard extends Component
             ->limit(5)
             ->get();
 
+        $company = $user->company;
+        $isDemo = $company && $company->status === 'demo';
+        $demoCredits = $isDemo ? $company->demo_credits : 0.00;
+
+        $threshold = (float) \App\Models\SystemSetting::get('wallet_threshold', 100.00);
+        $currentBalance = $isDemo ? (float)$demoCredits : (float)$wallet->balance;
+        $isLowBalance = $currentBalance < $threshold;
+
         return view('livewire.wallet.wallet-dashboard', [
             'wallet' => $wallet,
+            'isDemo' => $isDemo,
+            'demoCredits' => $demoCredits,
             'totalFunded' => $totalFunded,
             'latestFundingDate' => $latestFundingDate,
             'recentTransactionsCount' => $recentTransactionsCount,
             'transactions' => $transactions,
             'paymentAttempts' => $paymentAttempts,
+            'isLowBalance' => $isLowBalance,
+            'threshold' => $threshold,
         ])->layout('layouts.panel', ['title' => 'My Wallet', 'activeNav' => 'wallet']);
     }
 }

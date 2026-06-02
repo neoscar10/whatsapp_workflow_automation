@@ -44,7 +44,26 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'company_id',
         'is_company_owner',
+        'role',
     ];
+
+    protected static function booted()
+    {
+        static::updating(function ($user) {
+            if ($user->getOriginal('role') === 'super_admin' && $user->role !== 'super_admin') {
+                throw new \Exception('The super_admin role cannot be modified.');
+            }
+            if ($user->getOriginal('email') === 'admin@platform.local' && $user->email !== 'admin@platform.local') {
+                throw new \Exception('The super_admin user email cannot be modified.');
+            }
+        });
+
+        static::deleting(function ($user) {
+            if ($user->role === 'super_admin') {
+                throw new \Exception('The super_admin user cannot be deleted.');
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.

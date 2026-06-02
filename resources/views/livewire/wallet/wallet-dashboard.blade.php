@@ -11,12 +11,23 @@
         </div>
     @endif
 
+    @if ($isLowBalance)
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 flex items-center gap-3 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-400">
+            <span class="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-500">warning</span>
+            <div>
+                <p class="font-bold">Low Account Balance Warning</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Your balance is below the warning threshold of ₹{{ number_format($threshold, 2) }}. Please top up your wallet to continue uninterrupted services.</p>
+            </div>
+        </div>
+    @endif
+
     <!-- Header Section -->
     <section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h2 class="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight">Wallet Overview</h2>
             <p class="text-on-surface-variant dark:text-slate-400 text-[14px]">Securely manage balances, fund operations, and trace transaction ledgers.</p>
         </div>
+        @if(!$isDemo)
         <button 
             type="button"
             class="bg-primary text-white px-6 py-2.5 rounded-lg text-[14px] font-semibold flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -25,27 +36,45 @@
             <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
             Fund Wallet
         </button>
+        @else
+        <button 
+            type="button"
+            class="bg-slate-300 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-6 py-2.5 rounded-lg text-[14px] font-semibold flex items-center gap-2 cursor-not-allowed select-none"
+            disabled
+            title="Real funding is disabled in Demo Mode"
+        >
+            <span class="material-symbols-outlined text-[20px]">block</span>
+            Funding Disabled
+        </button>
+        @endif
     </section>
 
     <!-- Metric Grid -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section class="grid grid-cols-1 {{ $isDemo ? 'md:grid-cols-2' : 'md:grid-cols-3' }} gap-6">
         <!-- Card 1 (Current Balance) -->
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:border-primary/30 transition-colors">
             <div class="flex justify-between items-start mb-4">
-                <span class="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Current Balance</span>
-                <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">{{ $wallet->status->value }}</span>
+                <span class="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    {{ $isDemo ? 'Demo Balance' : 'Current Balance' }}
+                </span>
+                @if($isDemo)
+                    <span class="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">DEMO MODE</span>
+                @else
+                    <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">{{ $wallet->status->value }}</span>
+                @endif
             </div>
             <div class="space-y-1">
                 <div class="text-[32px] font-extrabold text-slate-900 dark:text-white flex items-baseline gap-2">
-                    <span class="text-[18px] font-medium text-slate-400 dark:text-slate-500">₹</span>{{ number_format($wallet->balance, 2) }}
+                    <span class="text-[18px] font-medium text-slate-400 dark:text-slate-500">₹</span>{{ number_format($isDemo ? $demoCredits : $wallet->balance, 2) }}
                 </div>
                 <div class="text-[12px] font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]" data-icon="currency_exchange">currency_exchange</span>
-                    {{ $wallet->currency }} Currency Account
+                    {{ $wallet->currency }} {{ $isDemo ? 'Demo Account' : 'Currency Account' }}
                 </div>
             </div>
         </div>
 
+        @if(!$isDemo)
         <!-- Card 2 (Total Funded Credits) -->
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:border-primary/30 transition-colors">
             <div class="flex justify-between items-start mb-4">
@@ -67,6 +96,7 @@
                 </p>
             </div>
         </div>
+        @endif
 
         <!-- Card 3 (Activity - Last 30 Days) -->
         <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between group hover:border-primary/30 transition-colors">

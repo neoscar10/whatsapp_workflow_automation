@@ -61,6 +61,10 @@ class WhatsAppSetupController extends Controller
             return $this->errorResponse('User does not belong to a company.', [], 403);
         }
 
+        if ($company->status === 'demo') {
+            return $this->errorResponse('Cannot modify settings while in Demo Mode.', [], 403);
+        }
+
         try {
             $data = $request->validated();
             $setupData = $this->accountSetupService->saveSetupForUser($user, $data);
@@ -108,6 +112,10 @@ class WhatsAppSetupController extends Controller
             return $this->errorResponse('User does not belong to a company.', [], 403);
         }
 
+        if ($company->status === 'demo') {
+            return $this->errorResponse('Cannot modify settings while in Demo Mode.', [], 403);
+        }
+
         try {
             $data = $request->validated();
             $phoneNumber = $this->phoneNumberService->createNumberForUser($user, $data);
@@ -133,6 +141,10 @@ class WhatsAppSetupController extends Controller
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        if ($company->status === 'demo') {
+            return $this->errorResponse('Cannot modify settings while in Demo Mode.', [], 403);
         }
 
         try {
@@ -161,6 +173,10 @@ class WhatsAppSetupController extends Controller
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        if ($company->status === 'demo') {
+            return $this->errorResponse('Cannot modify settings while in Demo Mode.', [], 403);
         }
 
         try {
