@@ -32,8 +32,8 @@ class LivewireModuleDiscovery
             $relativePath = ltrim(str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath), '\\');
 
             // Construct Class name
-            $subPath = is_dir($modulePath . '/app/Livewire') ? 'app\\Livewire\\' : 'Livewire\\';
-            $className = $namespace . '\\' . $moduleName . '\\' . $subPath . $relativePath;
+            // For nwidart/laravel-modules, the 'app/' directory maps directly to the module root namespace.
+            $className = $namespace . '\\' . $moduleName . '\\Livewire\\' . $relativePath;
 
             if (class_exists($className)) {
                 // Generate a component name like: ca.dashboard-page
