@@ -1,0 +1,11 @@
+{
+    "name": "CA",
+    "alias": "ca",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CA\\Providers\\CAServiceProvider"
+    ],
+    "files": []
+}

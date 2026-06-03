@@ -14,30 +14,7 @@
         </div>
     @endif
 
-    <!-- Dynamic Settings Banner at the Top -->
-    @if($showSettings)
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 animate-in slide-in-from-top-4 duration-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px] text-primary">admin_panel_settings</span>
-                    Wallet Threshold Settings
-                </h3>
-                <button wire:click="$set('showSettings', false)" class="text-slate-400 hover:text-slate-500">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            </div>
-            <form wire:submit.prevent="saveSettings" class="flex flex-col md:flex-row items-end gap-4">
-                <div class="flex-1">
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Low Wallet Threshold Alert (₹)</label>
-                    <input type="number" step="0.01" min="0" wire:model="wallet_threshold" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
-                    @error('wallet_threshold') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                </div>
-                <button type="submit" class="h-11 px-6 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl transition-colors shrink-0">
-                    Save Changes
-                </button>
-            </form>
-        </div>
-    @endif
+    <!-- (Settings banner removed, replaced by modals) -->
 
     <!-- Package Slots Container (Full Width) -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
@@ -48,9 +25,13 @@
                         Recharge Packages & Rates
                     </h3>
                     <div class="flex items-center gap-2">
-                        <button wire:click="$toggle('showSettings')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
+                        <button wire:click="openThresholdModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm">settings</span>
-                            <span>Wallet Alert Threshold</span>
+                            <span>Wallet Threshold</span>
+                        </button>
+                        <button wire:click="openDemoBillingModal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm">payments</span>
+                            <span>Demo Billing</span>
                         </button>
                         <button wire:click="openCreateModal" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">add</span>
@@ -194,6 +175,97 @@
                         </button>
                         <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors">
                             Save Package
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- Wallet Threshold Modal -->
+    @if($showThresholdModal)
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px] text-primary">settings</span>
+                        Wallet Threshold Alert
+                    </h3>
+                    <button wire:click="closeThresholdModal" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <form wire:submit.prevent="saveThresholdSettings">
+                    <div class="p-6">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Low Wallet Threshold Alert (₹)</label>
+                        <input type="number" step="0.01" min="0" wire:model="wallet_threshold" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                        @error('wallet_threshold') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                        <p class="text-xs text-slate-500 mt-3">An alert will be triggered when a company's wallet balance drops below this amount.</p>
+                    </div>
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                        <button type="button" wire:click="closeThresholdModal" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors">
+                            Save Threshold
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- Demo Billing Rates Modal -->
+    @if($showDemoBillingModal)
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px] text-primary">payments</span>
+                        Demo Account Billing Rates
+                    </h3>
+                    <button wire:click="closeDemoBillingModal" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <form wire:submit.prevent="saveDemoBillingSettings">
+                    <div class="p-6 space-y-4">
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">Configure the exact rates that will be debited from the <b>Demo Credits</b> balance of companies operating in Demo Mode.</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Text Msg Rate (₹)</label>
+                                <input type="number" step="0.0001" min="0" wire:model="demo_text_rate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                @error('demo_text_rate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Utility Temp Rate (₹)</label>
+                                <input type="number" step="0.0001" min="0" wire:model="demo_template_utility_rate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                @error('demo_template_utility_rate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Auth Temp Rate (₹)</label>
+                                <input type="number" step="0.0001" min="0" wire:model="demo_template_auth_rate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                @error('demo_template_auth_rate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Marketing Temp Rate (₹)</label>
+                                <input type="number" step="0.0001" min="0" wire:model="demo_template_marketing_rate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                @error('demo_template_marketing_rate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Automation Rate (₹)</label>
+                                <input type="number" step="0.0001" min="0" wire:model="demo_automation_rate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                @error('demo_automation_rate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                        <button type="button" wire:click="closeDemoBillingModal" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors">
+                            Save Rates
                         </button>
                     </div>
                 </form>

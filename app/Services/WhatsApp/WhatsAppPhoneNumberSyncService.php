@@ -27,6 +27,7 @@ class WhatsAppPhoneNumberSyncService
             $account->update([
                 'last_sync_error' => $response['error'],
                 'last_synced_at' => now(),
+                'connection_status' => 'error',
             ]);
 
             return [

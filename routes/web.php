@@ -95,6 +95,8 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->group(functio
     Route::get('/verification-queue', \App\Livewire\SuperAdmin\VerificationQueue::class)->name('superadmin.verification-queue');
     Route::get('/verification-queue/{id}', \App\Livewire\SuperAdmin\VerificationReviewWorkspace::class)->name('superadmin.verification-review');
     Route::get('/verification-queue/{id}/download-all', [\App\Http\Controllers\Company\VerificationFileController::class, 'downloadAll'])->name('superadmin.verification-review.download-all');
+    Route::get('/modules', \App\Livewire\SuperAdmin\ModuleIndex::class)->name('superadmin.modules');
+    Route::get('/company-modules', \App\Livewire\SuperAdmin\CompanyModuleAssignment::class)->name('superadmin.company-modules');
 });
 
 Route::middleware(['auth'])->get('/super-admin/stop-impersonating', function () {

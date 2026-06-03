@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'super_admin' => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'module' => \App\Http\Middleware\EnsureModuleEnabled::class,
         ]);
 
         // Allow Sanctum to authenticate API requests using the browser session cookie

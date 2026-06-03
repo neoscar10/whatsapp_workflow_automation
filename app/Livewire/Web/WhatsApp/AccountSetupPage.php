@@ -77,7 +77,11 @@ class AccountSetupPage extends Component
         $newData = $service->saveSetupForUser(Auth::user(), $data);
         $this->hydrateFromData($newData);
 
-        session()->flash('success', 'WhatsApp account credentials saved successfully.');
+        if (!empty($newData['last_sync_error']) && $newData['connection_status'] === 'error') {
+            session()->flash('error', 'Credentials saved, but verification failed: ' . $newData['last_sync_error']);
+        } else {
+            session()->flash('success', 'WhatsApp account credentials saved and verified successfully.');
+        }
     }
 
     public function discardChanges(WhatsAppAccountSetupService $service)

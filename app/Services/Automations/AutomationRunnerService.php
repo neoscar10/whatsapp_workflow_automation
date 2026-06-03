@@ -8,6 +8,7 @@ use App\Models\AutomationRun;
 use App\Models\Chat\Conversation;
 use App\Models\Chat\ConversationMessage;
 use App\Services\WhatsApp\WhatsAppOutboundMessageService;
+use App\Services\Payment\BillingService;
 use App\Jobs\ProcessAutomationNode;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -17,7 +18,8 @@ class AutomationRunnerService
     public function __construct(
         protected AutomationSimulationService $simulationService,
         protected AutomationRuleEvaluator $ruleEvaluator,
-        protected WhatsAppOutboundMessageService $whatsappService
+        protected WhatsAppOutboundMessageService $whatsappService,
+        protected BillingService $billingService
     ) {}
 
     /**
@@ -69,6 +71,19 @@ class AutomationRunnerService
         ]);
         
         try {
+            // Check Billing before execution
+            $debited = $this->billingService->debitForActivity(
+                $run->flow->company,
+                'automation',
+                "Automation executed node: {$node->type} (ID: {$node->id})",
+                ['run_id' => $run->id, 'node_id' => $node->id]
+            );
+
+            if (!$debited) {
+                $this->failRun($run, "Insufficient balance to execute automation node [{$nodeId}].");
+                return;
+            }
+
             // Execute the node's business logic
             $result = $this->executeNode($node, $context, $run);
             $outcome = is_array($result) ? ($result['outcome'] ?? 'success') : $result;

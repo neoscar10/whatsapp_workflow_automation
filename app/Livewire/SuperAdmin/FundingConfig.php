@@ -10,7 +10,15 @@ class FundingConfig extends Component
 {
     // Settings properties
     public $wallet_threshold = 100.00;
-    public $showSettings = false;
+    public $showThresholdModal = false;
+
+    // Demo Mode properties
+    public $showDemoBillingModal = false;
+    public $demo_text_rate = '0.0000';
+    public $demo_template_utility_rate = '0.0000';
+    public $demo_template_auth_rate = '0.0000';
+    public $demo_template_marketing_rate = '0.0000';
+    public $demo_automation_rate = '0.0000';
 
     // Package modal properties
     public $showModal = false;
@@ -25,18 +33,68 @@ class FundingConfig extends Component
     public function mount()
     {
         $this->wallet_threshold = (float) SystemSetting::get('wallet_threshold', 100.00);
+        $this->demo_text_rate = number_format((float) SystemSetting::get('demo_text_rate', 0.1000), 4, '.', '');
+        $this->demo_template_utility_rate = number_format((float) SystemSetting::get('demo_template_utility_rate', 0.3000), 4, '.', '');
+        $this->demo_template_auth_rate = number_format((float) SystemSetting::get('demo_template_auth_rate', 0.1500), 4, '.', '');
+        $this->demo_template_marketing_rate = number_format((float) SystemSetting::get('demo_template_marketing_rate', 0.5000), 4, '.', '');
+        $this->demo_automation_rate = number_format((float) SystemSetting::get('demo_automation_rate', 0.0500), 4, '.', '');
     }
 
-    public function saveSettings()
+    public function openThresholdModal()
+    {
+        $this->wallet_threshold = (float) SystemSetting::get('wallet_threshold', 100.00);
+        $this->showThresholdModal = true;
+    }
+
+    public function closeThresholdModal()
+    {
+        $this->showThresholdModal = false;
+    }
+
+    public function saveThresholdSettings()
     {
         $this->validate([
             'wallet_threshold' => 'required|numeric|min:0',
         ]);
 
         SystemSetting::set('wallet_threshold', $this->wallet_threshold);
-
-        $this->showSettings = false;
+        $this->showThresholdModal = false;
         session()->flash('success_settings', 'Wallet threshold settings saved successfully.');
+    }
+
+    public function openDemoBillingModal()
+    {
+        $this->demo_text_rate = number_format((float) SystemSetting::get('demo_text_rate', 0.1000), 4, '.', '');
+        $this->demo_template_utility_rate = number_format((float) SystemSetting::get('demo_template_utility_rate', 0.3000), 4, '.', '');
+        $this->demo_template_auth_rate = number_format((float) SystemSetting::get('demo_template_auth_rate', 0.1500), 4, '.', '');
+        $this->demo_template_marketing_rate = number_format((float) SystemSetting::get('demo_template_marketing_rate', 0.5000), 4, '.', '');
+        $this->demo_automation_rate = number_format((float) SystemSetting::get('demo_automation_rate', 0.0500), 4, '.', '');
+        $this->showDemoBillingModal = true;
+    }
+
+    public function closeDemoBillingModal()
+    {
+        $this->showDemoBillingModal = false;
+    }
+
+    public function saveDemoBillingSettings()
+    {
+        $this->validate([
+            'demo_text_rate' => 'required|numeric|min:0',
+            'demo_template_utility_rate' => 'required|numeric|min:0',
+            'demo_template_auth_rate' => 'required|numeric|min:0',
+            'demo_template_marketing_rate' => 'required|numeric|min:0',
+            'demo_automation_rate' => 'required|numeric|min:0',
+        ]);
+
+        SystemSetting::set('demo_text_rate', $this->demo_text_rate);
+        SystemSetting::set('demo_template_utility_rate', $this->demo_template_utility_rate);
+        SystemSetting::set('demo_template_auth_rate', $this->demo_template_auth_rate);
+        SystemSetting::set('demo_template_marketing_rate', $this->demo_template_marketing_rate);
+        SystemSetting::set('demo_automation_rate', $this->demo_automation_rate);
+
+        $this->showDemoBillingModal = false;
+        session()->flash('success_settings', 'Demo billing rates saved successfully.');
     }
 
     public function openCreateModal()

@@ -5,12 +5,14 @@ namespace App\Services\WhatsApp;
 use App\Models\Chat\ConversationMessage;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Models\WhatsApp\WhatsAppAccount;
+use App\Services\Payment\BillingService;
 use Illuminate\Support\Facades\Log;
 
 class WhatsAppOutboundMessageService
 {
     public function __construct(
-        protected WhatsAppGraphClient $graphClient
+        protected WhatsAppGraphClient $graphClient,
+        protected BillingService $billingService
     ) {}
 
     /**
@@ -78,6 +80,42 @@ class WhatsAppOutboundMessageService
                     'status' => 'sent',
                     'meta_payload' => $result['data']
                 ]);
+
+                // Handle Billing
+                $billingType = 'text';
+                $templateName = null;
+                
+                if ($message->message_type === 'template') {
+                    $payload = $message->meta_payload ?? [];
+                    $templateName = $payload['template_name'] ?? $message->body;
+                    
+                    $template = \App\Models\WhatsApp\WhatsAppTemplate::where('remote_template_name', $templateName)
+                        ->where('company_id', $conversation->company_id)
+                        ->first();
+                    
+                    if ($template) {
+                        $category = strtolower($template->category);
+                        if (in_array($category, ['utility', 'authentication', 'marketing'])) {
+                            $billingType = 'template_' . ($category === 'authentication' ? 'auth' : $category);
+                        } else {
+                            $billingType = 'template_utility';
+                        }
+                    } else {
+                        $billingType = 'template_utility';
+                    }
+                }
+
+                $this->billingService->debitForActivity(
+                    $conversation->company,
+                    $billingType,
+                    "WhatsApp outbound {$billingType} message sent to {$to}",
+                    [
+                        'message_id' => $message->id, 
+                        'template_name' => $templateName,
+                        'message_type' => $message->message_type
+                    ]
+                );
+
                 return true;
             } else {
                 Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Service responded with error", [

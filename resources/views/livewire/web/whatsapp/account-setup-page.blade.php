@@ -1,3 +1,4 @@
+<div>
 @if(auth()->user()->company?->status === 'demo')
     <div class="mx-auto w-full max-w-[1400px] space-y-8 p-10">
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -53,6 +54,16 @@
         </div>
     @endif
 
+    @if (session()->has('error'))
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-start gap-3">
+             <span class="material-symbols-outlined text-lg">error</span>
+             <div>
+                 <p class="font-bold">Setup Failed</p>
+                 <p>{{ session('error') }}</p>
+             </div>
+        </div>
+    @endif
+
     @if ($lastSyncError)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-start gap-3">
              <span class="material-symbols-outlined text-lg">error</span>
@@ -77,7 +88,7 @@
                             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Access Token</label>
                             <div class="relative">
                                 <input type="{{ $showAccessToken ? 'text' : 'password' }}"
-                                       wire:model.defer="access_token"
+                                       wire:model="access_token"
                                        placeholder="{{ $hasSavedToken ? 'Token already configured. Enter a new token to replace it.' : 'EAAG...' }}"
                                         class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary dark:border-slate-800 dark:bg-slate-800 dark:text-white" />
                                 <button type="button"
@@ -102,7 +113,7 @@
                                     WhatsApp Business Account ID (WABA ID)
                                 </label>
                                 <input type="text"
-                                       wire:model.defer="waba_id"
+                                       wire:model="waba_id"
                                        placeholder="10982347523..."
                                         class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary dark:border-slate-800 dark:bg-slate-800 dark:text-white" />
                                 @error('waba_id')
@@ -115,7 +126,7 @@
                                     Business ID
                                 </label>
                                 <input type="text"
-                                       wire:model.defer="business_id"
+                                       wire:model="business_id"
                                        placeholder="123456789012345"
                                         class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary dark:border-slate-800 dark:bg-slate-800 dark:text-white" />
                                 @error('business_id')
@@ -228,3 +239,4 @@
     @include('partials.panel.whatsapp.webhook-setup-modal')
 </div>
 @endif
+</div>

@@ -75,7 +75,7 @@
                 <p class="text-sm font-bold">Users</p>
             </a>
 
-            <a href="#"
+            <a href="{{ route('superadmin.modules') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'modules' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'modules' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">view_module</span>
                 <p class="text-sm font-bold">Modules</p>

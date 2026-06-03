@@ -31,9 +31,10 @@
                 $sidebarUser = Auth::user();
                 $sidebarIsLowBalance = false;
                 $sidebarNeedsVerification = false;
+                $sidebarCompany = null;
                 if ($sidebarUser) {
-                    $sidebarWallet = \App\Models\Wallet::where('user_id', $sidebarUser->id)->first();
                     $sidebarCompany = $sidebarUser->company;
+                    $sidebarWallet = \App\Models\Wallet::where('user_id', $sidebarUser->id)->first();
                     $sidebarIsDemo = $sidebarCompany && $sidebarCompany->status === 'demo';
                     $sidebarDemoCredits = $sidebarIsDemo ? $sidebarCompany->demo_credits : 0.00;
                     
@@ -47,82 +48,61 @@
                         $sidebarNeedsVerification = !$sidebarCompany->isVerified();
                     }
                 }
+
+                $groupedItems = \App\Support\Sidebar\SidebarRegistry::getGroupedItems($sidebarCompany);
             @endphp
 
-            <a href="{{ route('dashboard') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'dashboard' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'dashboard' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">dashboard</span>
-                <p class="text-sm font-bold">Dashboard</p>
-            </a>
+            {{-- Render Core Group --}}
+            @if(isset($groupedItems['core']))
+                @foreach($groupedItems['core'] as $item)
+                    @php
+                        $isActive = false;
+                        if ($item['activePattern']) {
+                            $isActive = request()->routeIs($item['activePattern']) || ($activeNav ?? '') === $item['activePattern'];
+                        }
+                    @endphp
+                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}"
+                       class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ $isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[22px] {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">{{ $item['icon'] }}</span>
+                            <p class="text-sm font-bold">{{ $item['title'] }}</p>
+                        </div>
+                        
+                        @if(!empty($item['hasVerificationBadge']) && $sidebarNeedsVerification)
+                            <span class="flex h-2.5 w-2.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                            </span>
+                        @endif
 
-            <a href="{{ route('chats.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'chats' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'chats' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">chat</span>
-                <p class="text-sm font-bold">Chats</p>
-            </a>
+                        @if(!empty($item['hasLowBalanceBadge']) && $sidebarIsLowBalance)
+                            <span class="flex h-2.5 w-2.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                            </span>
+                        @endif
+                    </a>
+                @endforeach
+            @endif
 
-            <a href="{{ route('contacts.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'contacts' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'contacts' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">group</span>
-                <p class="text-sm font-bold">Contacts</p>
-            </a>
-
-            <a href="{{ route('contacts.audiences') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'contacts.audiences' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'contacts.audiences' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">groups_2</span>
-                <p class="text-sm font-bold">Audience Manager</p>
-            </a>
-
-            <a href="{{ route('campaigns.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'campaigns' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'campaigns' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">campaign</span>
-                <p class="text-sm font-bold">Campaigns</p>
-            </a>
-
-            <a href="{{ route('company.profile') }}"
-               class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'company-profile' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'company-profile' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">business</span>
-                    <p class="text-sm font-bold">Company Profile</p>
-                </div>
-                @if($sidebarNeedsVerification)
-                    <span class="flex h-2.5 w-2.5 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                    </span>
-                @endif
-            </a>
-            <a href="{{ route('whatsapp.templates.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 xl:transition-all {{ ($activeNav ?? '') === 'whatsapp-templates' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'whatsapp-templates' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">description</span>
-                <p class="text-sm font-bold">Templates</p>
-            </a>
-
-            <a href="{{ route('automations.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ request()->routeIs('automations.*') ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ request()->routeIs('automations.*') ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">auto_awesome</span>
-                <p class="text-sm font-bold">Automations</p>
-            </a>
-
-            <a href="{{ route('whatsapp.setup.phone-numbers') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'whatsapp-setup' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">settings_suggest</span>
-                <p class="text-sm font-bold">WhatsApp Setup</p>
-            </a>
-
-            <a href="{{ route('wallet.index') }}"
-               class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'wallet' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'wallet' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">account_balance_wallet</span>
-                    <p class="text-sm font-bold">My Wallet</p>
-                </div>
-                @if($sidebarIsLowBalance)
-                    <span class="flex h-2.5 w-2.5 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-                    </span>
-                @endif
-            </a>
+            {{-- Render Module Group --}}
+            @if(isset($groupedItems['modules']) && count($groupedItems['modules']) > 0)
+                <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
+                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Modules</p>
+                @foreach($groupedItems['modules'] as $item)
+                    @php
+                        $isActive = false;
+                        if ($item['activePattern']) {
+                            $isActive = request()->routeIs($item['activePattern']) || ($activeNav ?? '') === $item['activePattern'];
+                        }
+                    @endphp
+                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}"
+                       class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ $isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                        <span class="material-symbols-outlined text-[22px] {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">{{ $item['icon'] }}</span>
+                        <p class="text-sm font-bold">{{ $item['title'] }}</p>
+                    </a>
+                @endforeach
+            @endif
 
             <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
 
@@ -137,8 +117,6 @@
                 <span class="material-symbols-outlined text-[22px]">forum</span>
                 <p class="text-sm font-bold">Message Logs</p>
             </a>
-
-            
 
             <div class="my-6 border-t border-slate-100 dark:border-slate-800"></div>
 
