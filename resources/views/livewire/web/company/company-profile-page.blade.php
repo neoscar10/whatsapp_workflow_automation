@@ -3,6 +3,23 @@
 @endphp
 
 <div class="mx-auto w-full max-w-4xl p-8">
+    @unless($isVerified)
+    <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/60 px-5 py-4 dark:border-amber-800/40 dark:from-amber-950/20 dark:to-amber-900/10">
+            <div class="flex items-center gap-3 flex-1">
+                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 shrink-0">warning</span>
+                <div class="flex-1">
+                    <h4 class="text-sm font-bold text-amber-800 dark:text-amber-300">Business Verification Required</h4>
+                    <p class="text-xs text-amber-700/90 dark:text-amber-400/80 mt-0.5">Please submit your business verification documents to verify your organization.</p>
+                </div>
+            </div>
+            <a href="{{ route('company.verification') }}" class="inline-flex justify-center items-center rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-500 transition-colors shrink-0">
+                Start Verification
+            </a>
+        </div>
+    </div>
+    @endunless
+
     <div class="mb-8">
         <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Organization Settings</h1>
         <p class="mt-2 text-slate-500 dark:text-slate-400">
@@ -115,6 +132,24 @@
                     @enderror
                 </div>
 
+                <div class="flex flex-col gap-2">
+                    <label for="company-country" class="text-sm font-semibold text-slate-900 dark:text-white">
+                        Country
+                    </label>
+                    <select
+                        id="company-country"
+                        wire:model="country"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    >
+                        @foreach(\App\Models\Company::$countries as $code => $name)
+                            <option value="{{ $code }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    @error('country')
+                        <p class="text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="flex flex-col gap-2 md:col-span-2">
                     <label for="company-website" class="text-sm font-semibold text-slate-900 dark:text-white">
                         Website URL
@@ -179,14 +214,18 @@
                 <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30">
                     <span class="material-symbols-outlined">verified</span>
                 </div>
-                <h4 class="font-semibold text-slate-900 dark:text-white">Verification Status</h4>
+                <h4 class="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Verification Status</span>
+                    <x-verification-badge :company="Auth::user()->company" :showText="true" />
+                </h4>
             </div>
             <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">
-                Your organization is currently verified. You can access all API features.
+                Submit and manage your corporate business documents to achieve verified trusted status on the platform.
             </p>
-            <button type="button" class="text-sm font-medium text-primary hover:underline">
-                View verification details
-            </button>
+            <a href="{{ route('company.verification') }}" class="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
+                <span>Manage verification documents</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+            </a>
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">

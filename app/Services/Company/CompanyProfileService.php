@@ -25,6 +25,7 @@ class CompanyProfileService
             'website_url' => $company->website_url,
             'description' => $company->description,
             'logo_url' => $company->logo_path ? Storage::disk('public')->url($company->logo_path) : null,
+            'country' => $company->country,
         ];
     }
 
@@ -44,6 +45,7 @@ class CompanyProfileService
             'primary_email' => $data['contact_email'],
             'website_url' => $data['website_url'] ?? null,
             'description' => $data['description'] ?? null,
+            'country' => $data['country'] ?? 'IN',
         ]);
 
         if ($logoFile instanceof UploadedFile) {

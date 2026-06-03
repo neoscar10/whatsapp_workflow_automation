@@ -18,6 +18,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardPage::class)->name('dashboard');
     Route::get('/company/profile', CompanyProfilePage::class)->name('company.profile');
+    Route::get('/company/verification', \App\Livewire\Web\Company\BusinessVerificationDashboard::class)->name('company.verification');
     Route::get('/chats', \App\Livewire\Web\Chats\ChatInboxPage::class)->name('chats.index');
     Route::get('/contacts', \App\Livewire\Web\Contacts\ContactIndexPage::class)->name('contacts.index');
     Route::get('/contacts/audiences', \App\Livewire\Contacts\AudienceManagerPage::class)->name('contacts.audiences');
@@ -59,8 +60,19 @@ Route::middleware('auth')->group(function () {
     // Chat media proxy — streams inbound WhatsApp media on-demand
     Route::get('/chat-media/{messageId}', [\App\Http\Controllers\Chat\ChatMediaProxyController::class, 'show'])->name('chat.media.proxy');
 
+    // Secure Verification Document serving route
+    Route::get('/company/verification/document-file/{versionId}', [\App\Http\Controllers\Company\VerificationFileController::class, 'show'])->name('company.verification.file');
+
     // Wallet Dashboard
     Route::get('/wallet', \App\Livewire\Wallet\WalletDashboard::class)->name('wallet.index');
+
+    // Logout
+    Route::post('/logout', function () {
+        \Illuminate\Support\Facades\Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+        return redirect()->route('login');
+    })->name('logout');
 });
 
 // Public Webhooks
@@ -79,6 +91,10 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->group(functio
     Route::get('/whatsapp-setup', \App\Livewire\SuperAdmin\SuperAdminWhatsAppSetup::class)->name('superadmin.whatsapp-setup');
     Route::get('/wallets', \App\Livewire\SuperAdmin\WalletIndex::class)->name('superadmin.wallets');
     Route::get('/funding', \App\Livewire\SuperAdmin\FundingConfig::class)->name('superadmin.funding');
+    Route::get('/verification-templates', \App\Livewire\SuperAdmin\VerificationTemplateConfig::class)->name('superadmin.verification-templates');
+    Route::get('/verification-queue', \App\Livewire\SuperAdmin\VerificationQueue::class)->name('superadmin.verification-queue');
+    Route::get('/verification-queue/{id}', \App\Livewire\SuperAdmin\VerificationReviewWorkspace::class)->name('superadmin.verification-review');
+    Route::get('/verification-queue/{id}/download-all', [\App\Http\Controllers\Company\VerificationFileController::class, 'downloadAll'])->name('superadmin.verification-review.download-all');
 });
 
 Route::middleware(['auth'])->get('/super-admin/stop-impersonating', function () {

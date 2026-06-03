@@ -13,10 +13,10 @@
 
     @if ($isLowBalance)
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 flex items-center gap-3 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-400">
-            <span class="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-500">warning</span>
+            <span class="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-500 animate-bounce">warning</span>
             <div>
-                <p class="font-bold">Low Account Balance Warning</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Your balance is below the warning threshold of ₹{{ number_format($threshold, 2) }}. Please top up your wallet to continue uninterrupted services.</p>
+                <p class="font-bold text-slate-900 dark:text-slate-100">Low Account Balance Warning</p>
+                <p class="text-xs text-slate-900 dark:text-slate-100 mt-0.5">Your balance is running low. Please top up your wallet to continue uninterrupted services.</p>
             </div>
         </div>
     @endif

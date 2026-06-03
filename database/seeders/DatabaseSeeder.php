@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call(SuperAdminSeeder::class);
+        $this->call(VerificationTemplateSeeder::class);
 
         if (!User::where('email', 'test@example.com')->exists()) {
             User::factory()->create([

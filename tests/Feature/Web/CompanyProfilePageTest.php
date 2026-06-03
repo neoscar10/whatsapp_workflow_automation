@@ -206,4 +206,49 @@ class CompanyProfilePageTest extends TestCase
             ->call('discardChanges')
             ->assertSet('company_name', 'Correct Name');
     }
+
+    /** @test */
+    public function company_country_defaults_to_in_and_updates_successfully()
+    {
+        $company = Company::create([
+            'name' => 'Test Company',
+            'slug' => 'test-company',
+            'primary_email' => 'test@company.com',
+            'status' => 'trial',
+        ]);
+
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(CompanyProfilePage::class)
+            ->assertSet('country', 'IN')
+            ->set('country', 'NG')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertEquals('NG', $company->fresh()->country);
+    }
+
+    /** @test */
+    public function company_country_invalid_code_fails_validation()
+    {
+        $company = Company::create([
+            'name' => 'Test Company',
+            'slug' => 'test-company',
+            'primary_email' => 'test@company.com',
+            'status' => 'trial',
+        ]);
+
+        $user = User::factory()->create([
+            'company_id' => $company->id,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(CompanyProfilePage::class)
+            ->set('country', 'XX')
+            ->call('save')
+            ->assertHasErrors(['country' => 'in']);
+    }
 }

@@ -53,6 +53,17 @@ class WhatsAppPhoneNumberService
             ];
         }
 
+        if (!$company) {
+            return [
+                'all_count' => 0,
+                'active_count' => 0,
+                'inactive_count' => 0,
+                'has_connected_account' => false,
+                'connected_account_id' => null,
+                'account_status' => 'not_connected',
+            ];
+        }
+
         $account = $company->whatsappAccount;
         
         return [

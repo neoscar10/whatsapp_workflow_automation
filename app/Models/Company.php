@@ -8,6 +8,36 @@ use Illuminate\Database\Eloquent\Model;
 class Company extends Model
 {
     use HasFactory;
+
+    public static array $countries = [
+        'IN' => 'India',
+        'NG' => 'Nigeria',
+        'GB' => 'United Kingdom',
+        'US' => 'United States',
+        'CA' => 'Canada',
+        'AU' => 'Australia',
+        'DE' => 'Germany',
+        'FR' => 'France',
+        'AE' => 'United Arab Emirates',
+        'ZA' => 'South Africa',
+        'KE' => 'Kenya',
+        'GH' => 'Ghana',
+        'SG' => 'Singapore',
+        'BR' => 'Brazil',
+        'MX' => 'Mexico',
+        'ES' => 'Spain',
+        'IT' => 'Italy',
+        'NL' => 'Netherlands',
+        'IE' => 'Ireland',
+        'SA' => 'Saudi Arabia',
+        'EG' => 'Egypt',
+        'ID' => 'Indonesia',
+        'MY' => 'Malaysia',
+        'PH' => 'Philippines',
+        'JP' => 'Japan',
+        'KR' => 'South Korea',
+    ];
+
     protected $fillable = [
         'name',
         'slug',
@@ -16,6 +46,7 @@ class Company extends Model
         'description',
         'logo_path',
         'status',
+        'country',
         'demo_credits',
         'demo_ends_at',
         'demo_whatsapp_phone_number_id',
@@ -64,5 +95,11 @@ class Company extends Model
     public function whatsappTemplates(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\Models\WhatsApp\WhatsAppTemplate::class);
+    }
+
+    public function isVerified(): bool
+    {
+        $verification = CompanyVerification::where('company_id', $this->id)->first();
+        return $verification && $verification->status === 'verified';
     }
 }

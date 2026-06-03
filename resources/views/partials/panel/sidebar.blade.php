@@ -27,6 +27,28 @@
         </div>
 
         <nav class="flex flex-1 flex-col gap-1.5 overflow-y-auto no-scrollbar">
+            @php
+                $sidebarUser = Auth::user();
+                $sidebarIsLowBalance = false;
+                $sidebarNeedsVerification = false;
+                if ($sidebarUser) {
+                    $sidebarWallet = \App\Models\Wallet::where('user_id', $sidebarUser->id)->first();
+                    $sidebarCompany = $sidebarUser->company;
+                    $sidebarIsDemo = $sidebarCompany && $sidebarCompany->status === 'demo';
+                    $sidebarDemoCredits = $sidebarIsDemo ? $sidebarCompany->demo_credits : 0.00;
+                    
+                    $sidebarThreshold = (float) \App\Models\SystemSetting::get('wallet_threshold', 100.00);
+                    $sidebarCurrentBalance = $sidebarIsDemo 
+                        ? (float)$sidebarDemoCredits 
+                        : ($sidebarWallet ? (float)$sidebarWallet->balance : 0.00);
+                    $sidebarIsLowBalance = $sidebarCurrentBalance < $sidebarThreshold;
+
+                    if ($sidebarCompany) {
+                        $sidebarNeedsVerification = !$sidebarCompany->isVerified();
+                    }
+                }
+            @endphp
+
             <a href="{{ route('dashboard') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'dashboard' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'dashboard' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">dashboard</span>
@@ -58,9 +80,17 @@
             </a>
 
             <a href="{{ route('company.profile') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'company-profile' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'company-profile' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">business</span>
-                <p class="text-sm font-bold">Company Profile</p>
+               class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'company-profile' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'company-profile' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">business</span>
+                    <p class="text-sm font-bold">Company Profile</p>
+                </div>
+                @if($sidebarNeedsVerification)
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                    </span>
+                @endif
             </a>
             <a href="{{ route('whatsapp.templates.index') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 xl:transition-all {{ ($activeNav ?? '') === 'whatsapp-templates' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
@@ -81,9 +111,17 @@
             </a>
 
             <a href="{{ route('wallet.index') }}"
-               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'wallet' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
-                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'wallet' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">account_balance_wallet</span>
-                <p class="text-sm font-bold">My Wallet</p>
+               class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'wallet' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'wallet' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">account_balance_wallet</span>
+                    <p class="text-sm font-bold">My Wallet</p>
+                </div>
+                @if($sidebarIsLowBalance)
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                @endif
             </a>
 
             <div class="my-3 border-t border-slate-100 dark:border-slate-800"></div>
@@ -111,6 +149,25 @@
             </a>
         </nav>
 
+        {{-- Logout --}}
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <div class="flex items-center gap-3 px-4 py-2 mb-2">
+                <div class="flex size-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                    <span class="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-400">person</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ auth()->user()?->name ?? 'User' }}</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ auth()->user()?->email }}</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all">
+                    <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-red-500 transition-colors">logout</span>
+                    <p class="text-sm font-bold">Log Out</p>
+                </button>
+            </form>
+        </div>
 
     </div>
 </aside>

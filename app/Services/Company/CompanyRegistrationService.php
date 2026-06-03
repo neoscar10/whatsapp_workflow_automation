@@ -37,6 +37,7 @@ class CompanyRegistrationService
                 'slug' => $companySlug,
                 'primary_email' => $email,
                 'status' => 'trial',
+                'country' => $data['country'] ?? 'IN',
                 'trial_starts_at' => now(),
                 'trial_ends_at' => now()->addDays(14),
             ]);

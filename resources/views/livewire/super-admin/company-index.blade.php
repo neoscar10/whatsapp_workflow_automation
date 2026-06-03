@@ -147,6 +147,10 @@
                             <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Total Users</span>
                             <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ $selectedCompany->users_count }}</span>
                         </div>
+                        <div>
+                            <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Country</span>
+                            <span class="text-slate-700 dark:text-slate-300 font-semibold uppercase">{{ $selectedCompany->country ?? 'N/A' }}</span>
+                        </div>
                         @if($selectedCompany->status === 'demo')
                         <div>
                             <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase block">Demo Phone Number</span>

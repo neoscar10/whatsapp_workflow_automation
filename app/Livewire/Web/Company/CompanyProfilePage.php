@@ -18,6 +18,8 @@ class CompanyProfilePage extends Component
     public $description = '';
     public $logo = null;
     public $logo_url = null;
+    public $country = 'IN';
+    public $isVerified = false;
 
     protected function rules()
     {
@@ -29,6 +31,7 @@ class CompanyProfilePage extends Component
             'website_url' => 'nullable|url|max:255',
             'description' => 'nullable|string|max:1000',
             'logo' => 'nullable|image|max:2048',
+            'country' => ['required', 'string', 'size:2', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Company::$countries))],
         ];
     }
 
@@ -47,7 +50,11 @@ class CompanyProfilePage extends Component
             $this->website_url = $data['website_url'];
             $this->description = $data['description'];
             $this->logo_url = $data['logo_url'];
+            $this->country = $data['country'] ?? 'IN';
         }
+
+        $company = Auth::user()->company;
+        $this->isVerified = $company ? $company->isVerified() : true;
     }
 
     public function save(CompanyProfileService $service)
@@ -59,6 +66,7 @@ class CompanyProfilePage extends Component
             'contact_email' => $this->contact_email,
             'website_url' => $this->website_url,
             'description' => $this->description,
+            'country' => $this->country,
         ];
 
         $updatedData = $service->updateProfileForUser(Auth::user(), $data, $this->logo);

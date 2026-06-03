@@ -57,6 +57,18 @@
                 <p class="text-sm font-bold">Demo WhatsApp Setup</p>
             </a>
 
+            <a href="{{ route('superadmin.verification-templates') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'verification-templates' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'verification-templates' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">verified</span>
+                <p class="text-sm font-bold">Verification Config</p>
+            </a>
+
+            <a href="{{ route('superadmin.verification-queue') }}"
+               class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'verification-queue' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'verification-queue' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">checklist_rtl</span>
+                <p class="text-sm font-bold">Verification Queue</p>
+            </a>
+
             <a href="#"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'users' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'users' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">group</span>
@@ -95,5 +107,25 @@
                 <p class="text-sm font-bold">Platform Settings</p>
             </a>
         </nav>
+
+        {{-- Logout --}}
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <div class="flex items-center gap-3 px-4 py-2 mb-2">
+                <div class="flex size-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                    <span class="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-400">shield_person</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ auth()->user()?->name ?? 'Admin' }}</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ auth()->user()?->email }}</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-all">
+                    <span class="material-symbols-outlined text-[22px] text-slate-400 group-hover:text-red-500 transition-colors">logout</span>
+                    <p class="text-sm font-bold">Log Out</p>
+                </button>
+            </form>
+        </div>
     </div>
 </aside>
