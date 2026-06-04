@@ -66,6 +66,11 @@ class Company extends Model
         return $this->hasMany(User::class);
     }
 
+    public function owner(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(User::class)->where('is_company_owner', true);
+    }
+
     public function whatsappAccount(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(\App\Models\WhatsApp\WhatsAppAccount::class);
