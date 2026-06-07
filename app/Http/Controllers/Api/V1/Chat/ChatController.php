@@ -56,10 +56,25 @@ class ChatController extends Controller
             }
         }
 
+        if (!empty($filters['whatsapp_phone_number_id'])) {
+            $query->where('whatsapp_phone_number_id', $filters['whatsapp_phone_number_id']);
+        }
+
         $conversations = $query->paginate($perPage);
 
+        $availabilityService = app(\App\Services\Chat\ChatChannelAvailabilityService::class);
+        $channels = $availabilityService->getAvailableWhatsAppNumbersForUser($user)->map(function($ch) {
+            return ['id' => $ch->id, 'display_name' => $ch->display_name, 'phone_number' => $ch->phone_number];
+        });
+
+        $responseData = ChatConversationResource::collection($conversations)->response()->getData(true);
+        $responseData['meta']['channel_availability'] = [
+            'has_available_channels' => $channels->isNotEmpty(),
+            'channels' => $channels->toArray(),
+        ];
+
         return $this->successResponse(
-            ChatConversationResource::collection($conversations)->response()->getData(true),
+            $responseData,
             'Chat conversations retrieved successfully.'
         );
     }
@@ -96,9 +111,10 @@ class ChatController extends Controller
     {
         $user = $request->user();
         $contactId = $request->validated()['contact_id'];
+        $phoneNumberId = $request->validated()['whatsapp_phone_number_id'] ?? null;
         
         try {
-            $conversation = $this->actionService->startConversation($user, $contactId);
+            $conversation = $this->actionService->startConversation($user, $contactId, $phoneNumberId);
             
             return $this->successResponse(
                 new ChatConversationResource($conversation->load(['assignee'])),

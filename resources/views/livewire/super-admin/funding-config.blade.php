@@ -50,6 +50,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <th class="p-4 w-10"></th>
                                 <th class="p-4">Package Amt</th>
                                 <th class="p-4">Text Msg</th>
                                 <th class="p-4">Utility Temp</th>
@@ -60,9 +61,14 @@
                                 <th class="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
+                        <tbody wire:sortable="updatePackageOrder" class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                             @forelse($packages as $pkg)
-                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                <tr wire:sortable.item="{{ $pkg->id }}" wire:key="pkg-{{ $pkg->id }}" class="bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors">
+                                    <td class="p-4 w-10">
+                                        <button wire:sortable.handle class="cursor-grab text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                            <span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+                                        </button>
+                                    </td>
                                     <td class="p-4 text-slate-900 dark:text-slate-100 font-bold text-sm">
                                         ₹{{ number_format($pkg->amount, 2) }}
                                     </td>
@@ -100,7 +106,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="p-8 text-center text-slate-400 dark:text-slate-500 font-bold">
+                                    <td colspan="9" class="p-8 text-center text-slate-400 dark:text-slate-500 font-bold">
                                         No recharge packages seeded. Click "Add Package Slot" to create one.
                                     </td>
                                 </tr>

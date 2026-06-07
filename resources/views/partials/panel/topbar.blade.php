@@ -1,18 +1,18 @@
-<header class="sticky top-0 z-10 flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-8 dark:border-slate-800 dark:bg-slate-900/80">
-    <div class="flex items-center gap-4">
+<header class="sticky top-0 z-10 flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-8 dark:border-slate-800 dark:bg-slate-900/80 w-full">
+    <div class="flex items-center gap-4 flex-1">
         <button 
             @click="sidebarOpen = !sidebarOpen" 
+            x-show="!sidebarOpen"
             class="flex items-center justify-center size-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary transition-all dark:bg-slate-800"
-            title="Toggle Sidebar"
+            title="Open Sidebar"
         >
-            <span class="material-symbols-outlined transition-transform duration-300" :class="!sidebarOpen ? '' : 'rotate-180'">
-                menu_open
+            <span class="material-symbols-outlined">
+                menu
             </span>
         </button>
 
         <div class="mx-2 h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
 
-        <div class="flex flex-1 items-center gap-4">
         <div class="relative w-full max-w-md group">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 group-focus-within:text-primary transition-colors">search</span>
             <input
@@ -23,17 +23,11 @@
         </div>
     </div>
 
-    <div class="flex items-center gap-3">
-        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mr-2">
-            <button type="button" class="relative rounded-lg p-2 text-slate-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700 transition-all">
-                <span class="material-symbols-outlined text-[22px]">notifications</span>
-                <span class="absolute right-2.5 top-2.5 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900"></span>
-            </button>
+    <div class="flex items-center justify-end gap-3 shrink-0">
+        @if(auth()->user()?->role !== 'super_admin')
+            <livewire:web.panel.topbar-wallet-balance />
+        @endif
 
-            <button type="button" class="rounded-lg p-2 text-slate-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700 transition-all">
-                <span class="material-symbols-outlined text-[22px]">help_outline</span>
-            </button>
-        </div>
 
         <div class="mx-1 h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
 

@@ -17,6 +17,7 @@ class ChatInboxPage extends Component
     public string $search = '';
     public string $tab = 'all';
     public ?int $selectedConversationId = null;
+    public ?int $selectedPhoneNumberId = null;
     public int $companyId;
     
     public string $messageText = '';
@@ -67,15 +68,27 @@ class ChatInboxPage extends Component
         // Don't auto-select the first conversation anymore to support empty states.
         $this->selectedConversationId = $this->selectedConversationId ?? null;
 
+        $user = auth()->user();
+        $channels = app(\App\Services\Chat\ChatChannelAvailabilityService::class)->getAvailableWhatsAppNumbersForUser($user);
+        if ($channels->isNotEmpty() && !$this->selectedPhoneNumberId) {
+            $this->selectedPhoneNumberId = $channels->first()->id;
+        }
+
         if ($this->selectedConversationId) {
             $this->syncNoteText();
             $this->dispatch('conversation-selected', [
                 'conversation_id' => $this->selectedConversationId,
-                'company_id' => auth()->user()->company_id,
+                'company_id' => $user->company_id,
             ]);
         }
 
-        $this->companyId = auth()->user()->company_id;
+        $this->companyId = $user->company_id;
+    }
+
+    public function updatedSelectedPhoneNumberId()
+    {
+        $this->selectedConversationId = null;
+        $this->resetMessages();
     }
 
     public function updatedSearch()
@@ -396,7 +409,7 @@ class ChatInboxPage extends Component
         }
 
         try {
-            $conversation = $actionService->startConversation(auth()->user(), $this->selectedContactId);
+            $conversation = $actionService->startConversation(auth()->user(), $this->selectedContactId, $this->selectedPhoneNumberId);
             
             $this->closeInitiateChatModal();
             $this->selectConversation($conversation->id);
@@ -658,6 +671,7 @@ class ChatInboxPage extends Component
             'search' => $this->search,
             'tab' => $this->tab,
             'selected_conversation_id' => $this->selectedConversationId,
+            'whatsapp_phone_number_id' => $this->selectedPhoneNumberId,
         ]);
 
         $this->channelAvailability = $data['channel_availability'];

@@ -180,9 +180,16 @@ class FundingConfig extends Component
         $this->resetErrorBag();
     }
 
+    public function updatePackageOrder($orderedIds)
+    {
+        foreach ($orderedIds as $item) {
+            FundingPackage::where('id', $item['value'])->update(['sort_order' => $item['order']]);
+        }
+    }
+
     public function render()
     {
-        $packages = FundingPackage::latest()->paginate(10);
+        $packages = FundingPackage::orderBy('sort_order')->orderBy('created_at', 'desc')->paginate(50);
 
         return view('livewire.super-admin.funding-config', [
             'packages' => $packages,

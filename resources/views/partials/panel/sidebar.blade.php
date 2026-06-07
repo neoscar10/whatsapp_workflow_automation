@@ -17,7 +17,7 @@
 
             <button 
                 @click="sidebarOpen = false" 
-                class="flex items-center justify-center size-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all dark:bg-slate-800 dark:hover:bg-slate-700 lg:hidden xl:flex"
+                class="flex items-center justify-center size-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all dark:bg-slate-800 dark:hover:bg-slate-700"
                 title="Collapse Sidebar"
             >
                 <span class="material-symbols-outlined text-[20px]">

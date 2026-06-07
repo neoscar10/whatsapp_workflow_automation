@@ -42,6 +42,9 @@ class ChatInboxService
                 'has_available_channels' => $this->availabilityService->getAvailableWhatsAppNumbersForUser($user)->isNotEmpty(),
                 'available_count' => $this->availabilityService->getAvailableWhatsAppNumbersForUser($user)->count(),
                 'default_channel' => $this->availabilityService->getDefaultWhatsAppNumberForUser($user),
+                'channels' => $this->availabilityService->getAvailableWhatsAppNumbersForUser($user)->map(function($ch) {
+                    return ['id' => $ch->id, 'display_name' => $ch->display_name, 'phone_number' => $ch->phone_number];
+                })->toArray(),
             ],
         ];
     }
@@ -53,6 +56,10 @@ class ChatInboxService
     {
         $query = Conversation::where('company_id', $user->company_id)
             ->orderBy('last_message_at', 'desc');
+
+        if (!empty($filters['whatsapp_phone_number_id'])) {
+            $query->where('whatsapp_phone_number_id', $filters['whatsapp_phone_number_id']);
+        }
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {

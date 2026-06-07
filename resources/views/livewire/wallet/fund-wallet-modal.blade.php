@@ -1,5 +1,5 @@
 <div>
-    <x-ui.modal wire:model="show" title="Fund Wallet">
+    <x-ui.modal wire:model="show" title="Fund Wallet" maxWidth="max-w-3xl">
         <div id="modal-form-area">
             <form wire:submit.prevent="initializeFunding" class="space-y-6">
                 <!-- Packages Grid & Rate Details -->
@@ -16,36 +16,47 @@
                             No active recharge packages are currently available. Please contact support or try again later.
                         </div>
                     @else
-                        <div class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach($packages as $pkg)
                                 <div 
                                     wire:click="$set('selectedPackageId', '{{ $pkg->id }}')"
-                                    class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-sm active:scale-[0.99] select-none {{ $selectedPackageId === $pkg->id ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-350 dark:hover:border-slate-700' }}"
+                                    class="relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg active:scale-[0.99] select-none {{ $selectedPackageId === $pkg->id ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary shadow-md' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-350 dark:hover:border-slate-700 hover:shadow-md' }}"
                                 >
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-baseline gap-2">
-                                            <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Recharge Package</span>
-                                            <span class="text-lg font-black text-slate-800 dark:text-white">₹{{ number_format($pkg->amount, 0) }}</span>
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Package</span>
+                                            <span class="text-3xl font-black text-slate-900 dark:text-white">₹{{ number_format($pkg->amount, 0) }}</span>
                                         </div>
-                                        <div class="flex items-center gap-2">
+                                        <div>
                                             @if($selectedPackageId === $pkg->id)
-                                                <span class="material-symbols-outlined text-[20px] text-primary" data-icon="check_circle">check_circle</span>
+                                                <span class="material-symbols-outlined text-[28px] text-primary" data-icon="check_circle">check_circle</span>
                                             @else
-                                                <span class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-700"></span>
+                                                <span class="block w-7 h-7 rounded-full border-2 border-slate-300 dark:border-slate-700"></span>
                                             @endif
                                         </div>
                                     </div>
                                     
-                                    <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                                        <span>Text: <strong class="text-slate-700 dark:text-slate-200">₹{{ number_format($pkg->text_rate, 4) }}</strong></span>
-                                        <span class="text-slate-300 dark:text-slate-700">•</span>
-                                        <span>Utility Temp: <strong class="text-slate-750 dark:text-slate-200">₹{{ number_format($pkg->template_utility_rate, 4) }}</strong></span>
-                                        <span class="text-slate-300 dark:text-slate-700">•</span>
-                                        <span>Marketing Temp: <strong class="text-slate-750 dark:text-slate-200">₹{{ number_format($pkg->template_marketing_rate, 4) }}</strong></span>
-                                        <span class="text-slate-300 dark:text-slate-700">•</span>
-                                        <span>Auth Temp: <strong class="text-slate-750 dark:text-slate-200">₹{{ number_format($pkg->template_auth_rate, 4) }}</strong></span>
-                                        <span class="text-slate-300 dark:text-slate-700">•</span>
-                                        <span>Automation: <strong class="text-slate-750 dark:text-slate-200">₹{{ number_format($pkg->automation_rate, 4) }}</strong></span>
+                                    <div class="flex-1 flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-sm font-medium text-slate-600 dark:text-slate-400">
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-slate-500 dark:text-slate-400"><span class="material-symbols-outlined text-[16px] text-green-500">check</span>Text Rate</span>
+                                            <strong class="text-slate-900 dark:text-slate-200">₹{{ number_format($pkg->text_rate, 4) }}</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-slate-500 dark:text-slate-400"><span class="material-symbols-outlined text-[16px] text-green-500">check</span>Utility Temp</span>
+                                            <strong class="text-slate-900 dark:text-slate-200">₹{{ number_format($pkg->template_utility_rate, 4) }}</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-slate-500 dark:text-slate-400"><span class="material-symbols-outlined text-[16px] text-green-500">check</span>Marketing Temp</span>
+                                            <strong class="text-slate-900 dark:text-slate-200">₹{{ number_format($pkg->template_marketing_rate, 4) }}</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-slate-500 dark:text-slate-400"><span class="material-symbols-outlined text-[16px] text-green-500">check</span>Auth Temp</span>
+                                            <strong class="text-slate-900 dark:text-slate-200">₹{{ number_format($pkg->template_auth_rate, 4) }}</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="flex items-center gap-2 text-slate-500 dark:text-slate-400"><span class="material-symbols-outlined text-[16px] text-green-500">check</span>Automation</span>
+                                            <strong class="text-slate-900 dark:text-slate-200">₹{{ number_format($pkg->automation_rate, 4) }}</strong>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

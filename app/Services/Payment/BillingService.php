@@ -25,7 +25,15 @@ class BillingService
     public function getActiveRate(Company $company, string $type): float
     {
         if ($company->status === 'demo') {
-            return (float) SystemSetting::get("demo_{$type}_rate", 0.0000);
+            $defaults = [
+                'text' => 0.1000,
+                'template_utility' => 0.3000,
+                'template_auth' => 0.1500,
+                'template_marketing' => 0.5000,
+                'automation' => 0.0500,
+            ];
+            $default = $defaults[$type] ?? 0.0000;
+            return (float) SystemSetting::get("demo_{$type}_rate", $default);
         }
 
         $package = CompanyPackage::where('company_id', $company->id)->where('status', 'active')->first();

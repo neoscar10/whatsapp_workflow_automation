@@ -1,4 +1,4 @@
-@props(['title'])
+@props(['title', 'maxWidth' => 'max-w-lg'])
 
 <div 
     x-data="{ show: @entangle($attributes->wire('model')) }"
@@ -14,7 +14,7 @@
     
     <!-- Modal panel content wrapper -->
     <div 
-        class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative z-10"
+        class="bg-white dark:bg-slate-900 w-full {{ $maxWidth }} rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative z-10"
         x-show="show"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 scale-95 translate-y-4"

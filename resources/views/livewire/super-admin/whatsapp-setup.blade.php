@@ -53,8 +53,10 @@
                             {{ ucfirst($connectionStatus) }}
                         </span>
                     </div>
-                    <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-lg transition-colors">
-                        Save Credentials
+                    <button type="submit" wire:loading.attr="disabled" wire:target="saveAccount" class="w-full py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed">
+                        <span wire:loading wire:target="saveAccount" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        <span wire:loading.remove wire:target="saveAccount">Save Credentials</span>
+                        <span wire:loading wire:target="saveAccount">Saving...</span>
                     </button>
                 </div>
             </form>

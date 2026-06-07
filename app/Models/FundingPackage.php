@@ -19,6 +19,7 @@ class FundingPackage extends Model
         'template_marketing_rate',
         'automation_rate',
         'is_active',
+        'sort_order',
     ];
 
     protected $casts = [
@@ -29,5 +30,6 @@ class FundingPackage extends Model
         'template_marketing_rate' => 'decimal:4',
         'automation_rate' => 'decimal:4',
         'is_active' => 'boolean',
+        'sort_order' => 'integer',
     ];
 }

@@ -22,7 +22,7 @@ class ChatConversationActionService
      * @return Conversation
      * @throws \Exception
      */
-    public function startConversation(User $user, int $contactId): Conversation
+    public function startConversation(User $user, int $contactId, ?int $phoneNumberId = null): Conversation
     {
         $contact = \App\Models\Contact\Contact::where('company_id', $user->company_id)->findOrFail($contactId);
 
@@ -31,9 +31,17 @@ class ChatConversationActionService
         }
 
         // Determine which WhatsApp phone number to use:
-        // 1. If the contact is associated with a specific active whatsapp_phone_number_id, use it if chat eligible.
+        // 1. If explicit phone number passed, use it.
         $whatsappPhoneNumber = null;
-        if ($contact->whatsapp_phone_number_id) {
+        if ($phoneNumberId) {
+            $phoneNumber = WhatsAppPhoneNumber::find($phoneNumberId);
+            if ($phoneNumber && $this->availabilityService->isNumberChatEligible($phoneNumber)) {
+                $whatsappPhoneNumber = $phoneNumber;
+            }
+        }
+
+        // 2. Fallback to contact's associated number if eligible
+        if (!$whatsappPhoneNumber && $contact->whatsapp_phone_number_id) {
             $phoneNumber = WhatsAppPhoneNumber::find($contact->whatsapp_phone_number_id);
             if ($phoneNumber && $this->availabilityService->isNumberChatEligible($phoneNumber)) {
                 $whatsappPhoneNumber = $phoneNumber;
@@ -54,9 +62,9 @@ class ChatConversationActionService
             [
                 'company_id' => $user->company_id,
                 'contact_id' => $contact->id,
+                'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
             ],
             [
-                'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
                 'contact_name' => $contact->name ?? $contact->phone,
                 'contact_phone' => $contact->phone,
                 'status' => 'open',

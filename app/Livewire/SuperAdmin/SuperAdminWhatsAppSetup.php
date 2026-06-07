@@ -5,6 +5,7 @@ namespace App\Livewire\SuperAdmin;
 use App\Models\Company;
 use App\Models\WhatsApp\WhatsAppAccount;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
+use App\Services\WhatsApp\WhatsAppPhoneNumberSyncService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -35,7 +36,7 @@ class SuperAdminWhatsAppSetup extends Component
         }
     }
 
-    public function saveAccount()
+    public function saveAccount(WhatsAppPhoneNumberSyncService $syncService)
     {
         $this->validate([
             'waba_id' => 'required|string|max:50',
@@ -48,21 +49,27 @@ class SuperAdminWhatsAppSetup extends Component
         $updateData = [
             'waba_id' => $this->waba_id,
             'business_id' => $this->business_id,
-            'connection_status' => 'connected',
         ];
 
         if (!empty($this->access_token)) {
             $updateData['access_token'] = trim($this->access_token);
         }
 
-        WhatsAppAccount::updateOrCreate(
+        $account = WhatsAppAccount::updateOrCreate(
             ['company_id' => $company->id],
             $updateData
         );
 
-        $this->connectionStatus = 'connected';
-        $this->access_token = '';
-        session()->flash('success', 'Demo WABA account configured successfully.');
+        $syncResult = $syncService->syncForAccount($account);
+
+        if ($syncResult['success']) {
+            $this->connectionStatus = 'connected';
+            $this->access_token = '';
+            session()->flash('success', 'Demo WABA account configured and verified successfully.');
+        } else {
+            $this->connectionStatus = 'error';
+            session()->flash('error', $syncResult['message'] ?? 'Failed to verify account credentials with Meta.');
+        }
     }
 
     public function openCreateModal()

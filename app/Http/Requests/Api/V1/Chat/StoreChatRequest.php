@@ -35,7 +35,20 @@ class StoreChatRequest extends FormRequest
                         $fail('The selected contact is invalid or does not belong to your company.');
                     }
                 },
-            ]
+            ],
+            'whatsapp_phone_number_id' => [
+                'nullable',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    $exists = \App\Models\WhatsApp\WhatsAppPhoneNumber::where('id', $value)
+                        ->where('company_id', $this->user()->company_id)
+                        ->exists();
+
+                    if (!$exists) {
+                        $fail('The selected phone number is invalid or does not belong to your company.');
+                    }
+                },
+            ],
         ];
     }
 }
