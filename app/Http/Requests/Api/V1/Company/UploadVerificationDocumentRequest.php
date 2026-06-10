@@ -23,7 +23,7 @@ class UploadVerificationDocumentRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'document_type_id' => ['required', 'integer', 'exists:document_types,id'],
+            'document_type_id' => ['required', 'uuid', 'exists:document_types,id'],
             'issue_date' => ['nullable', 'date'],
             'expiry_date' => ['nullable', 'date', 'after_or_equal:issue_date'],
         ];

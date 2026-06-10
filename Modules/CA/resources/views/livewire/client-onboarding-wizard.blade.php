@@ -7,7 +7,7 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 border border-[#c2c6d8] dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 border border-[#c2c6d8] dark:border-slate-700 rounded-2xl shadow-sm">
         <div class="p-8">
             <!-- Progress Stepper -->
             <div class="relative mb-12 max-w-5xl mx-auto">
@@ -528,10 +528,6 @@
                                                         
                                                         <div class="flex items-start justify-between gap-3 w-full">
                                                             <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
-                                                                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 
-                                                                    {{ in_array($compliance->id, $selectedCompliances) ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-[#f0eded] dark:bg-slate-800 text-[#727687] dark:text-slate-400' }}">
-                                                                    <span class="material-symbols-outlined text-[20px]">{{ in_array($compliance->id, $selectedCompliances) ? 'verified' : 'corporate_fare' }}</span>
-                                                                </div>
                                                                 <h5 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words flex-1 min-w-0">{{ $compliance->name }}</h5>
                                                             </div>
                                                             
@@ -560,7 +556,7 @@
                                     .hide-scroll::-webkit-scrollbar { display: none; }
                                     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                                 </style>
-                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-white dark:border-slate-700/50 shadow-xl sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto hide-scroll">
+                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-white dark:border-slate-700/50 shadow-xl sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto hide-scroll">
                                     <div class="flex items-center justify-between mb-6">
                                         <h3 class="font-sans text-xl font-bold text-[#1c1b1b] dark:text-white">Workflow Preview</h3>
                                         <span class="bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest animate-pulse">Live</span>
@@ -642,6 +638,8 @@
                                             <p class="text-[12px] text-green-700 dark:text-green-500 leading-tight">Client will receive real-time filing reminders and document status updates directly via WhatsApp.</p>
                                         </div>
 
+                                        <!-- Extra spacer for bottom padding in scrollable container -->
+                                        <div class="h-8 w-full pb-4"></div>
                                     </div>
                                 </div>
                             </aside>
@@ -699,14 +697,12 @@
                                                 <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md p-5 rounded-2xl flex flex-col gap-4 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 dark:border-green-500/30' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} hover:shadow-md transition-all">
                                                     <div class="flex items-start justify-between gap-3 w-full">
                                                         <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
-                                                            <div class="w-8 h-8 rounded-lg shrink-0 {{ !empty($collectedData[$doc->id]) ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-blue-600/10 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' }} flex items-center justify-center">
-                                                                @if(in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']))
-                                                                    <span class="material-symbols-outlined text-[20px]">upload_file</span>
-                                                                @else
-                                                                    <span class="material-symbols-outlined text-[20px]">keyboard</span>
+                                                            <div class="flex flex-col gap-1 flex-1 min-w-0 pr-2">
+                                                                <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
+                                                                @if(!empty($doc->compliance_names))
+                                                                    <span class="inline-block w-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] px-2 py-1 rounded-md border border-blue-100 dark:border-blue-800 font-medium whitespace-normal" title="{{ $doc->compliance_names }}">Required for: {{ $doc->compliance_names }}</span>
                                                                 @endif
                                                             </div>
-                                                            <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words flex-1 min-w-0">{{ $doc->name }}</h3>
                                                         </div>
                                                         <div class="shrink-0 mt-0.5">
                                                             @if(!empty($collectedData[$doc->id]))
@@ -757,7 +753,11 @@
 
                             <!-- Right Sidebar: Readiness -->
                             <aside class="hidden lg:block lg:col-span-4 space-y-6">
-                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 border border-white dark:border-slate-700/50 shadow-xl sticky top-32">
+                                <style>
+                                    .hide-scroll::-webkit-scrollbar { display: none; }
+                                    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+                                </style>
+                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 border border-white dark:border-slate-700/50 shadow-xl sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto hide-scroll">
                                     <h3 class="font-bold text-xl text-[#1c1b1b] dark:text-white mb-8">Collection Progress</h3>
                                     
                                     <!-- Circular Progress -->
@@ -779,6 +779,9 @@
                                         <span class="text-sm font-semibold text-[#424656] dark:text-slate-300 whitespace-nowrap">Documents Collected</span>
                                         <span class="bg-[#f0eded] dark:bg-slate-700 text-[#1c1b1b] dark:text-white px-3 py-1 rounded-lg text-sm font-bold whitespace-nowrap">{{ $collectedCount }} / {{ $totalCount }}</span>
                                     </div>
+
+                                    <!-- Extra spacer for bottom padding in scrollable container -->
+                                    <div class="h-8 w-full pb-4"></div>
                                 </div>
                             </aside>
                         </div>

@@ -250,10 +250,17 @@ class ClientOnboardingWizard extends Component
             return collect();
         }
 
-        return \Modules\CA\Models\CAComplianceRequirement::whereIn('ca_compliance_id', $this->selectedCompliances)
+        return \Modules\CA\Models\CAComplianceRequirement::with('compliance')
+            ->whereIn('ca_compliance_id', $this->selectedCompliances)
             ->where('requirement_type', 'document')
             ->get()
-            ->unique('name')
+            ->groupBy('name')
+            ->map(function ($items) {
+                $first = $items->first();
+                $first->compliance_names = $items->pluck('compliance.name')->unique()->filter()->implode(', ');
+                return $first;
+            })
+            ->values()
             ->groupBy(function($item) {
                 return $item->required_when ?? 'Required Now';
             });
