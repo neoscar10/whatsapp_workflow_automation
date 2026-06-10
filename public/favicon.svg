@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+    <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" /> <!-- Tailwind Blue 500 -->
+            <stop offset="100%" style="stop-color:#4338ca;stop-opacity:1" /> <!-- Tailwind Indigo 700 -->
+        </linearGradient>
+    </defs>
+    
+    <!-- Outer Bubble -->
+    <path fill="url(#bg)" d="M200,40 C100,40 20,110 20,200 C20,245 45,285 85,310 C80,340 50,370 50,370 C50,370 100,370 140,340 C160,345 180,350 200,350 C300,350 380,280 380,200 C380,110 300,40 200,40 Z" />
+
+    <!-- Inner Workflow Diagram -->
+    <g fill="#ffffff" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Node 1 -->
+        <circle cx="120" cy="200" r="24" fill="#ffffff" stroke="none" />
+        <!-- Node 2 Top -->
+        <circle cx="200" cy="140" r="24" fill="#ffffff" stroke="none" />
+        <!-- Node 3 Bottom -->
+        <circle cx="200" cy="260" r="24" fill="#ffffff" stroke="none" />
+        <!-- Node 4 -->
+        <circle cx="280" cy="200" r="24" fill="#ffffff" stroke="none" />
+        
+        <!-- Connecting Lines -->
+        <line x1="135" y1="185" x2="185" y2="155" />
+        <line x1="135" y1="215" x2="185" y2="245" />
+        <line x1="215" y1="155" x2="265" y2="185" />
+        <line x1="215" y1="245" x2="265" y2="215" />
+    </g>
+</svg>
