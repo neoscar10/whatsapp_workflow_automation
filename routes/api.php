@@ -154,6 +154,21 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
     });
 
+    // Company Verification
+    Route::prefix('company')->name('company.')->middleware('auth:sanctum')->group(function () {
+        Route::prefix('verification')->name('verification.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'index'])->name('index');
+            Route::post('/documents', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'uploadDocument'])->name('documents.store');
+            Route::get('/documents/{documentTypeId}/history', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'history'])->name('documents.history');
+        });
+
+        Route::prefix('profile')->name('profile.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\V1\Company\CompanyProfileController::class, 'show'])->name('show');
+            Route::post('/', [\App\Http\Controllers\Api\V1\Company\CompanyProfileController::class, 'update'])->name('update');
+            Route::delete('/logo', [\App\Http\Controllers\Api\V1\Company\CompanyProfileController::class, 'removeLogo'])->name('remove-logo');
+        });
+    });
+
     // Wallet Management
     Route::prefix('wallet')->name('wallet.')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\Wallet\WalletController::class, 'show'])->name('show');
