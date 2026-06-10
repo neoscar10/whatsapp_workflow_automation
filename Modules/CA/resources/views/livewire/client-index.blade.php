@@ -66,7 +66,6 @@
                             </td>
                             <td class="p-4">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                    <span class="material-symbols-outlined text-[14px]">domain</span>
                                     {{ $client->businessType->name ?? 'N/A' }}
                                 </span>
                             </td>

@@ -252,7 +252,6 @@ class ClientOnboardingWizard extends Component
 
         return \Modules\CA\Models\CAComplianceRequirement::with('compliance')
             ->whereIn('ca_compliance_id', $this->selectedCompliances)
-            ->where('requirement_type', 'document')
             ->get()
             ->groupBy('name')
             ->map(function ($items) {

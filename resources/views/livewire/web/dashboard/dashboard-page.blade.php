@@ -23,4 +23,6 @@
     @include('partials.panel.dashboard.campaigns-table', [
         'campaigns' => $campaigns,
     ])
+
+    <livewire:campaigns.campaign-form-modal />
 </div>

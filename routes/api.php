@@ -36,6 +36,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [\App\Http\Controllers\Api\V1\Dashboard\DashboardController::class, 'index'])->name('dashboard.index');
+
         Route::prefix('chats')->name('chats.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'store'])->name('store');

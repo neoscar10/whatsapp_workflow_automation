@@ -6,7 +6,7 @@
         </div>
 
         <div class="flex gap-2">
-            <button type="button" class="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]">
+            <button type="button" @click="$dispatch('open-campaign-modal')" class="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]">
                 <span class="material-symbols-outlined text-[20px]">add_circle</span>
                 New Campaign
             </button>

@@ -5,14 +5,14 @@
         <div class="absolute inset-0 bg-red-400/10 animate-pulse"></div>
     @endif
 
-    <div class="flex flex-col text-right justify-center relative z-10">
+    <a href="{{ route('wallet.index') }}" wire:navigate class="flex flex-col text-right justify-center relative z-10 hover:opacity-75 transition-opacity cursor-pointer">
         <span class="text-[9px] font-bold uppercase tracking-wider {{ $isLowBalance ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400' }} leading-none mb-1">
             {{ $isLowBalance ? 'Low Balance' : 'Wallet Balance' }}
         </span>
         <span class="text-sm font-black {{ $isLowBalance ? 'text-red-600 dark:text-red-500' : 'text-slate-900 dark:text-slate-100' }} leading-none flex items-center gap-1 justify-end">
             {{ $currency === 'USD' ? '$' : '₹' }}{{ number_format($balance, 2) }}
         </span>
-    </div>
+    </a>
 
     <div class="w-px h-6 {{ $isLowBalance ? 'bg-red-200 dark:bg-red-800/50' : 'bg-slate-200 dark:bg-slate-700' }} mx-1 relative z-10"></div>
 

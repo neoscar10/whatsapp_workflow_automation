@@ -668,7 +668,18 @@
                             $requiredNowDocs = $this->expectedDocuments['Required Now'] ?? collect();
                             $collectedCount = collect($this->collectedData)->filter(fn($val) => !empty($val))->count();
                             $totalCount = $requiredNowDocs->count();
-                            $progressPercent = $totalCount > 0 ? round(($collectedCount / $totalCount) * 100) : 100;
+                            $totalRequiredCount = $requiredNowDocs->where('is_required', true)->count();
+                            
+                            $collectedCount = collect($this->collectedData)->filter(fn($val) => !empty($val))->count();
+                            
+                            $collectedRequiredCount = 0;
+                            foreach ($requiredNowDocs as $doc) {
+                                if ($doc->is_required && !empty($this->collectedData[$doc->id])) {
+                                    $collectedRequiredCount++;
+                                }
+                            }
+                            
+                            $progressPercent = $totalRequiredCount > 0 ? round(($collectedRequiredCount / $totalRequiredCount) * 100) : 100;
                         @endphp
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -698,7 +709,12 @@
                                                     <div class="flex items-start justify-between gap-3 w-full">
                                                         <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
                                                             <div class="flex flex-col gap-1 flex-1 min-w-0 pr-2">
-                                                                <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
+                                                                <div class="flex items-center gap-2">
+                                                                    <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
+                                                                    @if(!$doc->is_required)
+                                                                        <span class="bg-slate-100 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-slate-700 dark:text-slate-400 shrink-0">Optional</span>
+                                                                    @endif
+                                                                </div>
                                                                 @if(!empty($doc->compliance_names))
                                                                     <span class="inline-block w-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] px-2 py-1 rounded-md border border-blue-100 dark:border-blue-800 font-medium whitespace-normal" title="{{ $doc->compliance_names }}">Required for: {{ $doc->compliance_names }}</span>
                                                                 @endif
@@ -736,6 +752,11 @@
                                                                     <span class="material-symbols-outlined animate-spin text-blue-600">refresh</span>
                                                                 </div>
                                                             </div>
+                                                        @elseif($doc->input_type === 'textarea')
+                                                            <textarea wire:model.lazy="collectedData.{{ $doc->id }}" 
+                                                                class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500 resize-none" 
+                                                                rows="3"
+                                                                placeholder="Enter details here..."></textarea>
                                                         @else
                                                             <input type="{{ $doc->input_type === 'date' ? 'date' : ($doc->input_type === 'number' ? 'number' : 'text') }}" 
                                                                 wire:model.lazy="collectedData.{{ $doc->id }}" 
@@ -758,7 +779,7 @@
                                     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
                                 </style>
                                 <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 border border-white dark:border-slate-700/50 shadow-xl sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto hide-scroll">
-                                    <h3 class="font-bold text-xl text-[#1c1b1b] dark:text-white mb-8">Collection Progress</h3>
+                                    <h3 class="font-bold text-lg xl:text-xl text-[#1c1b1b] dark:text-white mb-8 whitespace-nowrap">Collection Progress</h3>
                                     
                                     <!-- Circular Progress -->
                                     <div class="flex flex-col items-center pb-8 border-b border-[#c2c6d8]/30 dark:border-slate-700/50">
@@ -776,8 +797,8 @@
                                     </div>
 
                                     <div class="pt-6 flex justify-between items-center gap-2">
-                                        <span class="text-sm font-semibold text-[#424656] dark:text-slate-300 whitespace-nowrap">Documents Collected</span>
-                                        <span class="bg-[#f0eded] dark:bg-slate-700 text-[#1c1b1b] dark:text-white px-3 py-1 rounded-lg text-sm font-bold whitespace-nowrap">{{ $collectedCount }} / {{ $totalCount }}</span>
+                                        <span class="text-sm font-semibold text-[#424656] dark:text-slate-300 whitespace-nowrap">Required Docs Collected</span>
+                                        <span class="bg-[#f0eded] dark:bg-slate-700 text-[#1c1b1b] dark:text-white px-3 py-1 rounded-lg text-sm font-bold whitespace-nowrap">{{ $collectedRequiredCount }} / {{ $totalRequiredCount }}</span>
                                     </div>
 
                                     <!-- Extra spacer for bottom padding in scrollable container -->
@@ -793,7 +814,7 @@
                                 Back to Setup
                             </button>
                             
-                            <button type="button" wire:click="nextStep" class="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" {{ $collectedCount < $totalCount ? 'disabled' : '' }}>
+                            <button type="button" wire:click="nextStep" class="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" {{ $collectedRequiredCount < $totalRequiredCount ? 'disabled' : '' }}>
                                 Continue to Review
                                 <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
@@ -887,10 +908,20 @@
                                         @foreach($this->expectedDocuments['Required Now'] as $doc)
                                             <div class="flex items-center justify-between p-4 bg-[#f6f3f2]/50 dark:bg-slate-900/50 rounded-lg border border-transparent">
                                                 <div class="flex items-center gap-4">
-                                                    <span class="material-symbols-outlined text-green-600 dark:text-green-500">verified</span>
+                                                    <span class="material-symbols-outlined {{ !empty($this->collectedData[$doc->id]) ? 'text-green-600 dark:text-green-500' : 'text-slate-400 dark:text-slate-500' }}">
+                                                        {{ in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']) ? 'description' : 'text_fields' }}
+                                                    </span>
                                                     <span class="text-base font-medium text-[#1c1b1b] dark:text-white">{{ $doc->name }}</span>
                                                 </div>
-                                                <span class="text-green-600 dark:text-green-500 font-bold text-xs">Verified ✓</span>
+                                                @if(!empty($this->collectedData[$doc->id]))
+                                                    @if(in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']))
+                                                        <span class="text-green-600 dark:text-green-500 font-bold text-xs">File Uploaded ✓</span>
+                                                    @else
+                                                        <span class="text-green-600 dark:text-green-500 font-bold text-xs">Data Provided ✓</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-slate-400 dark:text-slate-500 font-bold text-[11px] uppercase tracking-wider">Not Provided (Optional)</span>
+                                                @endif
                                             </div>
                                         @endforeach
                                     </div>
