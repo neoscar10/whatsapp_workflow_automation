@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Service Configuration | CompliFlow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#5d60eb",
+                    "secondary-container": "#86f2e4",
+                    "surface": "#fcf9f8",
+                    "on-surface-variant": "#424656",
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "on-tertiary-container": "#faf6ff",
+                    "primary": "#0050cb",
+                    "tertiary": "#4345d1",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#001849",
+                    "surface-container-low": "#f6f3f2",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#dcd9d9",
+                    "secondary-fixed": "#89f5e7",
+                    "inverse-primary": "#b3c5ff",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-primary-container": "#f8f7ff",
+                    "on-secondary-fixed-variant": "#005049",
+                    "on-primary-fixed-variant": "#003fa4",
+                    "background": "#fcf9f8",
+                    "surface-variant": "#e5e2e1",
+                    "outline-variant": "#c2c6d8",
+                    "primary-fixed-dim": "#b3c5ff",
+                    "primary-container": "#0066ff",
+                    "tertiary-fixed": "#e1e0ff",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-error": "#ffffff",
+                    "outline": "#727687",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "on-primary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1c1b1b",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "on-surface": "#1c1b1b",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#006f66",
+                    "surface-container": "#f0eded",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#0054d6",
+                    "surface-container-high": "#eae7e7",
+                    "surface-bright": "#fcf9f8",
+                    "primary-fixed": "#dae1ff",
+                    "on-secondary-fixed": "#00201d",
+                    "on-tertiary-fixed": "#07006c",
+                    "secondary": "#006a61",
+                    "on-tertiary-fixed-variant": "#2f2ebe"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "base": "4px",
+                    "sm": "12px",
+                    "xl": "32px",
+                    "2xl": "48px",
+                    "xs": "8px",
+                    "gutter": "24px",
+                    "3xl": "64px",
+                    "lg": "24px",
+                    "margin-desktop": "40px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "mono-sm": ["Geist"],
+                    "label-md": ["Geist"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "mono-sm": ["12px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #FAFAFA;
+            color: #1c1b1b;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .step-active {
+            box-shadow: 0 0 20px rgba(0, 80, 203, 0.2);
+        }
+        .mesh-gradient {
+            background: radial-gradient(at 0% 0%, hsla(217,100%,94%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(180,100%,92%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(280,100%,95%,1) 0, transparent 50%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #E5E7EB;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-body-md flex flex-col mesh-gradient">
+<!-- Top Navigation Shell -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 dark:border-outline/20 shadow-sm sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-7xl mx-auto">
+<div class="font-display-lg text-headline-md font-bold tracking-tight text-primary">CompliFlow</div>
+<nav class="hidden md:flex gap-8 items-center">
+<span class="text-on-surface-variant font-medium">Verification</span>
+<span class="text-on-surface-variant font-medium">Entity Setup</span>
+<span class="text-primary font-semibold border-b-2 border-primary pb-1">Review</span>
+<span class="text-on-surface-variant font-medium">Save &amp; Exit</span>
+</nav>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Onboarding Stepper Header -->
+<section class="max-w-7xl mx-auto w-full px-margin-mobile md:px-margin-desktop py-8">
+<div class="relative">
+<div class="absolute top-1/2 left-0 w-full h-0.5 bg-surface-container-highest -translate-y-1/2 -z-10"></div>
+<div class="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 -z-10 transition-all duration-700" style="width: 50%;"></div>
+<div class="flex justify-between">
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center border-4 border-surface shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Verify Number</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center border-4 border-surface shadow-md">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Business Type</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest text-primary border-4 border-primary flex items-center justify-center shadow-lg step-active animate-pulse">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">Select Services</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface border-4 border-surface-container-highest flex items-center justify-center text-outline-variant">
+<span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+</div>
+<span class="font-label-md text-label-md text-outline">Upload Documents</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface border-4 border-surface-container-highest flex items-center justify-center text-outline-variant">
+<span class="material-symbols-outlined text-[18px]">celebration</span>
+</div>
+<span class="font-label-md text-label-md text-outline">Setup Complete</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Area -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-margin-mobile md:px-margin-desktop grid grid-cols-1 lg:grid-cols-12 gap-gutter pb-32">
+<!-- Left Column: Service Configuration -->
+<div class="lg:col-span-8">
+<div class="mb-xl">
+<span class="font-mono-sm text-mono-sm uppercase tracking-widest text-primary font-semibold">Service Configuration</span>
+<h1 class="font-display-lg text-headline-lg text-on-surface mt-2">What Services Do You Need?</h1>
+<div class="mt-lg glass rounded-xl p-2 flex items-center gap-3 shadow-sm border-outline-variant/30 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-outline ml-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md py-2" placeholder="Search for specific tax, registration or compliance services..." type="text"/>
+<button class="bg-surface-container text-on-surface px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+                        Filter
+                    </button>
+</div>
+</div>
+<!-- AI Recommendation Box -->
+<div class="mb-xl p-md rounded-2xl bg-gradient-to-r from-tertiary-container/10 to-primary-container/10 border border-primary/20 flex gap-4 items-center">
+<div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-headline-md text-headline-md text-on-surface-variant text-[16px]">AI Smart Recommendation</h3>
+<p class="font-body-md text-body-md text-outline">Based on your entity type as a <span class="text-primary font-semibold">Private Limited Company</span>, we recommend <span class="bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">TDS Filing</span> and <span class="bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">GST Returns</span>.</p>
+</div>
+<button class="text-primary font-semibold font-label-md hover:underline">Apply All</button>
+</div>
+<!-- Service Categories -->
+<div class="space-y-sm">
+<!-- Registrations -->
+<div class="glass rounded-2xl overflow-hidden border border-white">
+<div class="p-lg flex justify-between items-center cursor-pointer hover:bg-white/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined">how_to_reg</span>
+</div>
+<div>
+<h4 class="font-headline-md text-on-surface">Registrations</h4>
+<p class="font-label-md text-outline">GST, MSME, PF &amp; ESIC setups</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">expand_more</span>
+</div>
+<div class="px-lg pb-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Service Card -->
+<div class="p-md bg-white rounded-xl border-2 border-primary ring-2 ring-primary/10 shadow-md flex items-start justify-between relative group cursor-pointer">
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+</div>
+<div>
+<h5 class="font-body-md font-bold text-on-surface">GST Registration</h5>
+<p class="font-mono-sm text-mono-sm text-outline">Mandatory for turnover &gt; ₹40L</p>
+<div class="mt-2 inline-flex items-center gap-1 bg-secondary-container/30 text-secondary px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+                                        Popular
+                                    </div>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Service Card -->
+<div class="p-md bg-white rounded-xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-lg transition-all flex items-start justify-between group cursor-pointer">
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">corporate_fare</span>
+</div>
+<div>
+<h5 class="font-body-md font-bold text-on-surface">MSME / Udyam</h5>
+<p class="font-mono-sm text-mono-sm text-outline">Access govt subsidies</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-container group-hover:text-outline transition-colors">add_circle</span>
+</div>
+</div>
+</div>
+<!-- Tax Compliance -->
+<div class="glass rounded-2xl overflow-hidden border border-white">
+<div class="p-lg flex justify-between items-center cursor-pointer hover:bg-white/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div>
+<h4 class="font-headline-md text-on-surface">Tax Compliance</h4>
+<p class="font-label-md text-outline">Income Tax, TDS &amp; Tax Planning</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">expand_more</span>
+</div>
+</div>
+<!-- ROC & Corporate -->
+<div class="glass rounded-2xl overflow-hidden border border-white">
+<div class="p-lg flex justify-between items-center cursor-pointer hover:bg-white/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined">balance</span>
+</div>
+<div>
+<h4 class="font-headline-md text-on-surface">ROC &amp; Corporate</h4>
+<p class="font-label-md text-outline">Annual Filing &amp; Board Management</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline rotate-180">expand_more</span>
+</div>
+<div class="px-lg pb-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-md bg-white rounded-xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-lg transition-all flex items-start justify-between group cursor-pointer">
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+</div>
+<div>
+<h5 class="font-body-md font-bold text-on-surface">AOC-4 &amp; MGT-7</h5>
+<p class="font-mono-sm text-mono-sm text-outline">Mandatory Annual Filing</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-surface-container group-hover:text-outline transition-colors">add_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Dynamic Sidebar -->
+<aside class="lg:col-span-4 space-y-lg">
+<div class="glass rounded-2xl p-lg border border-white shadow-xl sticky top-32">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-on-surface">Workflow Preview</h3>
+<span class="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest animate-pulse">Live</span>
+</div>
+<div class="space-y-xl">
+<!-- Expected Documents -->
+<div>
+<div class="flex items-center gap-2 mb-md">
+<span class="material-symbols-outlined text-primary text-[20px]">description</span>
+<h4 class="font-label-md font-bold text-on-surface-variant uppercase tracking-wider">Expected Documents</h4>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-sm bg-surface-container/50 rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[14px]">file_present</span>
+</div>
+<span class="font-body-md text-on-surface-variant">PAN Card of Entity</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+</div>
+<div class="flex items-center justify-between p-sm bg-surface-container/50 rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[14px]">file_present</span>
+</div>
+<span class="font-body-md text-on-surface-variant">Address Proof</span>
+</div>
+<span class="material-symbols-outlined text-outline text-[16px]">pending</span>
+</div>
+</div>
+</div>
+<!-- Onboarding Complexity -->
+<div>
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-500 text-[20px]">speed</span>
+<h4 class="font-label-md font-bold text-on-surface-variant uppercase tracking-wider">Onboarding Complexity</h4>
+</div>
+<span class="text-orange-500 font-bold text-label-md">Moderate</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-orange-500 rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Automation Preview -->
+<div class="p-md rounded-xl bg-green-50/50 border border-green-100">
+<div class="flex items-center gap-2 mb-2">
+<img alt="WhatsApp Icon" class="w-4 h-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS2zT6ptwrj58Gtvw3i9WuQsm6yRfuGB88ZefbdkPuuwKDHagvYKbYkWiKeJfOZ2E497cE3YbwfbjDVkqSrLdteWz4rE1Wk8tK3t_k5UlwtpUmrSc0Pqqc-Qfbs2ZbOQHkbxGm2w9kZQWvJ0Y1aKFInClqqnJcn7iTWGuFj3jenQy4ba_D26oxP1hAxCrFfUff41KGYam9RmUtXqw_erPdPg6xBTkYn26x-Q9zDfhga3-VE7qXZWWDHsWr9cgdPezf1OHXuwt31Tk"/>
+<span class="font-label-md font-bold text-green-800 uppercase tracking-widest text-[10px]">WhatsApp Automation Enabled</span>
+</div>
+<p class="text-[12px] text-green-700 leading-tight">You'll receive real-time filing reminders and document status updates directly via WhatsApp.</p>
+</div>
+<!-- Estimated Setup Time -->
+<div class="flex items-center justify-between border-t border-outline-variant/30 pt-lg">
+<span class="font-body-md text-outline">Estimated Setup Time</span>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-primary">3-5 Days</span>
+<span class="text-[10px] text-outline uppercase tracking-widest font-bold">Standard Track</span>
+</div>
+</div>
+</div>
+</div>
+<div class="glass p-md rounded-2xl flex items-center gap-4 border border-white">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">support_agent</span>
+</div>
+<div>
+<h5 class="text-on-surface font-bold text-body-md">Need assistance?</h5>
+<p class="text-outline text-mono-sm">Talk to a compliance expert now</p>
+</div>
+</div>
+</aside>
+</main>
+<!-- Sticky Bottom Bar -->
+<footer class="fixed bottom-0 left-0 w-full glass border-t border-outline-variant/30 z-[60] py-4">
+<div class="max-w-7xl mx-auto w-full px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl border border-outline-variant/50 hover:bg-surface transition-colors font-semibold text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_back</span>
+                    Back
+                </button>
+<div class="hidden md:flex gap-2 items-center">
+<span class="text-outline font-label-md mr-2">Selected:</span>
+<div class="flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-label-md font-semibold">
+                        GST Registration
+                        <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-label-md font-semibold">
+                        TDS Filing
+                        <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span>
+</div>
+</div>
+</div>
+<button class="w-full md:w-auto px-10 py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3">
+                Continue to Document Setup
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Decorative background image context -->
+<div class="fixed inset-0 pointer-events-none -z-20 opacity-40">
+<img class="w-full h-full object-cover" data-alt="A sophisticated abstract architectural background for a fintech dashboard, featuring clean white surfaces, soft blue and purple lighting transitions, and subtle glass-like textures. The atmosphere is professional and serene, utilizing a light-mode aesthetic with expansive white spaces and high-key illumination that suggests a modern, high-tech financial platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY2m6BcMUrXRF1yRSQFnL7bX1l4aePOHxUm3FGVEAakGDl8tundY-xYTG_4SDV-lPDCNzmlabvxbc2ufhLr6PZ5RZh6cJNmklUwntbl-R9MB7Yzlx0WG-Kd9SQ9tjRQiNGXpxUGXe67ty-nQe6FYQ7RUh77_wy6TB2Owk0GlZe2nnVmPV6isKp_fs-0XGnk3A9ort6OlvGScPldMYswPNoWkZRLkhAD0_Amgu-7eVV98ebiDX1CXObKYmN-BPED4xyG3pHlsI6Odk"/>
+</div>
+<script>
+        // Micro-interactions and effects
+        document.querySelectorAll('.glass').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

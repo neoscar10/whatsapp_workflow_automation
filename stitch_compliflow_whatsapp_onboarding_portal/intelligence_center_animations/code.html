@@ -1,0 +1,59 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Radial Pulse Animation for Score
+    const radialScore = document.querySelector('.score-radial');
+    if (radialScore) {
+        radialScore.classList.add('animate-pulse');
+        radialScore.style.filter = 'drop-shadow(0 0 10px rgba(0, 102, 255, 0.4))';
+    }
+
+    // 2. Risk Radar Rotation / Glow
+    const riskRadar = document.querySelector('.risk-radar-svg');
+    if (riskRadar) {
+        riskRadar.style.transition = 'all 2s ease-in-out';
+        setInterval(() => {
+            riskRadar.style.transform = `scale(${1 + Math.random() * 0.05})`;
+            riskRadar.style.opacity = 0.8 + Math.random() * 0.2;
+        }, 3000);
+    }
+
+    // 3. Floating Action Dock Entrance
+    const actionDock = document.querySelector('.action-dock');
+    if (actionDock) {
+        actionDock.style.transform = 'translateY(100px)';
+        actionDock.style.opacity = '0';
+        setTimeout(() => {
+            actionDock.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+            actionDock.style.transform = 'translateY(0)';
+            actionDock.style.opacity = '1';
+        }, 500);
+    }
+
+    // 4. Copilot Message Shimmer
+    const copilotMsg = document.querySelector('.copilot-response');
+    if (copilotMsg) {
+        copilotMsg.classList.add('relative', 'overflow-hidden');
+        const shimmer = document.createElement('div');
+        shimmer.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]';
+        shimmer.style.animation = 'shimmer 2s infinite';
+        copilotMsg.appendChild(shimmer);
+    }
+
+    // 5. Heatmap "Live" Flicker
+    const heatMapCells = document.querySelectorAll('.heatmap-cell');
+    heatMapCells.forEach(cell => {
+        const baseOpacity = cell.style.opacity || 1;
+        setInterval(() => {
+            cell.style.opacity = baseOpacity * (0.9 + Math.random() * 0.1);
+        }, 2000 + Math.random() * 3000);
+    });
+});
+
+// Custom CSS for shimmer
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+    .heatmap-cell { transition: opacity 1s ease-in-out; }
+`;
+document.head.appendChild(style);

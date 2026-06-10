@@ -20,7 +20,7 @@
         x-init="$watch('sidebarOpen', value => localStorage.setItem('sidebarOpen', value))"
     >
         @include('partials.panel.sidebar', [
-            'activeNav' => $activeNav ?? 'dashboard',
+            'activeNav' => $activeNav ?? null,
             'storage' => $storage ?? null,
         ])
 

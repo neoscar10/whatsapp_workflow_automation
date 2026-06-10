@@ -4,6 +4,8 @@ namespace Modules\CA\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use Modules\CA\Console\Commands\RolloverCompliancesCommand;
 
 class CAServiceProvider extends ServiceProvider
 {
@@ -26,7 +28,7 @@ class CAServiceProvider extends ServiceProvider
         // Discover and register Livewire Components inside this module
         \App\Support\Livewire\LivewireModuleDiscovery::discover($this->moduleName, module_path($this->moduleName));
 
-        // Register CA Dashboard link in Sidebar Registry
+        // Register CA Links in Sidebar Registry
         \App\Support\Sidebar\SidebarRegistry::register([
             'title' => 'CA Dashboard',
             'route' => 'ca.dashboard',
@@ -36,6 +38,36 @@ class CAServiceProvider extends ServiceProvider
             'module' => 'ca',
             'order' => 10,
         ]);
+        
+        \App\Support\Sidebar\SidebarRegistry::register([
+            'title' => 'CA Clients',
+            'route' => 'ca.clients.index',
+            'icon' => 'group',
+            'activePattern' => 'ca.clients.*',
+            'group' => 'modules',
+            'module' => 'ca',
+            'order' => 11,
+        ]);
+
+        \App\Support\Sidebar\SidebarRegistry::register([
+            'title' => 'Compliance Calendar',
+            'route' => 'ca.calendar',
+            'icon' => 'calendar_month',
+            'activePattern' => 'ca.calendar',
+            'group' => 'modules',
+            'module' => 'ca',
+            'order' => 12,
+        ]);
+
+        \App\Support\Sidebar\SidebarRegistry::register([
+            'title' => 'CA Reporting',
+            'route' => 'ca.reporting',
+            'icon' => 'bar_chart',
+            'activePattern' => 'ca.reporting',
+            'group' => 'modules',
+            'module' => 'ca',
+            'order' => 13,
+        ]);
     }
 
     /**
@@ -44,6 +76,7 @@ class CAServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+        $this->app->register(EventServiceProvider::class);
     }
 
     /**
@@ -51,7 +84,9 @@ class CAServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            RolloverCompliancesCommand::class,
+        ]);
     }
 
     /**
@@ -59,10 +94,10 @@ class CAServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('ca:rollover-compliances')->dailyAt('00:00');
+        });
     }
 
     /**

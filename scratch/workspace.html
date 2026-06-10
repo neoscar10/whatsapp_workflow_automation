@@ -1,0 +1,268 @@
+<main class="md:ml-64 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar (Predicted Component) -->
+<header class="flex justify-between items-center px-[40px] w-full h-16 bg-[#f0eded]-lowest sticky top-0 z-50 border-b border-[#c2c6d8] shadow-sm">
+<div class="flex items-center gap-[24px] flex-1">
+<div class="relative w-full max-w-xl">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#424656]">search</span>
+<input class="w-full bg-[#f0eded]-low border-none rounded-full py-2 pl-10 pr-4 text-[14px] leading-[22px] focus:ring-2 focus:ring-[#0050cb]/20 placeholder:text-[#424656]/60" placeholder="Search invoices, PAN, notices..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-[16px]">
+<button class="px-4 py-1.5 rounded-full text-[#0050cb] border border-[#0050cb] font-bold text-[12px] leading-[16px] tracking-[0.02em] hover:bg-[#0050cb]/5 transition-colors">Upgrade</button>
+<div class="flex gap-2">
+<button class="p-2 text-[#424656] hover:bg-[#f0eded]-low rounded-full transition-colors cursor-pointer">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#424656] hover:bg-[#f0eded]-low rounded-full transition-colors cursor-pointer">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<div class="h-8 w-px bg-[#727687]-variant mx-1"></div>
+<div class="flex items-center gap-2 cursor-pointer active:opacity-80 transition-all">
+<div class="w-8 h-8 rounded-full bg-[#5d60eb] flex items-center justify-center text-on-tertiary font-bold text-xs">JD</div>
+</div>
+</div>
+</header>
+<!-- Three-Pane Workspace -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Internal Navigation -->
+<aside class="w-64 border-r border-[#c2c6d8] bg-[#f0eded]-lowest p-[16px] flex flex-col gap-6 overflow-y-auto scroll-hide">
+<section>
+<h3 class="px-2 text-[10px] font-bold text-[#424656]/60 uppercase tracking-widest mb-3">Categories</h3>
+<ul class="space-y-1">
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-[#f0eded]-low text-[#0050cb] font-bold transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+<span class="text-[14px] leading-[22px]">All Documents</span>
+</div>
+<span class="text-[11px] bg-[#0050cb]/10 px-1.5 py-0.5 rounded">124</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#424656] hover:bg-[#f0eded]-lowest transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-[#727687] group-hover:text-[#1c1b1b]">badge</span>
+<span class="text-[14px] leading-[22px]">KYC</span>
+</div>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#424656] hover:bg-[#f0eded]-lowest transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-[#727687] group-hover:text-[#1c1b1b]">account_balance</span>
+<span class="text-[14px] leading-[22px]">GST</span>
+</div>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#424656] hover:bg-[#f0eded]-lowest transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-[#727687] group-hover:text-[#1c1b1b]">corporate_fare</span>
+<span class="text-[14px] leading-[22px]">ROC</span>
+</div>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#424656] hover:bg-[#f0eded]-lowest transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-[#727687] group-hover:text-[#1c1b1b]">request_quote</span>
+<span class="text-[14px] leading-[22px]">Tax Filings</span>
+</div>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[#424656] hover:bg-[#f0eded]-lowest transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-[#727687] group-hover:text-[#1c1b1b]">finance</span>
+<span class="text-[14px] leading-[22px]">Financials</span>
+</div>
+</button>
+</li>
+</ul>
+</section>
+<section class="mt-auto p-4 rounded-xl bg-[#ba1a1a]/5 border border-[#ba1a1a]/10">
+<button class="w-full flex items-center gap-3 text-[#ba1a1a] font-bold mb-2">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="text-[14px] leading-[22px]">AI Flagged</span>
+</button>
+<p class="text-[12px] text-[#ba1a1a]/80 leading-relaxed">3 documents require immediate review due to OCR discrepancies.</p>
+</section>
+</aside>
+<!-- Center Pane: Document Vault Grid -->
+<section class="flex-1 overflow-y-auto p-[40px] scroll-hide">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h1 class="font-['Inter'] font-semibold text-[32px] leading-[40px] tracking-[-0.03em] text-[#1c1b1b] tracking-tight">Document Vault</h1>
+<p class="text-[#424656]">Last updated: Today, 10:45 AM</p>
+</div>
+<div class="flex items-center gap-2 bg-[#f0eded]-low p-1 rounded-lg">
+<button class="p-2 bg-white shadow-sm rounded-md text-[#0050cb]"><span class="material-symbols-outlined">grid_view</span></button>
+<button class="p-2 text-[#424656]"><span class="material-symbols-outlined">view_list</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-[24px]">
+<!-- GST Card -->
+<div class="group bg-white rounded-xl border border-[#c2c6d8]/50 p-4 document-card-hover transition-all cursor-pointer relative overflow-hidden">
+<div class="aspect-[4/3] bg-[#f0eded]-low rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="GST Document Preview" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="A macro close-up of a high-resolution professional document with blue and gray graphical headers and official seals. The image is set in a bright, modern studio lighting environment with soft shadows and a clean, high-fidelity corporate aesthetic that emphasizes security and authenticity. The document surface has a subtle paper texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9ow1ekT_o7XsS2eNnQp8Sa6BCPzsk7Bu-SH2w_zig-6Me4a1Kvfjn0THSY5NtsXO8HQGnM7U12LBRkeC6M201igsdXCI3mnTWHkmss0AkzJYlJ_gNxneNFhdpUFUU1ABJPkKXpHE-STJnaxv4w4-x5fp-GSJIt-4UQevyq9gwRfBFpvjhVFCCGi5FJ9bTDCXsnpQ6BeJ0xS2Y7mb5LLH-MIZJlKWY1RmX5EcY1y2uCtum7Zco_FlyWNbCAzjsy00zQIdXawDS3r0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent"></div>
+<span class="material-symbols-outlined absolute text-[48px] text-[#0050cb]/20">picture_as_pdf</span>
+</div>
+<div class="flex items-start justify-between mb-2">
+<div>
+<span class="px-2 py-0.5 rounded bg-[#86f2e4]/30 text-[#006f66] text-[10px] font-bold uppercase tracking-wider">GST Filing</span>
+<h4 class="font-bold text-[#1c1b1b] mt-1">GST_Return_April.pdf</h4>
+</div>
+<span class="material-symbols-outlined text-[#006a61]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#424656] border-t border-[#c2c6d8]/30 pt-3 mt-3">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span>AI Verified</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">smartphone</span>
+<span>via WhatsApp</span>
+</div>
+</div>
+</div>
+<!-- PAN Card -->
+<div class="group bg-white rounded-xl border border-[#c2c6d8]/50 p-4 document-card-hover transition-all cursor-pointer relative overflow-hidden">
+<div class="aspect-[4/3] bg-[#f0eded]-low rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="PAN Card Preview" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="A sharp, detailed photograph of a professional identification card lying on a minimalist light-gray surface. The lighting is soft and directional, highlighting the card's security features and micro-text. The composition is clean and modern, following a fintech aesthetic with a cool blue undertone and high-end photographic clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH1IYDvNXGIcPf03NIvm30RgLxn3PbPt4daFD7iQOwqFxEKsBCrMiRceUk9a813WLsm5MgssdmBwn7FQHsrSOYadN4mcWPZA7_6t5SPx3vPGFSULe72DlcCv36cRHd9u77Q15wxwYZv8VW9LECaUvl1hfo-udeG5EhUixzK8an4fZbbKI5ex2I9Rv_Q9AZmCqP-SMDFYqIxC1BjZH6DOo7bGaWjHk8jl0ywsnsPVAei8ujF72mLI-Yt8LV6tVIeAnB8ALevwGjgtE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent"></div>
+<span class="material-symbols-outlined absolute text-[48px] text-[#0050cb]/20">id_card</span>
+</div>
+<div class="flex items-start justify-between mb-2">
+<div>
+<span class="px-2 py-0.5 rounded bg-[#0050cb]-fixed text-[#001849]-variant text-[10px] font-bold uppercase tracking-wider">Identity</span>
+<h4 class="font-bold text-[#1c1b1b] mt-1">PAN_Card.png</h4>
+</div>
+<span class="material-symbols-outlined text-[#006a61]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#424656] border-t border-[#c2c6d8]/30 pt-3 mt-3">
+<div class="flex items-center gap-1 text-[#006a61] font-bold">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>Authentic</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">cloud_upload</span>
+<span>Web Portal</span>
+</div>
+</div>
+</div>
+<!-- COI Card -->
+<div class="group bg-white rounded-xl border border-[#c2c6d8]/50 p-4 document-card-hover transition-all cursor-pointer relative overflow-hidden">
+<div class="aspect-[4/3] bg-[#f0eded]-low rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+<img alt="COI Preview" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" data-alt="A prestigious certificate of incorporation with gold embossed seals and elegant typography, displayed on a pristine white background. The scene is bright and airy with cinematic soft-focus elements. The visual style communicates institutional trust and legal authority, rendered in a high-fidelity modern digital aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBsCcwOZxMRa0F4W_LuZwou-qgh6Vav3vvoNni250_6Ct0IpFWtqWjG4O_xX_Nh121Pe0PEmnHFnGZo1wh-c_HXKxTrR-uawlZNEMf_R08yzXFt1X42TEZc6NJcZG4dSirEOXEANEpTHlCCV6O1SIynFm-9TvL6LX_9T_ccNE1IbQUhmvIeB9qvjuLzQ3li27dAYGut49b0Kz1U4lR-Oo5zvU-pgMEXPXw3r3h05aJuEnd115iB4rwstjovfh9yyvW5zlSP7maHl0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent"></div>
+<span class="material-symbols-outlined absolute text-[48px] text-[#0050cb]/20">description</span>
+</div>
+<div class="flex items-start justify-between mb-2">
+<div>
+<span class="px-2 py-0.5 rounded bg-[#4345d1]-fixed text-on-tertiary-fixed-variant text-[10px] font-bold uppercase tracking-wider">Company ROC</span>
+<h4 class="font-bold text-[#1c1b1b] mt-1">COI_Final.pdf</h4>
+</div>
+<span class="material-symbols-outlined text-[#006a61]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-center justify-between text-[11px] text-[#424656] border-t border-[#c2c6d8]/30 pt-3 mt-3">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span>Encrypted</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">share</span>
+<span>Shared by CA</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Encryption Badge -->
+<div class="mt-12 flex items-center justify-center gap-3 text-[#424656]/40 bg-[#f0eded]-low/50 py-4 rounded-xl border border-dashed border-[#c2c6d8]">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="text-[12px] leading-[16px] tracking-[0.02em] font-medium tracking-widest uppercase">AES-256 Bit End-to-End Encrypted Storage</span>
+</div>
+</section>
+<!-- Right Sidebar: AI Intelligence & Insights -->
+<aside class="w-80 border-l border-[#c2c6d8] bg-[#f0eded]-low p-[16px] flex flex-col gap-[24px] overflow-y-auto scroll-hide">
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-bold text-[#1c1b1b]">Intelligence</h3>
+<span class="px-2 py-0.5 rounded-full bg-[#0050cb] text-on-primary text-[10px] font-bold">Live AI</span>
+</div>
+<div class="glass-effect p-4 rounded-2xl mb-4 border-[#0050cb]/20 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[12px] leading-[16px] tracking-[0.02em] text-[#424656]">Vault Health</span>
+<span class="text-[12px] leading-[16px] tracking-[0.02em] font-bold text-[#006a61]">100% Secure</span>
+</div>
+<div class="w-full h-2 bg-[#f0eded]-highest rounded-full overflow-hidden">
+<div class="h-full w-full bg-[#006a61] rounded-full shadow-[0_0_8px_rgba(0,170,150,0.4)]"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="p-3 rounded-xl bg-white border border-[#c2c6d8]/30 flex items-start gap-3">
+<div class="w-8 h-8 rounded-lg bg-[#f0eded] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#0050cb] text-[20px]">assignment_late</span>
+</div>
+<div>
+<p class="text-[14px] leading-[22px] font-bold text-[#1c1b1b]">Missing Docs</p>
+<p class="text-[12px] text-[#424656] mt-0.5">Bank Statement (Q3-2023)</p>
+<button class="mt-2 text-[#0050cb] text-[12px] font-bold flex items-center gap-1">Request now <span class="material-symbols-outlined text-[14px]">arrow_forward</span></button>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-[#ba1a1a]/5 border border-[#ba1a1a]/20 flex items-start gap-3">
+<div class="w-8 h-8 rounded-lg bg-[#ffdad6] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#ba1a1a] text-[20px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<p class="text-[14px] leading-[22px] font-bold text-[#ba1a1a]">AI Risk Alert</p>
+<p class="text-[12px] text-[#424656] mt-0.5 leading-snug">Address proof (Rent Agreement) expires in 28 days.</p>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h3 class="font-bold text-[#1c1b1b] mb-3">Compliance Timeline</h3>
+<div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-[#727687]-variant">
+<div class="relative">
+<div class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-[#006a61] border-2 border-white"></div>
+<p class="text-[11px] font-bold text-[#006a61] uppercase tracking-tighter">Completed</p>
+<p class="text-[14px] leading-[22px] font-medium text-[#1c1b1b]">PAN Card Verified</p>
+<p class="text-[11px] text-[#424656]">2 hours ago</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-[#0050cb] border-2 border-white shadow-[0_0_8px_rgba(0,102,255,0.4)]"></div>
+<p class="text-[11px] font-bold text-[#0050cb] uppercase tracking-tighter">In Progress</p>
+<p class="text-[14px] leading-[22px] font-medium text-[#1c1b1b]">OCR Scanning GST Return</p>
+<div class="w-24 h-1 bg-[#f0eded]-highest mt-2 rounded-full overflow-hidden">
+<div class="h-full w-2/3 bg-[#0050cb] animate-pulse"></div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-[#727687]-variant border-2 border-white"></div>
+<p class="text-[11px] font-bold text-[#424656]/60 uppercase tracking-tighter">Upcoming</p>
+<p class="text-[14px] leading-[22px] font-medium text-[#424656]">Annual Audit Filing</p>
+<p class="text-[11px] text-[#424656]">Starts June 1st</p>
+</div>
+</div>
+</section>
+</aside>
+</div>
+<!-- Bottom Dock: Floating Quick Actions -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-4 glass-effect shadow-2xl rounded-2xl z-[100] border border-white/50">
+<button class="flex items-center gap-2 px-4 py-2.5 bg-[#0050cb] text-on-primary rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">cloud_upload</span>
+<span>Upload</span>
+</button>
+<div class="h-8 w-px bg-[#727687]-variant mx-1"></div>
+<button class="flex items-center gap-2 px-4 py-2.5 hover:bg-[#f0eded]-high rounded-xl text-[#424656] font-bold transition-colors">
+<span class="material-symbols-outlined">request_quote</span>
+<span>Request Files</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 bg-[#4345d1] text-on-tertiary rounded-xl font-bold shadow-lg shadow-tertiary/20 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">document_scanner</span>
+<span>AI Scan</span>
+</button>
+</div>
+</main>

@@ -1,0 +1,135 @@
+                @if($step === 6)
+                    <!-- Step 6: Review & Verification -->
+                    <div class="animate-fade-in pb-32">
+                        <section class="mb-12">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h1 class="text-[32px] font-bold text-[#1c1b1b] dark:text-white mb-2 tracking-tight">Review & Verification</h1>
+                                    <p class="text-[16px] text-[#424656] dark:text-slate-400">Final audit before activating your automated compliance engine.</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="flex flex-col gap-8">
+                            <!-- Business Profile Summary -->
+                            <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-xl p-8 border border-[#c2c6d8]/50 dark:border-slate-700 shadow-sm">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                        <span class="material-symbols-outlined">domain</span>
+                                        <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Business Profile Summary</h2>
+                                    </div>
+                                    <button wire:click="$set('step', 1)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <p class="text-[#727687] dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Legal Name</p>
+                                        <p class="text-base text-[#1c1b1b] dark:text-white font-semibold">{{ $client_name }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[#727687] dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Contact Info</p>
+                                        <p class="text-base text-[#1c1b1b] dark:text-white font-semibold">{{ $country_code }} {{ $phone }} <br> <span class="text-sm font-normal">{{ $email }}</span></p>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <p class="text-[#727687] dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Registered Address</p>
+                                        <p class="text-base text-[#1c1b1b] dark:text-white font-semibold">{{ $address }}{{ $city ? ', '.$city : '' }}{{ $state ? ', '.$state : '' }}{{ $country ? ', '.$country : '' }}</p>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <p class="text-[#727687] dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Entity Type</p>
+                                        <p class="text-base text-[#1c1b1b] dark:text-white font-semibold">{{ \Modules\CA\Models\CABusinessType::find($business_type_id)?->name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selected Services -->
+                            <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-xl p-8 border border-[#c2c6d8]/50 dark:border-slate-700 shadow-sm">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                        <span class="material-symbols-outlined">layers</span>
+                                        <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Selected Services</h2>
+                                    </div>
+                                    <button wire:click="$set('step', 4)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    @foreach(\Modules\CA\Models\CACompliance::whereIn('id', $selectedCompliances)->get() as $compliance)
+                                        <div class="flex items-center justify-between p-4 border border-[#c2c6d8]/30 dark:border-slate-700/50 rounded-lg hover:border-blue-600/30 transition-all">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                    <span class="material-symbols-outlined">{{ $compliance->is_recurring ? 'event_repeat' : 'task' }}</span>
+                                                </div>
+                                                <div>
+                                                    <p class="text-base font-bold text-[#1c1b1b] dark:text-white">{{ $compliance->name }}</p>
+                                                    <p class="text-xs text-[#727687] dark:text-slate-400 line-clamp-1">{{ $compliance->description }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="hidden sm:flex items-center gap-4 shrink-0">
+                                                <span class="bg-teal-500/10 text-teal-700 dark:text-teal-400 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">Automation Enabled</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Document Verification -->
+                            @if(count($this->expectedDocuments['Required Now'] ?? collect()) > 0)
+                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-xl p-8 border border-[#c2c6d8]/50 dark:border-slate-700 shadow-sm">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                                            <span class="material-symbols-outlined">verified_user</span>
+                                            <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Document Verification</h2>
+                                        </div>
+                                        <button wire:click="$set('step', 5)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        @foreach($this->expectedDocuments['Required Now'] as $doc)
+                                            <div class="flex items-center justify-between p-4 bg-[#f6f3f2]/50 dark:bg-slate-900/50 rounded-lg border border-transparent">
+                                                <div class="flex items-center gap-4">
+                                                    <span class="material-symbols-outlined text-green-600 dark:text-green-500">verified</span>
+                                                    <span class="text-base font-medium text-[#1c1b1b] dark:text-white">{{ $doc->name }}</span>
+                                                </div>
+                                                <span class="text-green-600 dark:text-green-500 font-bold text-xs">Verified ✓</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Final Confirmation -->
+                            <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-xl p-8 border-t-4 border-t-blue-600 shadow-sm mt-4">
+                                <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white mb-6">Final Confirmation</h2>
+                                <div class="space-y-4">
+                                    <label class="flex items-start gap-4 cursor-pointer group">
+                                        <div class="pt-1 shrink-0">
+                                            <input wire:model.live="certified_accurate" class="w-5 h-5 rounded border-[#c2c6d8] dark:border-slate-600 text-blue-600 focus:ring-blue-600 dark:bg-slate-900" type="checkbox"/>
+                                        </div>
+                                        <span class="text-sm text-[#424656] dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">I hereby certify that all information and documents provided are accurate and reflect the current state of my business operations.</span>
+                                    </label>
+                                    <label class="flex items-start gap-4 cursor-pointer group">
+                                        <div class="pt-1 shrink-0">
+                                            <input wire:model.live="authorized_rep" class="w-5 h-5 rounded border-[#c2c6d8] dark:border-slate-600 text-blue-600 focus:ring-blue-600 dark:bg-slate-900" type="checkbox"/>
+                                        </div>
+                                        <span class="text-sm text-[#424656] dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">I authorize the platform to act as my compliance representative for the selected services.</span>
+                                    </label>
+                                    <label class="flex items-start gap-4 cursor-pointer group">
+                                        <div class="pt-1 shrink-0">
+                                            <input wire:model.live="agreed_to_terms" class="w-5 h-5 rounded border-[#c2c6d8] dark:border-slate-600 text-blue-600 focus:ring-blue-600 dark:bg-slate-900" type="checkbox"/>
+                                        </div>
+                                        <span class="text-sm text-[#424656] dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">I agree to the <a class="text-blue-600 dark:text-blue-400 font-bold underline" href="#">Standard Terms of Service</a> and Privacy Policy for enterprise-grade data handling.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sticky Footer Bottom Bar -->
+                        <div class="mt-12 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <button type="button" wire:click="$set('step', 5)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                Back to Documents
+                            </button>
+                            
+                            <button type="button" wire:click="submit" class="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" {{ (!$certified_accurate || !$authorized_rep || !$agreed_to_terms) ? 'disabled' : '' }}>
+                                Activate Compliance Setup
+                                <span class="material-symbols-outlined">rocket_launch</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif

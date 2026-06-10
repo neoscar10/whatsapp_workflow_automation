@@ -26,7 +26,8 @@
             </button>
         </div>
 
-        <nav class="flex flex-1 flex-col gap-1.5 overflow-y-auto no-scrollbar">
+        <div class="flex flex-1 flex-col overflow-y-auto no-scrollbar pb-4">
+            <nav class="flex flex-col gap-1.5 mb-auto">
             @php
                 $sidebarUser = Auth::user();
                 $sidebarIsLowBalance = false;
@@ -61,7 +62,7 @@
                             $isActive = request()->routeIs($item['activePattern']) || ($activeNav ?? '') === $item['activePattern'];
                         }
                     @endphp
-                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}"
+                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}" wire:navigate
                        class="group flex items-center justify-between rounded-xl px-4 py-3 transition-all {{ $isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[22px] {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">{{ $item['icon'] }}</span>
@@ -96,7 +97,7 @@
                             $isActive = request()->routeIs($item['activePattern']) || ($activeNav ?? '') === $item['activePattern'];
                         }
                     @endphp
-                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}"
+                    <a href="{{ Route::has($item['route']) ? route($item['route']) : $item['route'] }}" wire:navigate
                        class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ $isActive ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                         <span class="material-symbols-outlined text-[22px] {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">{{ $item['icon'] }}</span>
                         <p class="text-sm font-bold">{{ $item['title'] }}</p>
@@ -125,10 +126,10 @@
                 <span class="material-symbols-outlined text-[22px]">settings</span>
                 <p class="text-sm font-bold">Settings</p>
             </a>
-        </nav>
+            </nav>
 
-        {{-- Logout --}}
-        <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+            {{-- Logout --}}
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-4 mt-8 shrink-0">
             <div class="flex items-center gap-3 px-4 py-2 mb-2">
                 <div class="flex size-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                     <span class="material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-400">person</span>
@@ -145,6 +146,7 @@
                     <p class="text-sm font-bold">Log Out</p>
                 </button>
             </form>
+            </div>
         </div>
 
     </div>

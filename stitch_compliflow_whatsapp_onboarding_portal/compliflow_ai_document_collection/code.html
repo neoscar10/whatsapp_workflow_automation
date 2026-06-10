@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CompliFlow | AI Document Collection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .shimmer-scan {
+            background: linear-gradient(
+                90deg,
+                rgba(0, 84, 214, 0) 0%,
+                rgba(0, 84, 214, 0.1) 50%,
+                rgba(0, 84, 214, 0) 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to { background-position: -200% 0; }
+        }
+        .circular-progress {
+            background: radial-gradient(closest-side, white 79%, transparent 80% 100%),
+                        conic-gradient(#0054d6 72%, #e5e7eb 0);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#0054d6",
+                        "on-background": "#1c1b1b",
+                        "surface": "#fcf9f8",
+                        "inverse-surface": "#313030",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-secondary-fixed": "#00201d",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-secondary-container": "#006f66",
+                        "inverse-primary": "#b3c5ff",
+                        "primary": "#0050cb",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#001849",
+                        "tertiary": "#4345d1",
+                        "on-tertiary-fixed": "#07006c",
+                        "on-surface-variant": "#424656",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#003fa4",
+                        "secondary-container": "#86f2e4",
+                        "background": "#fcf9f8",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "tertiary-fixed": "#e1e0ff",
+                        "primary-container": "#0066ff",
+                        "on-secondary-fixed-variant": "#005049",
+                        "tertiary-container": "#5d60eb",
+                        "on-tertiary-container": "#faf6ff",
+                        "outline": "#727687",
+                        "surface-dim": "#dcd9d9",
+                        "on-primary-container": "#f8f7ff",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-variant": "#e5e2e1",
+                        "secondary-fixed": "#89f5e7",
+                        "primary-fixed": "#dae1ff",
+                        "secondary": "#006a61",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "outline-variant": "#c2c6d8",
+                        "on-surface": "#1c1b1b",
+                        "surface-container": "#f0eded"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "3xl": "64px",
+                        "xl": "32px",
+                        "sm": "12px",
+                        "margin-desktop": "40px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "mono-sm": ["Geist"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                        "mono-sm": ["12px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden min-h-screen">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop py-4 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-xl">
+<span class="font-headline-md text-headline-md font-bold text-primary">VeriFlow AI</span>
+<div class="hidden md:flex gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Workflows</a>
+<a class="font-body-md text-body-md text-primary border-b-2 border-primary pb-1" href="#">Documents</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-on-primary px-lg py-sm rounded-xl font-semibold hover:opacity-90 transition-all">Create New</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20">
+<img alt="Profile" data-alt="A professional headshot of a female executive in her 30s with a warm, confident expression. She is wearing a modern charcoal blazer against a soft-focus office background with warm amber lighting. The visual style is premium, clean, and representative of a high-end fintech brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiKgejAOybup1Z57fGVfMiOf4NlUPmIhsQTqavCUE-_NBT4sMxlqXYNmwuf4t9t8bTuWn0xVHB1Uvjk_a4c67nEP6Cf_PJZqXiJUb2tISRLqlcEHM7rd8qfrOu-3F_vOPRdPaNFryOiQFzFuR4HJRfjG2KQA0lJXxDRQ3uVe4hbM4IbTtTOE8yxmczmEJzNctABo39cyXu1_QkocJUbgU9IlwD5TL2UxVSU3XJ95_hi_KnEOwvTchvLdOsk-W4kzYvi8GNxuuizyM"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="max-w-7xl mx-auto px-margin-desktop pt-xl pb-32">
+<!-- Progress Stepper -->
+<div class="mb-2xl">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-xs">
+<span class="font-headline-md text-headline-md text-primary">Onboarding Status</span>
+<span class="bg-primary/10 text-primary px-sm py-1 rounded-full text-label-md font-label-md">72% Completed</span>
+</div>
+<span class="text-on-surface-variant text-body-md">Step 5 of 6</span>
+</div>
+<div class="relative h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="absolute h-full bg-primary transition-all duration-1000 ease-out" style="width: 72%;"></div>
+</div>
+<div class="flex justify-between mt-sm overflow-x-auto gap-md pb-2">
+<div class="flex items-center gap-xs text-secondary shrink-0">
+<span class="material-symbols-outlined text-body-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-md font-label-md">Verify Number</span>
+</div>
+<div class="flex items-center gap-xs text-secondary shrink-0">
+<span class="material-symbols-outlined text-body-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-md font-label-md">Business Type</span>
+</div>
+<div class="flex items-center gap-xs text-secondary shrink-0">
+<span class="material-symbols-outlined text-body-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-md font-label-md">Services</span>
+</div>
+<div class="flex items-center gap-xs text-secondary shrink-0">
+<span class="material-symbols-outlined text-body-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-label-md font-label-md">Business Information</span>
+</div>
+<div class="flex items-center gap-xs text-primary shrink-0 font-semibold">
+<span class="material-symbols-outlined text-body-lg">radio_button_checked</span>
+<span class="text-label-md font-label-md">Document Upload</span>
+</div>
+<div class="flex items-center gap-xs text-outline shrink-0 opacity-50">
+<span class="material-symbols-outlined text-body-lg">radio_button_unchecked</span>
+<span class="text-label-md font-label-md">Setup Complete</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left/Center: Document Upload Section -->
+<div class="lg:col-span-8 space-y-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Upload Your Business Documents</h1>
+<p class="text-body-lg text-on-surface-variant">We use automated AI to verify your identity and business legitimacy within seconds.</p>
+</div>
+<!-- KYC Documents Group -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary">person_check</span>
+                        KYC Documents
+                    </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- PAN Card -->
+<div class="glass-panel p-md rounded-xl flex flex-col gap-md transition-all hover:shadow-md">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-label-md font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Verification Success
+                                </span>
+</div>
+<div>
+<h3 class="font-semibold text-body-lg">PAN Card</h3>
+<div class="mt-xs bg-surface-container-low p-sm rounded-lg border border-outline-variant/30">
+<p class="text-label-md text-outline uppercase font-bold tracking-wider">Extracted Data</p>
+<p class="text-body-md font-medium text-on-surface mt-1">Name: Ananya Sharma</p>
+</div>
+</div>
+</div>
+<!-- Aadhaar Card -->
+<div class="glass-panel p-md rounded-xl flex flex-col gap-md transition-all hover:shadow-md">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">identity_platform</span>
+</div>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-label-md font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Verification Success
+                                </span>
+</div>
+<div>
+<h3 class="font-semibold text-body-lg">Aadhaar Card</h3>
+<p class="text-body-md text-on-surface-variant mt-1">Verified via WhatsApp Sync at 14:22</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Business Registration Group -->
+<section>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary">domain</span>
+                        Business Registration
+                    </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- COI -->
+<div class="glass-panel p-md rounded-xl flex flex-col gap-md transition-all relative overflow-hidden group">
+<div class="shimmer-scan absolute inset-0 z-0"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<span class="bg-primary-container text-on-primary-container px-sm py-1 rounded-full text-label-md font-label-md flex items-center gap-2">
+<span class="w-2 h-2 bg-on-primary-container rounded-full animate-pulse"></span>
+                                        AI Processing
+                                    </span>
+</div>
+<div>
+<h3 class="font-semibold text-body-lg">Certificate of Incorporation</h3>
+<p class="text-body-md text-on-surface-variant mt-1">Scanning for registration number...</p>
+</div>
+</div>
+</div>
+<!-- Address Proof -->
+<div class="border-2 border-dashed border-outline-variant p-md rounded-xl flex flex-col gap-md bg-surface-container-low/50 hover:bg-surface-container transition-all cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 bg-outline/10 text-outline rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">home_pin</span>
+</div>
+<span class="bg-surface-container-highest text-on-surface-variant px-sm py-1 rounded-full text-label-md font-label-md">
+                                    Pending Upload
+                                </span>
+</div>
+<div>
+<h3 class="font-semibold text-body-lg">Registered Address Proof</h3>
+<div class="mt-md flex flex-wrap gap-sm">
+<button class="bg-primary text-on-primary px-md py-xs rounded-lg text-label-md font-label-md flex items-center gap-xs hover:shadow-lg transition-all">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                                        Upload
+                                    </button>
+<button class="border border-outline-variant text-on-surface-variant px-md py-xs rounded-lg text-label-md font-label-md flex items-center gap-xs hover:bg-white transition-all">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+                                        WhatsApp Sync
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sidebar (Right): Onboarding Intelligence -->
+<aside class="lg:col-span-4 space-y-gutter">
+<div class="glass-panel rounded-2xl p-lg sticky top-32">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-lg">Onboarding Intelligence</h3>
+<!-- Readiness Score -->
+<div class="flex flex-col items-center py-xl border-b border-outline-variant/30">
+<div class="w-32 h-32 rounded-full circular-progress flex items-center justify-center relative shadow-inner">
+<span class="text-display-lg font-display-lg text-primary">72<span class="text-headline-md">%</span></span>
+</div>
+<p class="mt-md font-semibold text-body-lg">Readiness Score</p>
+<p class="text-body-md text-on-surface-variant text-center px-md mt-xs">Complete remaining documents to hit 100% and enable automated approval.</p>
+</div>
+<!-- AI Risk Assessment -->
+<div class="py-lg border-b border-outline-variant/30">
+<div class="flex items-center justify-between mb-md">
+<h4 class="font-semibold text-body-md flex items-center gap-xs uppercase tracking-tight text-outline">
+<span class="material-symbols-outlined text-[20px]">security</span>
+                                AI Risk Assessment
+                            </h4>
+<span class="text-secondary text-label-md font-bold uppercase">Clean</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-md">Identity Authenticity Verified</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-body-md">No PEP/Sanction Matches</span>
+</div>
+</div>
+</div>
+<!-- WhatsApp Activity -->
+<div class="pt-lg">
+<h4 class="font-semibold text-body-md flex items-center gap-xs uppercase tracking-tight text-outline mb-md">
+<span class="material-symbols-outlined text-[20px]">history</span>
+                            WhatsApp Activity
+                        </h4>
+<div class="relative pl-6 border-l-2 border-primary/20 space-y-lg">
+<div class="relative">
+<span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-surface"></span>
+<p class="text-label-md text-primary font-bold">14:22 Today</p>
+<p class="text-body-md text-on-surface">Aadhaar received via WhatsApp</p>
+</div>
+<div class="relative opacity-60">
+<span class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-outline-variant border-4 border-surface"></span>
+<p class="text-label-md text-on-surface-variant font-bold">14:15 Today</p>
+<p class="text-body-md text-on-surface">PAN verification initiated</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Sticky Bar -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-outline-variant/30 py-4 px-margin-desktop z-[60]">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<button class="flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors font-semibold">
+<span class="material-symbols-outlined">save</span>
+                Save &amp; Continue Later
+            </button>
+<div class="hidden md:flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-[10px] ring-2 ring-white">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<span class="font-semibold text-body-md text-on-surface">3 of 7 Documents Verified</span>
+</div>
+</div>
+<button class="bg-outline-variant/50 text-outline cursor-not-allowed px-xl py-md rounded-xl font-bold flex items-center gap-xs" disabled="" title="Please complete document upload to proceed">
+                Proceed to Verification
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Atmosphere Micro-interaction logic -->
+<script>
+        // Simple drag & drop visual feedback simulation
+        const dropZones = document.querySelectorAll('.border-dashed');
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('border-primary', 'bg-primary/5');
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('border-primary', 'bg-primary/5');
+            });
+        });
+
+        // Add a subtle parallax effect to the glass panels on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const panels = document.querySelectorAll('.glass-panel');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            panels.forEach(panel => {
+                const moveX = (x - 0.5) * 4;
+                const moveY = (y - 0.5) * 4;
+                panel.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+        });
+    </script>
+</body></html>

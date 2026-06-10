@@ -113,4 +113,9 @@ class Contact extends Model
         return ($this->status ?? 'active') !== 'blocked' 
             && !$this->do_not_message;
     }
+
+    public function caClients(): HasMany
+    {
+        return $this->hasMany(\Modules\CA\Models\CAClient::class);
+    }
 }

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Payment &amp; Activation | CompliFlow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Geist:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .step-complete {
+            background-color: #0050cb;
+            color: white;
+        }
+        .stepper-line {
+            height: 2px;
+            background: #e5e7eb;
+            flex-grow: 1;
+        }
+        .stepper-line-active {
+            background: #0050cb;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#86f2e4",
+                        "on-surface": "#1c1b1b",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container": "#f0eded",
+                        "on-tertiary-fixed": "#07006c",
+                        "tertiary-fixed": "#e1e0ff",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "surface": "#fcf9f8",
+                        "background": "#fcf9f8",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "on-secondary-fixed-variant": "#005049",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "on-primary-container": "#f8f7ff",
+                        "on-secondary-container": "#006f66",
+                        "on-surface-variant": "#424656",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-low": "#f6f3f2",
+                        "inverse-primary": "#b3c5ff",
+                        "primary-container": "#0066ff",
+                        "outline-variant": "#c2c6d8",
+                        "on-primary-fixed-variant": "#003fa4",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1c1b1b",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#0050cb",
+                        "inverse-on-surface": "#f3f0ef",
+                        "tertiary": "#4345d1",
+                        "surface-variant": "#e5e2e1",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#0054d6",
+                        "secondary-fixed": "#89f5e7",
+                        "outline": "#727687",
+                        "on-secondary-fixed": "#00201d",
+                        "secondary": "#006a61",
+                        "surface-container-highest": "#e5e2e1",
+                        "primary-fixed": "#dae1ff",
+                        "on-primary-fixed": "#001849",
+                        "tertiary-container": "#5d60eb",
+                        "surface-container-high": "#eae7e7",
+                        "error": "#ba1a1a",
+                        "inverse-surface": "#313030",
+                        "on-tertiary-container": "#faf6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "margin-desktop": "40px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "gutter": "24px",
+                        "3xl": "64px",
+                        "xs": "8px",
+                        "margin-mobile": "16px",
+                        "sm": "12px",
+                        "base": "4px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface">
+<!-- Header / Nav -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm h-16 flex items-center">
+<div class="flex justify-between items-center px-margin-desktop max-w-7xl mx-auto w-full">
+<div class="text-headline-md font-headline-md font-bold text-on-surface">CompliFlow</div>
+<div class="hidden md:flex gap-xl">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Features</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Services</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Pricing</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Onboarding</a>
+</div>
+<button class="bg-primary text-on-primary px-md py-xs rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
+                Support
+            </button>
+</div>
+</header>
+<main class="pt-24 pb-32 max-w-7xl mx-auto px-margin-desktop">
+<!-- Progress Tracker -->
+<div class="mb-xl">
+<div class="flex items-center justify-between gap-xs max-w-4xl mx-auto">
+<!-- Steps 1-6 Checked -->
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full step-complete flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'wght' 600">check</span>
+</div>
+</div>
+<div class="stepper-line stepper-line-active"></div>
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full step-complete flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'wght' 600">check</span>
+</div>
+</div>
+<div class="stepper-line stepper-line-active"></div>
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full step-complete flex items-center justify-center text-xs">6</div>
+</div>
+<div class="stepper-line stepper-line-active"></div>
+<!-- Step 7 Active -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full border-2 border-primary bg-primary-container text-on-primary-container flex items-center justify-center font-bold shadow-lg shadow-primary/20">7</div>
+<span class="text-label-md font-label-md text-primary mt-2">Activate Compliance</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+<!-- Left Main Content -->
+<div class="lg:col-span-8 space-y-xl">
+<!-- Engagement Summary -->
+<section class="glass-card rounded-xl p-lg shadow-sm">
+<div class="flex items-start justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md mb-2">Nexus Digital Solutions Pvt Ltd</h2>
+<div class="flex flex-wrap gap-sm">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-1 rounded-full text-label-md font-label-md">GST Registration</span>
+<span class="bg-secondary-container text-on-secondary-container px-sm py-1 rounded-full text-label-md font-label-md">ROC Filing</span>
+<span class="bg-primary-container text-on-primary-container px-sm py-1 rounded-full text-label-md font-label-md">Strategic Onboarding</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-on-surface-variant text-label-md font-label-md">Service Agreement #CF-2024-9921</p>
+</div>
+</div>
+</section>
+<!-- Pricing & Invoice -->
+<section class="bg-white border border-outline-variant/30 rounded-xl overflow-hidden shadow-lg">
+<div class="bg-primary-container text-on-primary-container px-lg py-md flex justify-between items-center">
+<span class="font-bold font-label-md text-label-md tracking-wider">PREMIUM COMPLIANCE INVOICE</span>
+<span class="font-label-md text-label-md">June 2024</span>
+</div>
+<div class="p-lg">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant/20 text-on-surface-variant">
+<th class="py-sm font-label-md text-label-md">SERVICE ITEM</th>
+<th class="py-sm font-label-md text-label-md text-right">FEE (INR)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr>
+<td class="py-md font-body-md text-body-md">GST Registration &amp; Cloud Config</td>
+<td class="py-md font-body-md text-body-md text-right">₹4,999</td>
+</tr>
+<tr>
+<td class="py-md font-body-md text-body-md">Annual Filing Setup (ROC)</td>
+<td class="py-md font-body-md text-body-md text-right">₹2,499</td>
+</tr>
+<tr>
+<td class="py-md font-body-md text-body-md">Professional ROC Liaison Fee</td>
+<td class="py-md font-body-md text-body-md text-right">₹12,000</td>
+</tr>
+<tr>
+<td class="py-md font-body-md text-body-md">Tax &amp; Regulatory Duties</td>
+<td class="py-md font-body-md text-body-md text-right">₹3,510</td>
+</tr>
+</tbody>
+</table>
+<div class="mt-lg pt-lg border-t-2 border-primary/20 flex justify-between items-center">
+<span class="font-headline-md text-headline-md text-on-surface-variant">Total Due</span>
+<span class="font-headline-lg text-headline-lg text-primary">₹23,008</span>
+</div>
+</div>
+</section>
+<!-- Payment Method Selection -->
+<section class="space-y-md">
+<h3 class="font-headline-md text-headline-md">Payment Method</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- UPI Active -->
+<div class="border-2 border-primary bg-primary/5 rounded-xl p-md flex flex-col items-center cursor-pointer transition-all">
+<div class="flex items-center gap-2 mb-md text-primary">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="font-bold font-label-md text-label-md">UPI (Recommended)</span>
+</div>
+<div class="w-32 h-32 bg-white rounded-lg p-2 border border-outline-variant/50 relative">
+<img alt="UPI QR Code" class="w-full h-full" data-alt="A clean and professional QR code centered on a crisp white background within a soft-blue bordered container. The lighting is bright and modern, suggesting a high-fidelity digital banking interface. The aesthetic is minimalist, focusing on clarity and ease of transaction, fitting for a premium financial technology platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1DPSLsi_iUpntRZIXdtvAONxfU1ZT6qdMMXE27h7pqjDz50Z9Jzz-d6QgBbO80p-ltOEe6CO_2N_7JC8FhVn47Ffo7iPq6gkUlrSIlt_QxH8cWbHWJOOV9bo9jkbGgnEur8HhtmwgJPBBw1x0q1sJGmrKIbgJkZUdw2lrK4Ymt1qsejyGiSFZzdql3EQH_kHGsxDY6NamHZl-0B9yHPblQ0FpSSDYWbI4m5v12it4Qjk4HT0SrBkRZph8nxEt1ukFEO12WTxq6yo"/>
+<div class="absolute inset-0 flex items-center justify-center bg-white/20 backdrop-blur-[1px]"></div>
+</div>
+<p class="mt-sm text-xs text-center text-on-surface-variant">Scan with GooglePay, PhonePe, or BHIM</p>
+</div>
+<!-- Credit Card -->
+<div class="border border-outline-variant/30 rounded-xl p-md flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-outline text-3xl mb-2">credit_card</span>
+<span class="font-medium font-label-md text-label-md">Credit / Debit Card</span>
+<p class="mt-xs text-xs text-on-surface-variant">All major cards supported</p>
+</div>
+<!-- Net Banking -->
+<div class="border border-outline-variant/30 rounded-xl p-md flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-outline text-3xl mb-2">account_balance</span>
+<span class="font-medium font-label-md text-label-md">Bank Transfer</span>
+<p class="mt-xs text-xs text-on-surface-variant">IMPS, NEFT, RTGS</p>
+</div>
+</div>
+</section>
+<!-- Engagement & E-Sign -->
+<section class="glass-card rounded-xl p-lg shadow-sm space-y-md">
+<h3 class="font-headline-md text-headline-md">Engagement &amp; E-Sign</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">By signing, you agree to the CompliFlow Professional Services Agreement and authorize immediate compliance initialization.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="border-2 border-dashed border-outline-variant/50 rounded-xl h-32 bg-white flex flex-col items-center justify-center cursor-crosshair">
+<span class="material-symbols-outlined text-outline mb-1">draw</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Draw Signature</span>
+</div>
+<div class="border border-outline-variant/30 rounded-xl p-lg bg-surface-container-low flex flex-col items-center justify-center gap-md cursor-pointer hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-primary text-4xl">fingerprint</span>
+<button class="bg-primary text-on-primary w-full py-2 rounded-lg font-label-md text-label-md">Use Aadhaar e-Sign</button>
+</div>
+</div>
+</section>
+<!-- Automation Preview -->
+<section class="bg-white border border-outline-variant/30 rounded-xl p-lg shadow-sm">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">bolt</span>
+<h3 class="font-headline-md text-headline-md">Automation Activation</h3>
+</div>
+<div class="space-y-md">
+<div class="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary mt-1">chat</span>
+<div>
+<p class="font-bold font-body-md text-body-md">WhatsApp Compliance Alerts</p>
+<p class="text-on-surface-variant text-label-md">Real-time status of filings and critical deadlines.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary mt-1">notifications_active</span>
+<div>
+<p class="font-bold font-body-md text-body-md">Filing Status Notifications</p>
+<p class="text-on-surface-variant text-label-md">Push and email alerts for all government acknowledgments.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Sidebar -->
+<aside class="lg:col-span-4 space-y-lg">
+<div class="glass-card rounded-xl p-lg sticky top-24 shadow-md border-primary/10">
+<div class="flex items-center gap-2 mb-md text-primary">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-bold text-label-md tracking-widest uppercase">Activation Intelligence</span>
+</div>
+<div class="mb-lg">
+<h4 class="font-headline-md text-headline-md mb-2">Ready to Activate</h4>
+<p class="text-on-surface-variant text-body-md">Your configuration for Nexus Digital Solutions is complete. Final validation passed.</p>
+</div>
+<div class="space-y-md mb-lg">
+<div class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary">verified_user</span>
+<span class="text-label-md font-medium">PCI-DSS Compliant</span>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary">lock</span>
+<span class="text-label-md font-medium">256-bit AES Encryption</span>
+</div>
+</div>
+<div class="pt-lg border-t border-outline-variant/30">
+<p class="font-bold text-label-md mb-md">NEXT STEPS</p>
+<div class="space-y-md">
+<div class="flex items-center gap-md">
+<div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</div>
+<span class="text-body-md">Payment Verification</span>
+</div>
+<div class="flex items-center gap-md opacity-50">
+<div class="w-6 h-6 rounded-full bg-outline-variant text-on-surface-variant flex items-center justify-center text-[10px] font-bold">2</div>
+<span class="text-body-md">Chartered Accountant Assignment</span>
+</div>
+<div class="flex items-center gap-md opacity-50">
+<div class="w-6 h-6 rounded-full bg-outline-variant text-on-surface-variant flex items-center justify-center text-[10px] font-bold">3</div>
+<span class="text-body-md">Onboarding Call (15m)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Support Badge -->
+<div class="bg-surface-container-highest p-md rounded-xl flex items-center gap-md">
+<div class="bg-white p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">support_agent</span>
+</div>
+<div>
+<p class="font-bold text-body-md">Need assistance?</p>
+<p class="text-label-md text-primary font-medium underline cursor-pointer">Chat with our Activation Expert</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Sticky Bar -->
+<footer class="fixed bottom-0 w-full bg-surface-container-lowest border-t border-outline-variant/20 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] z-50">
+<div class="max-w-7xl mx-auto px-margin-desktop py-md flex justify-between items-center">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-medium">
+<span class="material-symbols-outlined">arrow_back</span>
+<span>Back to Review</span>
+</button>
+<div class="flex items-center gap-xl">
+<div class="hidden md:block text-right">
+<p class="text-xs text-on-surface-variant font-label-md">Total Amount Due</p>
+<p class="font-bold text-primary">₹23,008.00</p>
+</div>
+<button class="bg-primary text-on-primary px-3xl py-md rounded-xl font-bold font-headline-md text-headline-md shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    Complete &amp; Activate
+                </button>
+</div>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for payment cards
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method-card').forEach(c => {
+                    c.classList.remove('border-primary', 'bg-primary/5');
+                    c.classList.add('border-outline-variant/30');
+                });
+                this.classList.remove('border-outline-variant/30');
+                this.classList.add('border-primary', 'bg-primary/5');
+            });
+        });
+    </script>
+</body></html>

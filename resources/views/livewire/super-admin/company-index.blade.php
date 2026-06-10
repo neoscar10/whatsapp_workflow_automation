@@ -5,6 +5,12 @@
             <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Companies Management</h2>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Platform companies directory overview.</p>
         </div>
+        <div>
+            <button wire:click="openCreateModal" class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                Create Company
+            </button>
+        </div>
     </div>
 
     @if (session()->has('success'))
@@ -272,6 +278,95 @@
                         Impersonate
                     </button>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Create Company Modal -->
+    @if($showCreateModal)
+        <style>
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .hide-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 shrink-0 rounded-t-2xl">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Create New Company</h3>
+                    <button wire:click="closeModals" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <form wire:submit.prevent="createCompany" class="flex flex-col overflow-y-auto hide-scrollbar">
+                    <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-1 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Company Name <span class="text-red-500">*</span></label>
+                                <input type="text" wire:model="createCompanyName" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="Acme Inc" required />
+                                @error('createCompanyName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Owner Email <span class="text-red-500">*</span></label>
+                                <input type="email" wire:model="createCompanyEmail" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="admin@acme.com" required />
+                                @error('createCompanyEmail') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Owner Password <span class="text-red-500">*</span></label>
+                                <input type="password" wire:model="createCompanyPassword" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="Min. 8 characters" required minlength="8" />
+                                @error('createCompanyPassword') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Country</label>
+                                <select wire:model="createCompanyCountry" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 pl-4 pr-10 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none" style="background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e'); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em;">
+                                    <option value="IN">India</option>
+                                    <option value="US">United States</option>
+                                    <option value="GB">United Kingdom</option>
+                                    <option value="AE">United Arab Emirates</option>
+                                    <option value="SG">Singapore</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                                @error('createCompanyCountry') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="border-t border-slate-100 dark:border-slate-800 pt-5">
+                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Assign Modules (Optional)</label>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Select additional parts of the application the company will have access to alongside the core platform.</p>
+                                <div class="space-y-2 max-h-48 overflow-y-auto pr-2 hide-scrollbar">
+                                    @forelse($availableModules as $module)
+                                        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+                                            <input type="checkbox" wire:model="selectedModules" value="{{ $module->id }}" class="size-4 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-primary" />
+                                            <div>
+                                                <div class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ $module->name }}</div>
+                                                @if($module->description)
+                                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{{ $module->description }}</div>
+                                                @endif
+                                            </div>
+                                        </label>
+                                    @empty
+                                        <div class="text-sm text-slate-500 dark:text-slate-400 italic py-2">No modules available.</div>
+                                    @endforelse
+                                </div>
+                                @error('selectedModules') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 shrink-0 rounded-b-2xl">
+                        <button type="button" wire:click="closeModals" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">domain_add</span>
+                            Create Company
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif

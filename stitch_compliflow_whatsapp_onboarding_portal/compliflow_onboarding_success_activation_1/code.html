@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CompliFlow | Onboarding Success</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "tertiary-container": "#5d60eb",
+                    "surface-variant": "#e5e2e1",
+                    "primary-container": "#0066ff",
+                    "tertiary": "#4345d1",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#b3c5ff",
+                    "surface-container": "#f0eded",
+                    "on-primary-fixed": "#001849",
+                    "error": "#ba1a1a",
+                    "background": "#fcf9f8",
+                    "surface-container-low": "#f6f3f2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#faf6ff",
+                    "on-secondary-fixed-variant": "#005049",
+                    "outline-variant": "#c2c6d8",
+                    "primary-fixed-dim": "#b3c5ff",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "primary-fixed": "#dae1ff",
+                    "on-tertiary-fixed": "#07006c",
+                    "surface-tint": "#0054d6",
+                    "surface-bright": "#fcf9f8",
+                    "secondary-fixed": "#89f5e7",
+                    "tertiary-fixed": "#e1e0ff",
+                    "on-surface-variant": "#424656",
+                    "surface-dim": "#dcd9d9",
+                    "primary": "#0050cb",
+                    "surface-container-highest": "#e5e2e1",
+                    "on-secondary-fixed": "#00201d",
+                    "on-background": "#1c1b1b",
+                    "on-primary-container": "#f8f7ff",
+                    "on-surface": "#1c1b1b",
+                    "outline": "#727687",
+                    "inverse-surface": "#313030",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "on-error": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "secondary": "#006a61",
+                    "on-secondary": "#ffffff",
+                    "secondary-container": "#86f2e4",
+                    "on-primary-fixed-variant": "#003fa4",
+                    "on-secondary-container": "#006f66",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-high": "#eae7e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "8px",
+                    "sm": "12px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "base": "4px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "3xl": "64px",
+                    "2xl": "48px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "label-md": ["Geist"],
+                    "display-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "mono-sm": ["Geist"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "mono-sm": ["12px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: scale(1.02) translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(0, 80, 203, 0.1);
+            background: rgba(255, 255, 255, 0.85);
+        }
+        
+        /* Shimmer Effect */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        /* Hero Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float {
+            animation: float 5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 3s ease-in-out infinite;
+        }
+
+        /* Particle Background */
+        @keyframes particle {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+        }
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle linear infinite;
+        }
+
+        /* Timeline Draw Effect */
+        @keyframes drawTimeline {
+            from { height: 0; }
+            to { height: calc(100% - 16px); }
+        }
+        .timeline-line-animated {
+            animation: drawTimeline 1.5s ease-out forwards;
+            animation-delay: 0.8s;
+        }
+
+        /* Entrance Animations */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .reveal-up.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-xl sticky top-0 z-50 border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center w-full px-margin-desktop py-md max-w-[1440px] mx-auto">
+<div class="flex items-center gap-xl">
+<span class="text-headline-md font-headline-md font-bold text-primary">CompliFlow</span>
+<div class="hidden md:flex items-center gap-md">
+<div class="h-1.5 w-48 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full transition-all duration-1000 ease-out"></div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">100% Complete</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="flex items-center gap-xs px-md py-xs bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+                    WhatsApp Support
+                </button>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-margin-desktop mt-xl grid grid-cols-12 gap-xl">
+<!-- Left & Center Content (8 Columns) -->
+<div class="col-span-12 lg:col-span-8 space-y-xl">
+<!-- Hero Success Section -->
+<section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-fixed to-surface p-xl border border-outline-variant/20 shadow-lg">
+<!-- Particle Layer -->
+<div class="absolute inset-0 z-0 opacity-40 overflow-hidden" id="hero-particles"></div>
+<div class="relative z-10 flex flex-col items-center text-center py-lg reveal-up">
+<div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center mb-lg shadow-lg shadow-primary/20 animate-float">
+<span class="material-symbols-outlined text-on-primary text-[40px]" style="font-variation-settings: 'wght' 600;">check</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-sm animate-pulse-soft">Your Compliance Workspace Is Ready</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-xl mx-auto">
+                        Welcome, ABC Technologies Pvt Ltd. We’ve automated your regulatory backbone. Your systems are live, secured, and under continuous monitoring.
+                    </p>
+</div>
+<!-- Animated Success Illustration -->
+<div class="flex flex-wrap justify-center gap-lg mt-xl relative z-10">
+<div class="glass-card p-md rounded-xl shadow-sm animate-float flex items-center gap-md relative overflow-hidden" style="animation-delay: 0s">
+<div class="absolute inset-0 shimmer-effect opacity-30 pointer-events-none"></div>
+<div class="p-xs bg-primary-container/20 text-primary rounded-lg">
+<span class="material-symbols-outlined">sync</span>
+</div>
+<div class="text-left">
+<p class="font-label-md text-label-md font-bold">WhatsApp Sync</p>
+<p class="text-[10px] text-on-surface-variant">Live Connection</p>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl shadow-sm animate-float flex items-center gap-md relative overflow-hidden" style="animation-delay: 0.5s">
+<div class="absolute inset-0 shimmer-effect opacity-30 pointer-events-none"></div>
+<div class="p-xs bg-secondary-container/20 text-secondary rounded-lg">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div class="text-left">
+<p class="font-label-md text-label-md font-bold">AI Processor</p>
+<p class="text-[10px] text-on-surface-variant">Optimizing Filing</p>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl shadow-sm animate-float flex items-center gap-md relative overflow-hidden" style="animation-delay: 1s">
+<div class="absolute inset-0 shimmer-effect opacity-30 pointer-events-none"></div>
+<div class="p-xs bg-tertiary-container/10 text-tertiary rounded-lg">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div class="text-left">
+<p class="font-label-md text-label-md font-bold">Vault Locked</p>
+<p class="text-[10px] text-on-surface-variant">256-bit AES</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Success Horizontal Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 flex flex-col items-center text-center gap-sm glass-card reveal-up">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<span class="font-label-md text-label-md text-on-surface leading-tight">Compliance Setup Activated</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 flex flex-col items-center text-center gap-sm glass-card reveal-up">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-md text-label-md text-on-surface leading-tight">WhatsApp Automation Enabled</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 flex flex-col items-center text-center gap-sm glass-card reveal-up">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="font-label-md text-label-md text-on-surface leading-tight">Document Vault Secured</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 flex flex-col items-center text-center gap-sm glass-card reveal-up">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span class="font-label-md text-label-md text-on-surface leading-tight">Dedicated Support Assigned</span>
+</div>
+</div>
+<!-- Onboarding Summary & Timeline -->
+<div class="grid md:grid-cols-2 gap-xl">
+<!-- Summary Card -->
+<div class="bg-surface-container-low p-lg rounded-2xl border border-outline-variant/30 glass-card reveal-up">
+<h3 class="font-headline-md text-headline-md mb-lg">Onboarding Summary</h3>
+<div class="space-y-md">
+<div class="flex justify-between items-center pb-md border-b border-outline-variant/10">
+<span class="text-on-surface-variant font-label-md text-label-md">Entity Name</span>
+<span class="font-bold text-on-surface">ABC Technologies Pvt Ltd</span>
+</div>
+<div class="flex justify-between items-center pb-md border-b border-outline-variant/10">
+<span class="text-on-surface-variant font-label-md text-label-md">Workspace ID</span>
+<span class="font-mono text-[13px] text-primary">CMP-2026-1048</span>
+</div>
+<div class="flex justify-between items-start pb-md border-b border-outline-variant/10">
+<span class="text-on-surface-variant font-label-md text-label-md">Active Services</span>
+<div class="flex flex-wrap gap-xs justify-end max-w-[200px]">
+<span class="px-xs py-[2px] bg-primary-fixed text-on-primary-fixed text-[10px] rounded font-bold">GST</span>
+<span class="px-xs py-[2px] bg-primary-fixed text-on-primary-fixed text-[10px] rounded font-bold">ROC</span>
+<span class="px-xs py-[2px] bg-primary-fixed text-on-primary-fixed text-[10px] rounded font-bold">TDS</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Card -->
+<div class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant/30 glass-card reveal-up">
+<h3 class="font-headline-md text-headline-md mb-lg">Next Steps</h3>
+<div class="relative space-y-lg">
+<!-- Vertical Line with drawing animation -->
+<div class="absolute left-[11px] top-2 bottom-2 w-[2px] bg-outline-variant/30 z-0 overflow-hidden">
+<div class="w-full bg-primary timeline-line-animated"></div>
+</div>
+<div class="flex gap-md relative">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center z-10 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-on-primary">check</span>
+</div>
+<div class="whatsapp-bubble-sim">
+<p class="font-label-md text-label-md font-bold text-on-surface">Onboarding Completed</p>
+<p class="text-body-md text-on-surface-variant text-[12px]">All business credentials verified.</p>
+</div>
+</div>
+<div class="flex gap-md relative">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center z-10 border-2 border-primary shadow-sm">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+<div class="whatsapp-bubble-sim">
+<p class="font-label-md text-label-md font-bold text-primary">Executive Assigned</p>
+<p class="text-body-md text-on-surface-variant text-[12px]">Your manager is preparing your deck.</p>
+</div>
+</div>
+<div class="flex gap-md relative opacity-60">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center z-10 border border-outline-variant/30">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface-variant">Filing Calendar Generated</p>
+<p class="text-body-md text-on-surface-variant text-[12px]">ETA: Within 2 hours</p>
+</div>
+</div>
+<div class="flex gap-md relative opacity-40">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center z-10 border border-outline-variant/30">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface-variant">Review Scheduled</p>
+<p class="text-body-md text-on-surface-variant text-[12px]">Planned for Monday, 10 AM.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Lower Detail Cards -->
+<div class="grid md:grid-cols-2 gap-xl">
+<!-- Dedicated Support -->
+<div class="bg-surface p-lg rounded-2xl border border-outline-variant/30 flex items-center gap-lg glass-card reveal-up">
+<img alt="Compliance Manager" class="w-20 h-20 rounded-full object-cover grayscale-[0.5] hover:grayscale-0 transition-all duration-500 shadow-md" data-alt="A professional portrait of a South Asian male compliance manager in a business casual white shirt, smiling warmly against a clean, modern office backdrop with soft natural lighting and minimalist decor. High-end professional fintech photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVYkHInxQVZtalydZM7aecVP6y4tQBNYwKXDiYPMHMJyZgvTzBuHw6OxOe6oUIea1OZhL1ZabQgScAt6K1JQAXWPgb2xi4HOAfmjahz733UxH4PKmP-eQzyjnjHMtyrpQenxfZY0pKKkIbaZc6DODRud_R5eMoey729sycvV4IIMCi8z23n0uMYatPdKEI9U2TQWIQlEUyUoBWUNq8b27sas5kQjA5bvbdN_8yojLsHGkIvkO7YubMxZLRPjudmT2cwMSqsXWJ-lg"/>
+<div class="flex-1">
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Dedicated Manager</p>
+<h4 class="font-headline-md text-headline-md text-on-surface">Rohan Singh</h4>
+<div class="flex gap-sm mt-md">
+<button class="p-xs bg-secondary-container text-on-secondary-container rounded-lg hover:scale-110 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+</button>
+<button class="p-xs bg-surface-container-highest text-on-surface rounded-lg hover:scale-110 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-[20px]">call</span>
+</button>
+<button class="p-xs bg-surface-container-highest text-on-surface rounded-lg hover:scale-110 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Document Vault Preview -->
+<div class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant/30 glass-card reveal-up">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-label-md text-label-md font-bold text-on-surface-variant">Document Vault Status</h3>
+<span class="material-symbols-outlined text-primary animate-pulse">verified</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center justify-between p-sm bg-surface rounded-lg border border-outline-variant/10 hover:border-primary/30 transition-colors">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">description</span>
+<span class="text-body-md font-medium">PAN Card</span>
+</div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">Verified</span>
+</div>
+<div class="flex items-center justify-between p-sm bg-surface rounded-lg border border-outline-variant/10 hover:border-primary/30 transition-colors">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">id_card</span>
+<span class="text-body-md font-medium">COI / ROC Documents</span>
+</div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">Verified</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right SideBar: Onboarding Intelligence -->
+<aside class="col-span-12 lg:col-span-4 h-full">
+<div class="flex flex-col gap-lg p-lg h-full sticky top-24 bg-surface-container-low rounded-2xl border border-outline-variant/20 shadow-xl overflow-hidden relative reveal-up">
+<!-- AI Intelligence Shimmer -->
+<div class="absolute inset-0 shimmer-effect opacity-10 pointer-events-none"></div>
+<div class="flex items-center gap-md relative z-10">
+<div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-on-primary">insights</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary">Workspace Status</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">AI-Driven Audit Complete</p>
+</div>
+</div>
+<div class="p-lg bg-surface-container-lowest rounded-xl border border-outline-variant/30 text-center relative z-10 shadow-sm">
+<p class="font-label-md text-label-md text-on-surface-variant mb-xs">Business Readiness Score</p>
+<div class="text-[48px] font-bold text-primary leading-none">98<span class="text-[20px]">%</span></div>
+<div class="w-full h-1.5 bg-surface-container mt-md rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[98%] transition-all duration-[2000ms] ease-out delay-500"></div>
+</div>
+</div>
+<!-- Upcoming Deadlines -->
+<div class="space-y-md relative z-10">
+<h3 class="font-label-md text-label-md font-bold uppercase text-on-surface-variant tracking-widest px-xs">Upcoming Deadlines</h3>
+<div class="space-y-sm">
+<div class="bg-surface p-sm rounded-xl border-l-4 border-error flex justify-between items-center hover:translate-x-1 transition-transform">
+<div>
+<p class="font-bold text-on-surface text-[13px]">GST Monthly Return</p>
+<p class="text-[11px] text-error font-medium">Due in 5 days</p>
+</div>
+<span class="material-symbols-outlined text-error/30 text-[20px] animate-pulse">warning</span>
+</div>
+<div class="bg-surface p-sm rounded-xl border-l-4 border-primary flex justify-between items-center hover:translate-x-1 transition-transform">
+<div>
+<p class="font-bold text-on-surface text-[13px]">ROC Annual Filing</p>
+<p class="text-[11px] text-on-surface-variant font-medium">28 Oct 2024</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">calendar_today</span>
+</div>
+</div>
+</div>
+<!-- AI Recommendations -->
+<div class="space-y-md relative z-10">
+<h3 class="font-label-md text-label-md font-bold uppercase text-on-surface-variant tracking-widest px-xs">AI Recommendations</h3>
+<div class="p-md bg-tertiary-container/5 border border-tertiary-container/20 rounded-xl relative overflow-hidden group">
+<div class="absolute inset-0 shimmer-effect opacity-20 pointer-events-none"></div>
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-tertiary text-[20px] group-hover:rotate-12 transition-transform">auto_awesome</span>
+<div class="space-y-sm">
+<p class="text-body-md text-on-surface text-[13px] leading-snug">
+                                    Based on your current transaction volume, activating **Payroll Automation** could save 12 hours/month.
+                                </p>
+<button class="text-primary font-bold text-[12px] hover:underline flex items-center gap-1">Explore Payroll Add-on <span class="material-symbols-outlined text-[14px]">arrow_forward</span></button>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-auto w-full py-md bg-surface-container-highest text-on-surface-variant rounded-lg font-bold text-label-md hover:bg-surface-variant transition-all hover:shadow-md relative z-10">
+                    View Full Intelligence Report
+                </button>
+</div>
+</aside>
+</main>
+<!-- Footer / Sticky Bottom Bar -->
+<footer class="fixed bottom-0 w-full z-40 border-t border-outline-variant/50 bg-surface/95 backdrop-blur-md shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+<div class="flex justify-between items-center px-margin-desktop py-md w-full max-w-[1440px] mx-auto">
+<div class="hidden md:block">
+<p class="text-body-md font-body-md text-on-surface-variant">© 2024 CompliFlow Financial Systems. Enterprise-Grade Security.</p>
+</div>
+<div class="flex gap-md w-full md:w-auto">
+<button class="flex-1 md:flex-none text-on-surface-variant hover:text-on-surface px-xl py-md rounded-full font-bold transition-all border border-outline-variant/30 flex items-center justify-center gap-sm hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+                    Open WhatsApp Workspace
+                </button>
+<button class="flex-1 md:flex-none bg-primary text-on-primary px-xl py-md rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 duration-150 transition-all flex items-center justify-center gap-sm">
+                    Go to Compliance Dashboard
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Particles Effect Logic
+        const particleContainer = document.getElementById('hero-particles');
+        if (particleContainer) {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 4 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // WhatsApp Bubble Slide-in logic (Simple Simulation)
+        const bubbles = document.querySelectorAll('.whatsapp-bubble-sim');
+        bubbles.forEach((bubble, i) => {
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'translateX(-10px)';
+            bubble.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+            bubble.style.transitionDelay = `${(i + 1) * 200 + 800}ms`;
+            
+            setTimeout(() => {
+                bubble.style.opacity = '1';
+                bubble.style.transform = 'translateX(0)';
+            }, 10);
+        });
+
+        // Staggered Entrance Animation Observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Small delay based on index for staggered feel if they all appear at once
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, 50); 
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const revealElements = document.querySelectorAll('.reveal-up');
+        revealElements.forEach((el, i) => {
+            // Apply a slight manual stagger based on document order if they are likely to be in viewport together
+            el.style.transitionDelay = `${i * 100}ms`;
+            observer.observe(el);
+        });
+    });
+</script>
+</body></html>

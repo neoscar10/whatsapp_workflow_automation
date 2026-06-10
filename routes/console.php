@@ -16,3 +16,7 @@ Schedule::command('campaigns:dispatch-scheduled')
 Schedule::command('payments:reconcile')
     ->hourly()
     ->withoutOverlapping();
+
+Schedule::job(new \Modules\CA\Jobs\MonitorComplianceDeadlines)
+    ->daily()
+    ->withoutOverlapping();

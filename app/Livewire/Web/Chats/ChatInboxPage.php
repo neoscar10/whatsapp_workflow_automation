@@ -61,7 +61,10 @@ class ChatInboxPage extends Component
 
     protected $queryString = [
         'selectedConversationId' => ['except' => null, 'as' => 'conversation'],
+        'initiateContactId' => ['except' => null, 'as' => 'contact'],
     ];
+
+    public ?int $initiateContactId = null;
 
     public function mount(ChatInboxService $inboxService)
     {
@@ -72,6 +75,25 @@ class ChatInboxPage extends Component
         $channels = app(\App\Services\Chat\ChatChannelAvailabilityService::class)->getAvailableWhatsAppNumbersForUser($user);
         if ($channels->isNotEmpty() && !$this->selectedPhoneNumberId) {
             $this->selectedPhoneNumberId = $channels->first()->id;
+        }
+
+        if ($this->initiateContactId) {
+            $conversation = \App\Models\Chat\Conversation::where('contact_id', $this->initiateContactId)
+                ->where('company_id', $user->company_id)
+                ->latest()
+                ->first();
+
+            if ($conversation) {
+                $this->selectedConversationId = $conversation->id;
+            } else if ($this->selectedPhoneNumberId) {
+                try {
+                    $actionService = app(\App\Services\Chat\ChatConversationActionService::class);
+                    $conversation = $actionService->startConversation($user, $this->initiateContactId, $this->selectedPhoneNumberId);
+                    $this->selectedConversationId = $conversation->id;
+                } catch (\Exception $e) {
+                    $this->errorMessage = 'Failed to initiate conversation: ' . $e->getMessage();
+                }
+            }
         }
 
         if ($this->selectedConversationId) {

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Business Identification | CompliFlow</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e5e2e1",
+                    "primary-fixed-dim": "#b3c5ff",
+                    "on-secondary-fixed": "#00201d",
+                    "surface-tint": "#0054d6",
+                    "primary-fixed": "#dae1ff",
+                    "on-primary-container": "#f8f7ff",
+                    "on-background": "#1c1b1b",
+                    "inverse-surface": "#313030",
+                    "on-tertiary-container": "#faf6ff",
+                    "on-primary-fixed-variant": "#003fa4",
+                    "tertiary": "#4345d1",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b3c5ff",
+                    "surface-dim": "#dcd9d9",
+                    "tertiary-container": "#5d60eb",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "on-tertiary-fixed": "#07006c",
+                    "surface-container-high": "#eae7e7",
+                    "background": "#fcf9f8",
+                    "on-tertiary": "#ffffff",
+                    "surface-container": "#f0eded",
+                    "surface-container-low": "#f6f3f2",
+                    "on-primary-fixed": "#001849",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "on-primary": "#ffffff",
+                    "secondary-container": "#86f2e4",
+                    "inverse-on-surface": "#f3f0ef",
+                    "surface": "#fcf9f8",
+                    "tertiary-fixed": "#e1e0ff",
+                    "secondary-fixed-dim": "#6bd8cb",
+                    "on-surface-variant": "#424656",
+                    "on-surface": "#1c1b1b",
+                    "surface-bright": "#fcf9f8",
+                    "secondary-fixed": "#89f5e7",
+                    "on-error-container": "#93000a",
+                    "outline": "#727687",
+                    "on-secondary-fixed-variant": "#005049",
+                    "primary": "#0050cb",
+                    "outline-variant": "#c2c6d8",
+                    "on-secondary-container": "#006f66",
+                    "surface-variant": "#e5e2e1",
+                    "secondary": "#006a61",
+                    "primary-container": "#0066ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "xl": "32px",
+                    "3xl": "64px",
+                    "2xl": "48px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "label-md": ["Geist"],
+                    "headline-lg": ["Inter"],
+                    "mono-sm": ["Geist"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "mono-sm": ["12px", {"lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .step-glow {
+            box-shadow: 0 0 15px rgba(0, 84, 214, 0.3);
+        }
+        .business-card-active {
+            border: 2px solid #0050cb !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%) !important;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 80, 203, 0.15);
+        }
+        .transition-all-custom {
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        .animate-float {
+            animation: float 2.5s ease-in-out infinite;
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        .stagger-6 { animation-delay: 0.6s; }
+        .stagger-7 { animation-delay: 0.7s; }
+        .stagger-8 { animation-delay: 0.8s; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<img alt="CompliFlow Logo" class="h-8 md:h-10" src="https://lh3.googleusercontent.com/aida/ADBb0uj2LSUvZZPwMa2XHQv8NMrmjaDiVp21YIpeJyJQ3IaBEjdWkxt_DdGtau0nNfpSKwFMsETO8xh9JYtbk9_xulgPTHBsJK4KKDqzFZ5J6Cnl7Loo-Z0qcvtq54YBcOYQv_06LEARulS9RyOyYJlMaaQ-59ZKoI-RlWeDBAX_bi6f686Ku77xpQOCfBAQQ2RY4EBgYknEcSa_R7f7bPsMExoQBHDWS-Ur4gz8zS4bMSf5C5pe5UgTQxp_oFs"/>
+</div>
+<nav class="hidden md:flex gap-8">
+<span class="text-on-surface-variant font-medium opacity-60">Verification</span>
+<span class="text-primary font-semibold border-b-2 border-primary pb-1">Entity Setup</span>
+<span class="text-on-surface-variant font-medium">Tax Profile</span>
+<span class="text-on-surface-variant font-medium">Review</span>
+</nav>
+<button class="text-on-surface-variant hover:text-primary transition-colors font-medium">Save &amp; Exit</button>
+</div>
+</header>
+<main class="flex-grow w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-12 pb-32">
+<!-- Progress Stepper -->
+<div class="flex items-center justify-center mb-16 max-w-2xl mx-auto">
+<div class="flex items-center w-full">
+<div class="relative flex flex-col items-center flex-1">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<span class="absolute -bottom-6 font-label-md text-label-md text-secondary">Verified</span>
+</div>
+<div class="flex-auto border-t-2 border-secondary h-0"></div>
+<div class="relative flex flex-col items-center flex-1">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center z-10 step-glow border-4 border-primary-fixed">
+<span class="material-symbols-outlined text-[22px]" data-weight="fill">corporate_fare</span>
+</div>
+<span class="absolute -bottom-6 font-label-md text-label-md text-primary font-bold">Business Type</span>
+</div>
+<div class="flex-auto border-t-2 border-outline-variant h-0"></div>
+<div class="relative flex flex-col items-center flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[20px]">settings_accessibility</span>
+</div>
+</div>
+<div class="flex-auto border-t-2 border-outline-variant h-0"></div>
+<div class="relative flex flex-col items-center flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[20px]">description</span>
+</div>
+</div>
+<div class="flex-auto border-t-2 border-outline-variant h-0"></div>
+<div class="relative flex flex-col items-center flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-[20px]">task_alt</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+<div class="lg:col-span-8">
+<div class="mb-10">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-3">Tell Us About Your Business</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                    We’ll personalize your onboarding, document checklist, and compliance workflows based on your business structure.
+                </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Business Cards with Entrance Animations -->
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-1" id="card-individual" onclick="selectBusiness('individual')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">person</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Individual</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Sole professionals, freelancers, and independent contractors.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-2" id="card-proprietorship" onclick="selectBusiness('proprietorship')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">store</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Proprietorship</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Single-owner businesses with separate trade registrations.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-3" id="card-partnership" onclick="selectBusiness('partnership')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">groups</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Partnership Firm</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Two or more individuals sharing profits and liabilities.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-4" id="card-llp" onclick="selectBusiness('llp')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">account_balance_wallet</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">LLP</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Limited Liability Partnership for professional services.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-5" id="card-private" onclick="selectBusiness('private')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">business</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Private Limited</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">A legal entity held by private stakeholders with limited liability.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-6" id="card-ngo" onclick="selectBusiness('ngo')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">volunteer_activism</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">NGO/Trust</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Non-profit organizations, trusts, and social societies.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-7" id="card-startup" onclick="selectBusiness('startup')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">rocket_launch</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Startup/Tech</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Fast-growing tech companies looking for scale and funding.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+<button class="business-card group text-left p-6 rounded-xl border border-outline-variant bg-surface-container-lowest transition-all-custom hover:shadow-lg hover:border-primary/40 relative animate-fade-up stagger-8" id="card-other" onclick="selectBusiness('other')">
+<div class="mb-4 w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-weight="fill">more_horiz</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">Other</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Entities not listed above like foreign branches or gov bodies.</p>
+<div class="check-mark absolute top-4 right-4 hidden text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</button>
+</div>
+<div class="mt-8 flex items-center gap-3 p-4 bg-primary-container/5 rounded-lg border border-primary-container/20 max-w-sm cursor-pointer hover:bg-primary-container/10 transition-colors group">
+<span class="material-symbols-outlined text-primary text-[20px] animate-float" data-weight="fill">auto_awesome</span>
+<span class="font-body-md text-primary font-medium">Not sure? Ask AI Assistant</span>
+</div>
+</div>
+<!-- Right Sidebar -->
+<aside class="hidden lg:block lg:col-span-4 h-fit sticky top-28">
+<div class="glass-panel rounded-2xl p-8 flex flex-col gap-8 transition-all-custom min-h-[480px]">
+<div class="py-24 text-center transition-all-custom" id="sidebar-placeholder">
+<div class="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-6 text-outline">
+<span class="material-symbols-outlined text-[32px]">info</span>
+</div>
+<h4 class="font-headline-md text-on-surface mb-2">Structure Details</h4>
+<p class="font-body-md text-on-surface-variant px-4">Select a business type to see tailored requirements and timelines.</p>
+</div>
+<div class="hidden animate-in fade-in slide-in-from-right-4 duration-500" id="sidebar-content">
+<h4 class="font-headline-md text-primary mb-6" id="sidebar-title">Structure Information</h4>
+<div class="space-y-6">
+<section>
+<h5 class="font-label-md text-label-md uppercase tracking-wider text-outline mb-3">Likely Services</h5>
+<ul class="space-y-2" id="services-list">
+<!-- JS injected -->
+</ul>
+</section>
+<section>
+<h5 class="font-label-md text-label-md uppercase tracking-wider text-outline mb-3">Documents Required</h5>
+<div class="flex flex-wrap gap-2" id="docs-list">
+<!-- JS injected -->
+</div>
+</section>
+<section class="p-4 bg-primary-container/10 rounded-xl border border-primary-container/20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<div>
+<p class="font-label-md text-label-md text-primary">Estimated Onboarding Time</p>
+<p class="font-headline-md text-headline-md text-on-primary-container" id="setup-time">--</p>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<div class="mt-6 p-6 rounded-2xl bg-secondary-container/5 border border-secondary-container/10">
+<p class="font-body-md text-on-surface-variant italic">"CompliFlow helped us set up our Private Limited entity in just 8 days. Highly recommended for startups."</p>
+<div class="mt-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed font-bold text-xs">RK</div>
+<span class="font-label-md text-label-md text-on-surface">Rahul K, Founder @ TechFlow</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<footer class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-2xl border-t border-outline-variant/30 z-[60] shadow-[0_-4px_20px_0_rgba(0,0,0,0.05)]">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-4 flex justify-between items-center">
+<button class="px-6 py-3 rounded-xl font-label-md text-on-surface-variant hover:bg-surface-container-high transition-all-custom flex items-center gap-2">
+<span class="material-symbols-outlined">arrow_back</span>
+            Back
+        </button>
+<div class="flex gap-4">
+<button class="px-10 py-3 rounded-xl bg-outline/40 text-surface-container-lowest font-semibold transition-all-custom opacity-50 cursor-not-allowed" disabled="" id="continue-btn">
+                Continue
+            </button>
+</div>
+</div>
+</footer>
+<script>
+    const businessData = {
+        individual: {
+            title: "Individual / Freelancer",
+            services: ["Income Tax Filing", "GST Registration", "Professional Tax Compliance"],
+            docs: ["PAN Card", "Aadhaar Card", "Bank Statement"],
+            time: "2-3 Minutes"
+        },
+        private: {
+            title: "Private Limited Company",
+            services: ["GST Registration", "ROC Filing", "TDS Compliance", "Audit Preparation"],
+            docs: ["COI (Certificate of Incorporation)", "Company PAN", "Director KYC", "MOA/AOA"],
+            time: "10-15 Minutes"
+        },
+        proprietorship: {
+            title: "Sole Proprietorship",
+            services: ["Trade License", "GST Setup", "MSME Registration"],
+            docs: ["Shop Act License", "Utility Bill", "Owner PAN"],
+            time: "5-7 Minutes"
+        },
+        partnership: {
+            title: "Partnership Firm",
+            services: ["Partnership Deed", "Tax Registration", "Compliance Review"],
+            docs: ["Partnership Deed", "Firm PAN", "Partner ID Proofs"],
+            time: "8-12 Minutes"
+        },
+        llp: {
+            title: "Limited Liability Partnership",
+            services: ["LLP Incorporation", "RoC Compliance", "Agreements Management"],
+            docs: ["LLP Agreement", "Partner DPIN", "Office Address Proof"],
+            time: "10-14 Minutes"
+        },
+        ngo: {
+            title: "NGO / Trust / Society",
+            services: ["Section 12A Registration", "80G Exemption", "FCRA Filings"],
+            docs: ["Trust Deed", "Bylaws", "Donor List Proof"],
+            time: "15-20 Minutes"
+        },
+        startup: {
+            title: "Startup / Tech Venture",
+            services: ["DPIIT Recognition", "ESOP Compliance", "Venture Structuring"],
+            docs: ["Innovation Proof", "Pitch Deck", "Incorporation Cert"],
+            time: "10-15 Minutes"
+        },
+        other: {
+            title: "Other Legal Entities",
+            services: ["Custom Licensing", "Branch Office Setup", "Govt Liaison"],
+            docs: ["Board Resolution", "Authorization", "Legal Counsel Opinion"],
+            time: "Variable"
+        }
+    };
+
+    function selectBusiness(type) {
+        // Handle Card State
+        document.querySelectorAll('.business-card').forEach(card => {
+            card.classList.remove('business-card-active');
+            card.querySelector('.check-mark').classList.add('hidden');
+        });
+
+        const selectedCard = document.getElementById(`card-${type}`);
+        selectedCard.classList.add('business-card-active');
+        selectedCard.querySelector('.check-mark').classList.remove('hidden');
+
+        // Update Sidebar Logic
+        const placeholder = document.getElementById('sidebar-placeholder');
+        const content = document.getElementById('sidebar-content');
+        const title = document.getElementById('sidebar-title');
+        const servicesList = document.getElementById('services-list');
+        const docsList = document.getElementById('docs-list');
+        const timeText = document.getElementById('setup-time');
+        
+        const data = businessData[type];
+        
+        // Dynamic Content Injection
+        title.textContent = data.title;
+        timeText.textContent = data.time;
+        
+        // Services
+        servicesList.innerHTML = data.services.map(service => `
+            <li class="flex items-center gap-2 text-body-md text-on-surface animate-in fade-in slide-in-from-right-1 duration-300">
+                <span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+                ${service}
+            </li>
+        `).join('');
+        
+        // Documents
+        docsList.innerHTML = data.docs.map(doc => `
+            <span class="px-3 py-1 bg-surface-container rounded-full text-label-md text-on-surface-variant border border-outline-variant/30 animate-in zoom-in-95 duration-200">
+                ${doc}
+            </span>
+        `).join('');
+
+        // Sidebar Transition
+        placeholder.classList.add('hidden');
+        content.classList.remove('hidden');
+
+        // Handle Button State
+        const continueBtn = document.getElementById('continue-btn');
+        continueBtn.disabled = false;
+        continueBtn.classList.remove('bg-outline/40', 'opacity-50', 'cursor-not-allowed');
+        continueBtn.classList.add('bg-primary', 'hover:bg-primary-container', 'hover:shadow-lg', 'shadow-primary/20', 'scale-[1.02]');
+    }
+</script>
+</body></html>

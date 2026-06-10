@@ -107,4 +107,14 @@ class Company extends Model
         $verification = CompanyVerification::where('company_id', $this->id)->first();
         return $verification && $verification->status === 'verified';
     }
+
+    public function caFirmProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\Modules\CA\Models\CAFirmProfile::class);
+    }
+
+    public function caClients(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\Modules\CA\Models\CAClient::class);
+    }
 }

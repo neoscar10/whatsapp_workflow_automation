@@ -3,6 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Company;
+use App\Services\Platform\ModuleService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -23,6 +24,14 @@ class CompanyIndex extends Component
     public $selectedDemoPhoneNumberId = null;
     public $demoDuration = 1;
     public $demoDurationUnit = 'days';
+
+    // Create Company Modal Properties
+    public $showCreateModal = false;
+    public $createCompanyName = '';
+    public $createCompanyEmail = '';
+    public $createCompanyPassword = '';
+    public $createCompanyCountry = 'IN';
+    public $selectedModules = [];
 
     public function viewCompany($id)
     {
@@ -127,10 +136,63 @@ class CompanyIndex extends Component
         $this->selectedDemoPhoneNumberId = null;
         $this->demoDuration = 1;
         $this->demoDurationUnit = 'days';
+
+        $this->showCreateModal = false;
+        $this->createCompanyName = '';
+        $this->createCompanyEmail = '';
+        $this->createCompanyPassword = '';
+        $this->createCompanyCountry = 'IN';
+        $this->selectedModules = [];
     }
 
-    public function render()
+    public function openCreateModal()
     {
+        $this->closeModals();
+        $this->showCreateModal = true;
+    }
+
+    public function createCompany()
+    {
+        $this->validate([
+            'createCompanyName' => 'required|string|max:255',
+            'createCompanyEmail' => 'required|email|max:255|unique:users,email',
+            'createCompanyPassword' => 'required|string|min:8',
+            'createCompanyCountry' => 'nullable|string|max:2',
+            'selectedModules' => 'array',
+            'selectedModules.*' => 'exists:modules,id',
+        ]);
+
+        $registrationService = app(\App\Services\Company\CompanyRegistrationService::class);
+        $result = $registrationService->register([
+            'company_name' => $this->createCompanyName,
+            'email' => $this->createCompanyEmail,
+            'password' => $this->createCompanyPassword,
+            'country' => $this->createCompanyCountry,
+        ]);
+
+        $company = $result['company'];
+
+        // Assign modules
+        if (!empty($this->selectedModules)) {
+            foreach ($this->selectedModules as $moduleId) {
+                \App\Models\CompanyModule::create([
+                    'company_id' => $company->id,
+                    'module_id' => $moduleId,
+                    'status' => 'active',
+                    'enabled_at' => now(),
+                ]);
+            }
+        }
+
+        session()->flash('success', 'Company created successfully.');
+        $this->closeModals();
+    }
+
+    public function render(ModuleService $moduleService)
+    {
+        // Ensure new laravel-modules are synced to the DB
+        $moduleService->syncDiscovery();
+
         $companies = Company::with(['users' => function($query) {
             $query->where('is_company_owner', true);
         }])->withCount('users')->paginate(10);
@@ -140,9 +202,14 @@ class CompanyIndex extends Component
             ? \App\Models\WhatsApp\WhatsAppPhoneNumber::where('company_id', $demoCompany->id)->where('status', 'active')->get()
             : collect();
 
+        // Only show non-core modules for assignment, or maybe all active modules. 
+        // Let's show all available modules that can be assigned. 
+        $availableModules = \App\Models\Module::where('is_core', false)->get();
+
         return view('livewire.super-admin.company-index', [
             'companies' => $companies,
             'demoPhoneNumbers' => $demoPhoneNumbers,
+            'availableModules' => $availableModules,
         ])
             ->layout('layouts.super-admin', [
                 'title' => 'Companies Management',

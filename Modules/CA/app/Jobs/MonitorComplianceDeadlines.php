@@ -1,0 +1,25 @@
+<?php
+
+namespace Modules\CA\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Modules\CA\Services\DeadlineMonitoringService;
+
+class MonitorComplianceDeadlines implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct()
+    {
+        //
+    }
+
+    public function handle(DeadlineMonitoringService $monitoringService): void
+    {
+        $monitoringService->monitorDeadlines();
+    }
+}
