@@ -1,4 +1,4 @@
-<div x-data @scroll-to-top.window="window.scrollTo({ top: 0, behavior: 'smooth' })" class="p-6 lg:p-8 w-full max-w-7xl mx-auto font-['Inter']">
+<div x-data class="p-6 lg:p-8 w-full max-w-7xl mx-auto font-['Inter']">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
