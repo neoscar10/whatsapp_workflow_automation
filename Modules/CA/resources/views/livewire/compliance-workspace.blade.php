@@ -3,13 +3,13 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
             <div class="flex items-center gap-2 text-[14px] text-[#424656] dark:text-slate-400 mb-2">
-                <a href="{{ route('ca.clients.show', $clientCompliance->client->id) }}" class="hover:text-[#0050cb] dark:hover:text-indigo-400 transition-colors">
+                <a href="{{ route('ca.clients.show', $clientCompliance->client->id) }}" class="hover:text-primary dark:hover:text-blue-400 transition-colors">
                     {{ $clientCompliance->client->client_name }}
                 </a>
                 <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                 <span class="font-medium text-[#1c1b1b] dark:text-slate-300">Workspace</span>
             </div>
-            <h1 class="text-[24px] font-semibold tracking-tight text-[#0050cb] dark:text-indigo-400">
+            <h1 class="text-[24px] font-semibold tracking-tight text-primary dark:text-blue-400">
                 {{ $clientCompliance->compliance->name }}
             </h1>
         </div>
@@ -32,20 +32,20 @@
             <!-- Documents Grid -->
             <div class="bg-white dark:bg-slate-800 border border-[#c2c6d8] dark:border-slate-700 rounded-2xl p-6 lg:p-8 shadow-sm">
                 <h2 class="text-[18px] font-semibold text-[#1c1b1b] dark:text-white mb-6 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#0050cb] dark:text-indigo-400">folder_open</span>
+                    <span class="material-symbols-outlined text-primary dark:text-blue-400">folder_open</span>
                     Document Requirements
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @forelse($clientCompliance->clientRequirements as $req)
-                        <div class="group bg-white dark:bg-slate-800 rounded-xl border {{ $req->status === 'approved' ? 'border-[#006a61]/30 dark:border-teal-500/30' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} p-5 transition-all cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md hover:border-[#0050cb]/30 flex flex-col justify-between h-full">
+                        <div class="group bg-white dark:bg-slate-800 rounded-xl border {{ $req->status === 'approved' ? 'border-[#006a61]/30 dark:border-teal-500/30' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} p-5 transition-all cursor-pointer relative overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 flex flex-col justify-between h-full">
                             
                             <div>
                                 <div class="flex items-start justify-between mb-4">
                                     <div>
                                         <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 inline-block
                                             {{ $req->status === 'approved' ? 'bg-[#86f2e4]/30 text-[#006f66] dark:text-teal-400' : 
-                                               ($req->status === 'uploaded' ? 'bg-[#dae1ff] text-[#001849] dark:bg-indigo-900/30 dark:text-indigo-400' : 
+                                               ($req->status === 'uploaded' ? 'bg-[#dae1ff] text-[#001849] dark:bg-blue-900/30 dark:text-blue-400' : 
                                                'bg-[#f6f3f2] text-[#424656] dark:bg-slate-700 dark:text-slate-300') }}">
                                             {{ $req->status }}
                                         </span>
@@ -71,7 +71,7 @@
                                             <span class="material-symbols-outlined text-[20px]">verified</span>
                                         </div>
                                     @elseif($req->status === 'uploaded')
-                                        <div class="w-8 h-8 rounded-full bg-[#0050cb]/10 flex items-center justify-center text-[#0050cb] dark:text-indigo-400 shrink-0">
+                                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary dark:text-blue-400 shrink-0">
                                             <span class="material-symbols-outlined text-[20px]">hourglass_top</span>
                                         </div>
                                     @else
@@ -84,7 +84,7 @@
                             
                             <div class="mt-4 pt-4 border-t border-[#c2c6d8]/30 dark:border-slate-700">
                                 @if($req->status === 'pending' || $req->status === 'rejected')
-                                    <button class="w-full py-2 bg-[#f6f3f2] hover:bg-[#e5e2e1] dark:bg-slate-900 dark:hover:bg-slate-700 text-[#0050cb] dark:text-indigo-400 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-2">
+                                    <button class="w-full py-2 bg-[#f6f3f2] hover:bg-[#e5e2e1] dark:bg-slate-900 dark:hover:bg-slate-700 text-primary dark:text-blue-400 rounded-lg text-[13px] font-semibold transition-colors flex items-center justify-center gap-2">
                                         <span class="material-symbols-outlined text-[18px]">cloud_upload</span> Request Upload
                                     </button>
                                 @elseif($req->status === 'uploaded')
@@ -131,10 +131,10 @@
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[13px] font-medium text-[#424656] dark:text-slate-400">Overall Progress</span>
-                        <span class="text-[14px] font-bold text-[#0050cb] dark:text-indigo-400">{{ $percentage }}%</span>
+                        <span class="text-[14px] font-bold text-primary dark:text-blue-400">{{ $percentage }}%</span>
                     </div>
                     <div class="w-full h-2 bg-[#f6f3f2] dark:bg-slate-900 rounded-full overflow-hidden">
-                        <div class="h-full bg-[#0050cb] dark:bg-indigo-500 rounded-full transition-all duration-1000" style="width: {{ $percentage }}%"></div>
+                        <div class="h-full bg-primary dark:bg-blue-500 rounded-full transition-all duration-1000" style="width: {{ $percentage }}%"></div>
                     </div>
                 </div>
                 
@@ -148,7 +148,7 @@
                     </div>
                     <div class="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-800 border border-[#c2c6d8]/30 dark:border-slate-700">
                         <div class="flex items-center gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#0050cb] dark:bg-indigo-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-primary dark:bg-blue-400"></span>
                             <span class="text-[13px] font-medium text-[#424656] dark:text-slate-300">In Review</span>
                         </div>
                         <span class="font-semibold text-[#1c1b1b] dark:text-white">{{ $clientCompliance->clientRequirements->where('status', 'uploaded')->count() }}</span>
@@ -185,7 +185,7 @@
                                 </p>
                             </div>
                             <div class="text-right shrink-0 ml-3">
-                                <p class="text-[13px] font-bold {{ $isOverdue ? 'text-[#ba1a1a] dark:text-red-500' : 'text-[#0050cb] dark:text-indigo-400' }}">
+                                <p class="text-[13px] font-bold {{ $isOverdue ? 'text-[#ba1a1a] dark:text-red-500' : 'text-primary dark:text-blue-400' }}">
                                     {{ $deadline->due_date->format('M d, Y') }}
                                 </p>
                                 <span class="text-[10px] font-medium {{ $isOverdue ? 'text-[#93000a] dark:text-red-400' : 'text-[#424656] dark:text-slate-400' }}">
@@ -208,7 +208,7 @@
                 <div class="relative pl-6 space-y-8 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#c2c6d8]/50 dark:before:bg-slate-700">
                     @forelse($clientCompliance->timelines ?? [] as $timeline)
                         <div class="relative">
-                            <div class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-[#0050cb] dark:bg-indigo-500 ring-4 ring-white dark:ring-slate-800"></div>
+                            <div class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-primary dark:bg-blue-500 ring-4 ring-white dark:ring-slate-800"></div>
                             <p class="text-[14px] font-medium text-[#1c1b1b] dark:text-white mb-1">{{ $timeline->title }}</p>
                             <p class="text-[13px] text-[#424656] dark:text-slate-400 leading-snug">{{ $timeline->description }}</p>
                             <p class="text-[11px] font-medium text-[#727687] dark:text-slate-500 mt-2">{{ $timeline->created_at->diffForHumans() }}</p>
