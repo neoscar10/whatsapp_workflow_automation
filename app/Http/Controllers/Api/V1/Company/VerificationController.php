@@ -45,7 +45,7 @@ class VerificationController extends Controller
             'timeline.actor'
         ]);
 
-        $documentTypes = DocumentType::where('status', 'active')->orderBy('sort_order')->get();
+        $documentTypes = DocumentType::where('is_active', true)->orderBy('sort_order')->get();
 
         $data = [
             'verification' => new CompanyVerificationResource($verification),

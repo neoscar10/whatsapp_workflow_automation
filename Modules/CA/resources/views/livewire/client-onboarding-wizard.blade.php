@@ -10,13 +10,13 @@
     <div class="bg-white dark:bg-slate-800 border border-[#c2c6d8] dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
         <div class="p-8">
             <!-- Progress Stepper -->
-            <div class="relative mb-12 max-w-2xl mx-auto">
+            <div class="relative mb-12 max-w-5xl mx-auto">
                 <div class="absolute top-1/2 left-0 w-full h-1 -translate-y-1/2 bg-[#f6f3f2] dark:bg-slate-900 rounded-full">
-                    <div class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500" style="width: {{ ($step - 1) * 20 }}%;"></div>
+                    <div class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500" style="width: {{ ($step - 1) * 25 }}%;"></div>
                 </div>
                 
                 <div class="relative flex justify-between">
-                    @foreach([1 => 'Basic Info', 2 => 'Business Type', 3 => 'Intelligence', 4 => 'Assign Services', 5 => 'Documents', 6 => 'Review'] as $i => $label)
+                    @foreach([1 => 'Basic Info', 2 => 'Business Type', 3 => 'Assign Services', 4 => 'Documents', 5 => 'Review'] as $i => $label)
                         <div class="flex flex-col items-center">
                             <button type="button" class="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-[14px] transition-all relative z-0 
                                 {{ $step >= $i ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md' : 'bg-[#f6f3f2] dark:bg-slate-900 text-[#727687] dark:text-slate-500 border-2 border-white dark:border-slate-800' }}">
@@ -26,7 +26,7 @@
                                     {{ $i }}
                                 @endif
                             </button>
-                            <span class="absolute top-12 text-[12px] font-['Geist'] font-medium {{ $step >= $i ? 'text-[#1c1b1b] dark:text-white' : 'text-[#727687] dark:text-slate-500' }}">
+                            <span class="absolute top-12 whitespace-nowrap text-[12px] font-['Geist'] font-medium {{ $step >= $i ? 'text-[#1c1b1b] dark:text-white' : 'text-[#727687] dark:text-slate-500' }}">
                                 {{ $label }}
                             </span>
                         </div>
@@ -36,10 +36,10 @@
             
             <div class="mt-8"></div>
 
-            <form wire:submit.prevent="submit">
+            <form wire:submit.prevent="nextStep">
                 @if($step === 1)
                     <!-- Step 1: Basic Info -->
-                    <div class="max-w-3xl mx-auto animate-fade-in">
+                    <div class="max-w-5xl mx-auto animate-fade-in">
                         <div class="text-center mb-8">
                             <h2 class="text-[20px] font-semibold text-[#1c1b1b] dark:text-white">Client Information</h2>
                             <p class="text-[14px] text-[#424656] dark:text-slate-400 mt-2">Enter the basic details of the client to create their secure workspace.</p>
@@ -149,148 +149,297 @@
                     <div class="animate-fade-in">
                         @php
                             $businessDetails = [
-                                'Hindu Undivided Family (HUF)' => [ 'icon' => 'family_restroom', 'title' => 'Hindu Undivided Family (HUF)', 'services' => ['PAN/TAN Registration', 'Tax Planning', 'ITR Filing'], 'docs' => ['HUF Deed', 'Karta ID', 'Bank Statement'], 'time' => '3-5 Business Days' ],
-                                'Limited Liability Partnership (LLP)' => [ 'icon' => 'account_balance_wallet', 'title' => 'Limited Liability Partnership', 'services' => ['LLP Incorporation', 'RoC Compliance', 'Agreements'], 'docs' => ['LLP Agreement', 'DPIN Proofs', 'Office Address'], 'time' => '10-14 Business Days' ],
-                                'One Person Company (OPC)' => [ 'icon' => 'person', 'title' => 'One Person Company', 'services' => ['OPC Registration', 'Director DIN', 'GST Registration'], 'docs' => ['ID Proof', 'Address Proof', 'Nominee Details'], 'time' => '7-10 Business Days' ],
-                                'Partnership Firm' => [ 'icon' => 'groups', 'title' => 'Partnership Firm', 'services' => ['Partnership Deed', 'Firm Registration', 'Tax Compliance'], 'docs' => ['Deed Copy', 'Partners ID', 'Rent Agreement'], 'time' => '8-12 Business Days' ],
-                                'Private Limited Company' => [ 'icon' => 'business', 'title' => 'Private Limited Company', 'services' => ['RoC Filing', 'Corporate Governance', 'Board Resolutions'], 'docs' => ['AoA / MoA', 'Director DIN', 'PAN/TAN'], 'time' => '7-10 Business Days' ],
-                                'Proprietorship' => [ 'icon' => 'store', 'title' => 'Proprietorship', 'services' => ['GST Registration', 'Trade License', 'MSME Registration'], 'docs' => ['Address Proof', 'Shop Photo', 'PAN Card'], 'time' => '5-7 Business Days' ],
-                                'Public Limited Company' => [ 'icon' => 'location_city', 'title' => 'Public Limited Company', 'services' => ['IPO Advisory', 'SEBI Compliance', 'Secretarial Audit'], 'docs' => ['AoA / MoA', 'Directors KYC', 'Prospectus'], 'time' => '15-30 Business Days' ],
-                                'Section 8 Company' => [ 'icon' => 'volunteer_activism', 'title' => 'Section 8 Company', 'services' => ['Section 8 Registration', '80G & 12A Exemption', 'Annual Compliance'], 'docs' => ['Objective Proofs', 'Founders KYC', 'Utility Bill'], 'time' => '20-25 Business Days' ],
-                                'Trust / Society / NGO' => [ 'icon' => 'volunteer_activism', 'title' => 'NGO / Trust / Society', 'services' => ['Trust Registration', 'FCRA Registration', 'Donation Planning'], 'docs' => ['Trust Deed', 'Bylaws', 'Donor Proofs'], 'time' => '15-20 Business Days' ],
+                                'Hindu Undivided Family (HUF)' => [ 
+                                    'icon' => 'family_restroom', 'title' => 'Hindu Undivided Family (HUF)', 
+                                    'services' => ['PAN/TAN Registration', 'Tax Planning', 'ITR Filing'], 
+                                    'docs' => ['HUF Deed', 'Karta ID', 'Bank Statement'], 
+                                    'time' => '3-5 Business Days',
+                                    'description' => 'A separate tax entity formed automatically by members of a Hindu family, managed by the Karta.',
+                                    'advantages' => ['Separate tax exemption limit', 'Can pool family assets'],
+                                    'ideal_for' => 'Traditional families with joint businesses or ancestral property.'
+                                ],
+                                'Limited Liability Partnership (LLP)' => [ 
+                                    'icon' => 'account_balance_wallet', 'title' => 'Limited Liability Partnership', 
+                                    'services' => ['LLP Incorporation', 'RoC Compliance', 'Agreements'], 
+                                    'docs' => ['LLP Agreement', 'DPIN Proofs', 'Office Address'], 
+                                    'time' => '10-14 Business Days',
+                                    'description' => 'An alternative corporate business form that gives the benefits of limited liability of a company and the flexibility of a partnership.',
+                                    'advantages' => ['Limited liability for partners', 'Lower compliance burden than a company', 'No minimum capital requirement'],
+                                    'ideal_for' => 'Professional services firms and small-to-medium enterprises.'
+                                ],
+                                'One Person Company (OPC)' => [ 
+                                    'icon' => 'person', 'title' => 'One Person Company', 
+                                    'services' => ['OPC Registration', 'Director DIN', 'GST Registration'], 
+                                    'docs' => ['ID Proof', 'Address Proof', 'Nominee Details'], 
+                                    'time' => '7-10 Business Days',
+                                    'description' => 'A company structure tailored for solo entrepreneurs, providing limited liability protection while allowing a single individual to act as both director and shareholder.',
+                                    'advantages' => ['Limited liability protection', 'Separate legal entity status', 'Easier to raise funds than a proprietorship'],
+                                    'ideal_for' => 'Solo founders looking to formalize their business structure.'
+                                ],
+                                'Partnership Firm' => [ 
+                                    'icon' => 'groups', 'title' => 'Partnership Firm', 
+                                    'services' => ['Partnership Deed', 'Firm Registration', 'Tax Compliance'], 
+                                    'docs' => ['Deed Copy', 'Partners ID', 'Rent Agreement'], 
+                                    'time' => '8-12 Business Days',
+                                    'description' => 'A business structure where two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.',
+                                    'advantages' => ['Easy to form', 'Shared responsibility', 'Minimal compliance requirements'],
+                                    'ideal_for' => 'Small businesses and home-based businesses with multiple co-owners.'
+                                ],
+                                'Private Limited Company' => [ 
+                                    'icon' => 'business', 'title' => 'Private Limited Company', 
+                                    'services' => ['RoC Filing', 'Corporate Governance', 'Board Resolutions'], 
+                                    'docs' => ['AoA / MoA', 'Director DIN', 'PAN/TAN'], 
+                                    'time' => '7-10 Business Days',
+                                    'description' => 'The most popular corporate entity in India, offering limited liability, separate legal entity status, and the ability to raise equity funding from investors.',
+                                    'advantages' => ['Limited liability for shareholders', 'High credibility with investors and banks', 'Perpetual existence'],
+                                    'ideal_for' => 'Startups and growing businesses seeking external investments.'
+                                ],
+                                'Proprietorship' => [ 
+                                    'icon' => 'store', 'title' => 'Proprietorship', 
+                                    'services' => ['GST Registration', 'Trade License', 'MSME Registration'], 
+                                    'docs' => ['Address Proof', 'Shop Photo', 'PAN Card'], 
+                                    'time' => '5-7 Business Days',
+                                    'description' => 'An unincorporated business with a single owner who pays personal income tax on profits earned from the business. The easiest to set up but offers no liability protection.',
+                                    'advantages' => ['Complete control over operations', 'No separate corporate taxes', 'Minimal compliance burden'],
+                                    'ideal_for' => 'Freelancers, consultants, and very small retail traders.'
+                                ],
+                                'Public Limited Company' => [ 
+                                    'icon' => 'location_city', 'title' => 'Public Limited Company', 
+                                    'services' => ['IPO Advisory', 'SEBI Compliance', 'Secretarial Audit'], 
+                                    'docs' => ['AoA / MoA', 'Directors KYC', 'Prospectus'], 
+                                    'time' => '15-30 Business Days',
+                                    'description' => 'A corporate structure whose ownership is distributed amongst general public shareholders via freely traded shares.',
+                                    'advantages' => ['Ability to raise capital from the public', 'High public transparency', 'Increased brand visibility'],
+                                    'ideal_for' => 'Large-scale enterprises planning for rapid expansion or an IPO.'
+                                ],
+                                'Section 8 Company' => [ 
+                                    'icon' => 'volunteer_activism', 'title' => 'Section 8 Company', 
+                                    'services' => ['Section 8 Registration', '80G & 12A Exemption', 'Annual Compliance'], 
+                                    'docs' => ['Objective Proofs', 'Founders KYC', 'Utility Bill'], 
+                                    'time' => '20-25 Business Days',
+                                    'description' => 'A Non-Governmental Organization (NGO) registered as a company for promoting commerce, art, science, sports, education, research, social welfare, or charity.',
+                                    'advantages' => ['Tax exemptions for donors (80G)', 'No minimum capital requirement', 'Corporate structure credibility'],
+                                    'ideal_for' => 'Non-profit organizations, charities, and social welfare groups.'
+                                ],
+                                'Trust / Society / NGO' => [ 
+                                    'icon' => 'volunteer_activism', 'title' => 'NGO / Trust / Society', 
+                                    'services' => ['Trust Registration', 'FCRA Registration', 'Donation Planning'], 
+                                    'docs' => ['Trust Deed', 'Bylaws', 'Donor Proofs'], 
+                                    'time' => '15-20 Business Days',
+                                    'description' => 'A traditional non-profit setup created through a Trust Deed or Society Registration Act for charitable purposes.',
+                                    'advantages' => ['Easy registration process', 'Flexibility in operations', 'Family members can be trustees'],
+                                    'ideal_for' => 'Educational institutions, hospitals, and traditional charitable foundations.'
+                                ],
                             ];
-
-                            $selectedType = collect($businessTypes)->firstWhere('id', $business_type_id);
-                            $selectedDetails = null;
-                            if ($selectedType) {
-                                $selectedDetails = $businessDetails[$selectedType->name] ?? [
-                                    'icon' => 'domain', 'title' => $selectedType->name, 'services' => ['Standard Compliance', 'Tax Filing', 'Advisory'], 'docs' => ['ID Proof', 'Address Proof', 'Registration Cert'], 'time' => 'Varies'
-                                ];
-                            }
                         @endphp
 
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                            <!-- Left Side: Header and Card Grid -->
-                            <div class="lg:col-span-8">
-                                <div class="mb-10 text-left">
-                                    <h1 class="text-[24px] font-semibold text-[#1c1b1b] dark:text-white mb-3">Tell Us About Your Business</h1>
-                                    <p class="text-[14px] text-[#424656] dark:text-slate-400 max-w-2xl">
-                                        We’ll personalize your onboarding, document checklist, and compliance workflows based on your business structure.
-                                    </p>
-                                </div>
+                        <div x-data='{ 
+                            showLearnMore: false, 
+                            modalData: null, 
+                            allDetails: @json($businessDetails),
+                            openModal(typeName) {
+                                this.modalData = this.allDetails[typeName] || null;
+                                if (this.modalData) {
+                                    this.showLearnMore = true;
+                                }
+                            }
+                        }'>
+                            <div class="mb-10 text-center">
+                                <h1 class="text-[24px] font-semibold text-[#1c1b1b] dark:text-white mb-3">Tell Us About Your Business</h1>
+                                <p class="text-[14px] text-[#424656] dark:text-slate-400 max-w-2xl mx-auto">
+                                    We’ll personalize your onboarding, document checklist, and compliance workflows based on your business structure.
+                                </p>
+                            </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    @foreach($businessTypes as $type)
-                                        @php
-                                            $icon = $businessDetails[$type->name]['icon'] ?? 'domain';
-                                        @endphp
-                                        <button type="button" wire:key="btype-{{ $type->id }}" wire:click="$set('business_type_id', {{ $type->id }})" 
-                                             class="group text-left p-6 rounded-xl border transition-all cursor-pointer relative 
-                                             {{ $business_type_id == $type->id 
-                                                ? 'border-blue-600 bg-[#f8faff] dark:bg-blue-900/40 dark:border-blue-500 shadow-md transform -translate-y-0.5' 
-                                                : 'border-[#c2c6d8]/50 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-600/50 dark:hover:border-blue-500/50 hover:shadow-sm' }}">
-                                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                @foreach($businessTypes as $type)
+                                    @php
+                                        $icon = $businessDetails[$type->name]['icon'] ?? 'domain';
+                                    @endphp
+                                    <div wire:key="btype-{{ $type->id }}" wire:click="$set('business_type_id', {{ $type->id }})" 
+                                         class="group text-left p-6 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between h-full
+                                         {{ $business_type_id == $type->id 
+                                            ? 'border-blue-600 bg-[#f8faff] dark:bg-blue-900/40 dark:border-blue-500 shadow-md transform -translate-y-0.5' 
+                                            : 'border-[#c2c6d8]/50 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-600/50 dark:hover:border-blue-500/50 hover:shadow-sm' }}">
+                                        
+                                        <div>
                                             <div class="mb-4 w-12 h-12 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 
                                                 {{ $business_type_id == $type->id ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-[#e1e0ff]/50 dark:bg-slate-700 text-blue-600 dark:text-blue-400' }}">
                                                 <span class="material-symbols-outlined">{{ $icon }}</span>
                                             </div>
                                             <h3 class="text-[16px] font-semibold text-[#1c1b1b] dark:text-white mb-1">{{ $type->name }}</h3>
                                             <p class="text-[13px] text-[#424656] dark:text-slate-400">{{ $type->description }}</p>
-                                            
-                                            @if($business_type_id == $type->id)
-                                                <div class="absolute top-4 right-4 text-blue-600 dark:text-blue-400">
-                                                    <span class="material-symbols-outlined text-[24px]">check_circle</span>
-                                                </div>
-                                            @endif
-                                        </button>
-                                    @endforeach
-                                </div>
-                                @error('business_type_id') <div class="text-[13px] text-[#ba1a1a] dark:text-red-400 mt-4 font-medium">{{ $message }}</div> @enderror
-                            </div>
+                                        </div>
 
-                            <!-- Right Sidebar: Contextual Preview -->
-                            <aside class="hidden lg:block lg:col-span-4 h-fit sticky top-8">
-                                <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl p-8 flex flex-col gap-8 border border-[#c2c6d8]/50 dark:border-slate-700/50">
-                                    @if(!$selectedDetails)
-                                        <div class="py-12 text-center">
-                                            <div class="w-16 h-16 bg-[#f6f3f2] dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-[#727687] dark:text-slate-500">
-                                                <span class="material-symbols-outlined text-[32px]">info</span>
+                                        <button type="button" 
+                                                @click.stop="openModal('{{ addslashes($type->name) }}')" 
+                                                onclick="event.stopPropagation(); event.preventDefault();"
+                                                class="mt-5 text-[13px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors relative z-20 w-fit">
+                                            Learn More <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                        </button>
+                                        
+                                        @if($business_type_id == $type->id)
+                                            <div class="absolute top-4 right-4 text-blue-600 dark:text-blue-400">
+                                                <span class="material-symbols-outlined text-[24px]">check_circle</span>
                                             </div>
-                                            <h4 class="text-[18px] font-semibold text-[#1c1b1b] dark:text-white mb-2">Structure Details</h4>
-                                            <p class="text-[14px] text-[#424656] dark:text-slate-400 px-4">Select a business type to see tailored requirements and timelines.</p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('business_type_id') <div class="text-[13px] text-[#ba1a1a] dark:text-red-400 mt-4 font-medium text-center">{{ $message }}</div> @enderror
+
+                            <!-- Learn More Modal -->
+                            <div x-show="showLearnMore" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                    
+                                    <div x-show="showLearnMore" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-0" aria-hidden="true" @click="showLearnMore = false"></div>
+
+                                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                                    <div x-show="showLearnMore" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative z-10 inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-[#c2c6d8]/50 dark:border-slate-700">
+                                        
+                                        <div class="px-6 py-6 border-b border-[#c2c6d8]/30 dark:border-slate-700 flex justify-between items-center bg-[#f8faff] dark:bg-slate-800/80">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-lg bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                                    <span class="material-symbols-outlined text-[24px]" x-text="modalData?.icon"></span>
+                                                </div>
+                                                <h3 class="text-[20px] font-bold text-[#1c1b1b] dark:text-white" x-text="modalData?.title"></h3>
+                                            </div>
+                                            <button type="button" @click="showLearnMore = false" class="text-[#727687] hover:text-[#1c1b1b] dark:text-slate-400 dark:hover:text-white transition-colors">
+                                                <span class="material-symbols-outlined">close</span>
+                                            </button>
                                         </div>
-                                    @else
-                                        <div class="animate-fade-in">
-                                            <h4 class="text-[18px] font-semibold text-blue-600 dark:text-blue-400 mb-6">{{ $selectedDetails['title'] }}</h4>
-                                            <div class="space-y-6">
-                                                <section>
-                                                    <h5 class="text-[12px] uppercase tracking-wider text-[#727687] dark:text-slate-400 font-semibold mb-3">Likely Services</h5>
+
+                                        <div class="p-6 md:p-8 space-y-8">
+                                            <!-- Description -->
+                                            <div>
+                                                <p class="text-[15px] leading-relaxed text-[#424656] dark:text-slate-300" x-text="modalData?.description"></p>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <!-- Advantages -->
+                                                <div>
+                                                    <h4 class="text-[12px] uppercase tracking-wider text-blue-600 dark:text-blue-400 font-bold mb-3 flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-[16px]">thumb_up</span> Advantages
+                                                    </h4>
                                                     <ul class="space-y-2">
-                                                        @foreach($selectedDetails['services'] as $service)
-                                                            <li class="flex items-center gap-2 text-[14px] text-[#1c1b1b] dark:text-white">
-                                                                <span class="material-symbols-outlined text-[#006a61] dark:text-teal-400 text-[18px]">verified</span>
-                                                                {{ $service }}
+                                                        <template x-for="adv in modalData?.advantages">
+                                                            <li class="flex items-start gap-2 text-[14px] text-[#1c1b1b] dark:text-slate-200">
+                                                                <span class="material-symbols-outlined text-green-500 text-[18px] shrink-0">check</span>
+                                                                <span x-text="adv"></span>
                                                             </li>
-                                                        @endforeach
+                                                        </template>
                                                     </ul>
-                                                </section>
-                                                <section>
-                                                    <h5 class="text-[12px] uppercase tracking-wider text-[#727687] dark:text-slate-400 font-semibold mb-3">Documents Required</h5>
-                                                    <div class="flex flex-wrap gap-2">
-                                                        @foreach($selectedDetails['docs'] as $doc)
-                                                            <span class="px-3 py-1 bg-[#f0eded] dark:bg-slate-900 rounded-full text-[12px] text-[#424656] dark:text-slate-300 border border-[#c2c6d8]/30 dark:border-slate-700">
-                                                                {{ $doc }}
-                                                            </span>
-                                                        @endforeach
-                                                    </div>
-                                                </section>
-                                                <section class="p-4 bg-[#e1e0ff]/30 dark:bg-blue-900/20 rounded-xl border border-[#e1e0ff] dark:border-blue-900/50">
-                                                    <div class="flex items-center gap-3">
-                                                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">schedule</span>
-                                                        <div>
-                                                            <p class="text-[12px] text-blue-600 dark:text-blue-400 font-medium">Estimated Setup Time</p>
-                                                            <p class="text-[16px] font-semibold text-[#1c1b1b] dark:text-white">{{ $selectedDetails['time'] }}</p>
-                                                        </div>
-                                                    </div>
-                                                </section>
+                                                </div>
+
+                                                <!-- Likely Services -->
+                                                <div>
+                                                    <h4 class="text-[12px] uppercase tracking-wider text-[#727687] dark:text-slate-400 font-bold mb-3 flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-[16px]">verified</span> Typical Compliances
+                                                    </h4>
+                                                    <ul class="space-y-2">
+                                                        <template x-for="service in modalData?.services">
+                                                            <li class="flex items-center gap-2 text-[14px] text-[#1c1b1b] dark:text-slate-200">
+                                                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>
+                                                                <span x-text="service"></span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endif
-                                </div>
-                                
-                                @if($selectedDetails)
-                                    <div class="mt-6 p-6 rounded-2xl bg-[#89f5e7]/10 dark:bg-teal-900/20 border border-[#89f5e7]/20 dark:border-teal-900/30 animate-fade-in">
-                                        <p class="text-[14px] text-[#424656] dark:text-slate-300 italic">"CompliFlow helped us set up our {{ $selectedDetails['title'] }} entity quickly. Highly recommended."</p>
-                                        <div class="mt-4 flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-[#89f5e7] dark:bg-teal-700 flex items-center justify-center text-[#00201d] dark:text-white font-bold text-xs">RK</div>
-                                            <span class="text-[12px] font-medium text-[#1c1b1b] dark:text-white">Rahul K, Founder @ TechFlow</span>
+
+                                            <!-- Documents -->
+                                            <div class="bg-[#f8faff] dark:bg-slate-900/50 rounded-xl p-5 border border-[#e1e0ff]/50 dark:border-slate-700/50">
+                                                <h4 class="text-[12px] uppercase tracking-wider text-[#727687] dark:text-slate-400 font-bold mb-3 flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[16px]">folder_open</span> Core Documents
+                                                </h4>
+                                                <ul class="space-y-2">
+                                                    <template x-for="doc in modalData?.docs">
+                                                        <li class="flex items-center gap-2 text-[14px] text-[#1c1b1b] dark:text-slate-200">
+                                                            <div class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>
+                                                            <span x-text="doc"></span>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+
+                                            <!-- Ideal For -->
+                                            <div class="bg-teal-50 dark:bg-teal-900/20 rounded-xl p-5 border border-teal-100 dark:border-teal-900/30">
+                                                <h4 class="text-[12px] uppercase tracking-wider text-teal-700 dark:text-teal-400 font-bold mb-2 flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[16px]">lightbulb</span> Ideal For
+                                                </h4>
+                                                <p class="text-[14px] text-teal-900 dark:text-teal-200" x-text="modalData?.ideal_for"></p>
+                                            </div>
                                         </div>
                                     </div>
-                                @endif
-                            </aside>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 @endif
 
                 @if($step === 3)
-                    <!-- Step 3: Intelligence Load -->
-                    <div class="py-16 text-center animate-fade-in">
-                        <div class="inline-block relative w-16 h-16 mb-6">
-                            <span class="absolute inset-0 border-4 border-[#e1e0ff] dark:border-blue-900/50 rounded-full"></span>
-                            <span class="absolute inset-0 border-4 border-blue-600 dark:border-blue-500 rounded-full border-t-transparent animate-spin"></span>
+                    @if(!$isIntelligenceLoaded)
+                        <!-- Step 3: Intelligence Load -->
+                        <div class="py-10 flex flex-col items-center justify-center animate-fade-in min-h-[300px]" wire:init="loadIntelligence">
+                            <style>
+                                @keyframes ai-pulse {
+                                    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); transform: scale(0.95); }
+                                    70% { box-shadow: 0 0 0 20px rgba(37, 99, 235, 0); transform: scale(1.05); }
+                                    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); transform: scale(0.95); }
+                                }
+                                @keyframes float-y {
+                                    0%, 100% { transform: translateY(0); }
+                                    50% { transform: translateY(-10px); }
+                                }
+                                @keyframes scan-line {
+                                    0% { top: 0%; opacity: 0; }
+                                    10% { opacity: 1; }
+                                    90% { opacity: 1; }
+                                    100% { top: 100%; opacity: 0; }
+                                }
+                            </style>
+                            
+                            <!-- Premium Animation Container -->
+                            <div class="relative mb-6" style="animation: float-y 4s ease-in-out infinite;">
+                                <!-- Glow backdrop -->
+                                <div class="absolute inset-0 bg-blue-500 blur-[40px] opacity-20 rounded-full dark:opacity-40"></div>
+                                
+                                <!-- Core Orbiting Rings -->
+                                <div class="relative w-28 h-28 flex items-center justify-center">
+                                    <div class="absolute inset-0 rounded-full border border-dashed border-blue-400/50 dark:border-blue-500/50 animate-[spin_10s_linear_infinite]"></div>
+                                    <div class="absolute inset-2 rounded-full border-2 border-transparent border-t-blue-500 border-r-blue-400 dark:border-t-blue-400 dark:border-r-blue-500 opacity-70 animate-[spin_3s_linear_infinite_reverse]"></div>
+                                    <div class="absolute inset-5 rounded-full border border-blue-300/30 dark:border-blue-400/20 bg-gradient-to-tr from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 shadow-xl overflow-hidden">
+                                        <!-- Scanning Line -->
+                                        <div class="absolute left-0 right-0 h-1 bg-blue-500 shadow-[0_0_10px_2px_rgba(59,130,246,0.5)] z-10" style="animation: scan-line 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+                                    </div>
+                                    
+                                    <!-- Inner AI Brain Icon -->
+                                    <div class="relative z-20 w-12 h-12 rounded-full bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30" style="animation: ai-pulse 2.5s infinite;">
+                                        <span class="material-symbols-outlined text-[24px]">psychology</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Decorative Data Nodes -->
+                                <div class="absolute -top-1 -right-3 w-3 h-3 rounded-full bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.6)] animate-pulse" style="animation-delay: 0.5s;"></div>
+                                <div class="absolute bottom-2 -left-4 w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.6)] animate-pulse" style="animation-delay: 1.2s;"></div>
+                            </div>
+                            
+                            <!-- Typography -->
+                            <h2 class="text-[20px] md:text-[24px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-blue-500 dark:from-blue-400 dark:to-blue-300 mb-3 tracking-tight text-center">
+                                Synthesizing Compliance Data
+                            </h2>
+                            <div class="flex items-center gap-2 bg-blue-50 dark:bg-slate-800/80 px-4 py-2 rounded-full border border-blue-100 dark:border-slate-700 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                                <p class="text-[12px] font-medium text-blue-800 dark:text-blue-300">Matching entity type against statutory frameworks...</p>
+                            </div>
                         </div>
-                        <h2 class="text-[24px] font-semibold text-[#1c1b1b] dark:text-white mb-2">AI Engine Analyzing...</h2>
-                        <p class="text-[14px] text-[#424656] dark:text-slate-400 max-w-sm mx-auto">Gathering the specific compliance mapping and requirements for the selected entity type.</p>
-                        <div class="hidden" wire:init="nextStep"></div>
-                    </div>
-                @endif
-
-                @if($step === 4)
-                    <!-- Step 4: Compliance Selection -->
-                    <div class="animate-fade-in pb-32">
+                    @else
+                        <!-- Step 3: Compliance Selection -->
+                        <div class="animate-fade-in pb-32">
                         @if(session()->has('ai_success'))
-                            <div class="p-4 mb-8 bg-blue-600/10 border border-blue-600/20 text-blue-800 rounded-xl text-[14px] font-medium flex items-center gap-3 shadow-sm">
-                                <span class="material-symbols-outlined text-blue-600">auto_awesome</span>
+                            <div class="p-4 mb-8 bg-blue-600 border border-blue-700 text-white rounded-xl text-[14px] font-medium flex items-center gap-3 shadow-lg shadow-blue-600/20">
+                                <span class="material-symbols-outlined text-white">auto_awesome</span>
                                 {{ session('ai_success') }}
                             </div>
                         @endif
@@ -313,8 +462,8 @@
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             <!-- Left Column: Service Configuration -->
                             <div class="lg:col-span-8">
-                                <div class="mb-8">
-                                    <span class="font-mono text-xs uppercase tracking-widest text-blue-600 dark:text-blue-400 font-semibold">Service Configuration</span>
+                                <div class="mb-8 text-center">
+                                    <span class="font-mono text-xs uppercase tracking-widest text-blue-600 dark:text-blue-400 font-semibold inline-block">Service Configuration</span>
                                     <h1 class="font-sans text-3xl text-[#1c1b1b] dark:text-white mt-2 font-bold">Assign Services & Compliances</h1>
                                     <div class="mt-6 bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-xl p-2 flex items-center gap-3 shadow-sm border border-[#c2c6d8]/30 dark:border-slate-700/50 focus-within:ring-2 focus-within:ring-blue-600/20 transition-all">
                                         <span class="material-symbols-outlined text-[#727687] dark:text-slate-400 ml-2">search</span>
@@ -340,7 +489,6 @@
                                             Based on your entity type as a <span class="text-blue-600 dark:text-blue-400 font-semibold">{{ $businessTypeName }}</span>, we have dynamically loaded the required compliances below.
                                         </p>
                                     </div>
-                                    <button type="button" class="text-blue-600 font-semibold font-medium text-sm hover:underline shrink-0 px-2">Review Below</button>
                                 </div>
 
                                 <!-- Service Categories -->
@@ -363,9 +511,6 @@
                                         <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white dark:border-slate-700/50 shadow-sm" x-data="{ expanded: true }">
                                             <div @click="expanded = !expanded" class="p-6 flex justify-between items-center cursor-pointer hover:bg-white/50 dark:hover:bg-slate-800 transition-colors">
                                                 <div class="flex items-center gap-4">
-                                                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br {{ $colorFrom }} flex items-center justify-center text-white shadow-lg">
-                                                        <span class="material-symbols-outlined">{{ $icon }}</span>
-                                                    </div>
                                                     <div>
                                                         <h4 class="font-sans text-xl font-bold text-[#1c1b1b] dark:text-white">{{ $category->name }}</h4>
                                                         <p class="font-medium text-sm text-[#727687] dark:text-slate-400">{{ count($category->compliances) }} items available</p>
@@ -411,7 +556,11 @@
 
                             <!-- Right Column: Dynamic Sidebar -->
                             <aside class="lg:col-span-4 space-y-6">
-                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-white dark:border-slate-700/50 shadow-xl sticky top-32">
+                                <style>
+                                    .hide-scroll::-webkit-scrollbar { display: none; }
+                                    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+                                </style>
+                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-white dark:border-slate-700/50 shadow-xl sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto hide-scroll">
                                     <div class="flex items-center justify-between mb-6">
                                         <h3 class="font-sans text-xl font-bold text-[#1c1b1b] dark:text-white">Workflow Preview</h3>
                                         <span class="bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest animate-pulse">Live</span>
@@ -493,24 +642,6 @@
                                             <p class="text-[12px] text-green-700 dark:text-green-500 leading-tight">Client will receive real-time filing reminders and document status updates directly via WhatsApp.</p>
                                         </div>
 
-                                        <!-- Estimated Setup Time -->
-                                        <div class="flex items-center justify-between border-t border-[#c2c6d8]/30 dark:border-slate-700/50 pt-6">
-                                            <span class="font-sans text-sm text-[#727687] dark:text-slate-400">Estimated Setup Time</span>
-                                            <div class="flex flex-col items-end">
-                                                <span class="font-sans text-xl font-bold text-blue-600 dark:text-blue-400">{{ count($selectedCompliances) > 0 ? (count($selectedCompliances) > 3 ? '5-7 Days' : '3-5 Days') : '--' }}</span>
-                                                <span class="text-[10px] text-[#727687] dark:text-slate-500 uppercase tracking-widest font-bold">Standard Track</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md p-4 rounded-2xl flex items-center gap-4 border border-white dark:border-slate-700/50 shadow-sm">
-                                    <div class="w-10 h-10 rounded-full bg-[#f0eded] dark:bg-slate-700 flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-[#727687] dark:text-slate-400">support_agent</span>
-                                    </div>
-                                    <div>
-                                        <h5 class="text-[#1c1b1b] dark:text-white font-bold text-sm">Need assistance?</h5>
-                                        <p class="text-[#727687] dark:text-slate-400 text-xs">Talk to a compliance expert now</p>
                                     </div>
                                 </div>
                             </aside>
@@ -529,10 +660,11 @@
                             <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
                     </div>
+                    @endif
                 @endif
 
-                @if($step === 5)
-                    <!-- Step 5: Document Collection -->
+                @if($step === 4)
+                    <!-- Step 4: Document Collection -->
                     <div class="animate-fade-in pb-32">
                         @php
                             $requiredNowDocs = $this->expectedDocuments['Required Now'] ?? collect();
@@ -544,7 +676,7 @@
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                             <!-- Left/Center: Document Upload Section -->
                             <div class="lg:col-span-8 space-y-8">
-                                <div>
+                                <div class="text-center">
                                     <h1 class="text-[32px] font-bold text-[#1c1b1b] dark:text-white mb-2">Collect Client Documents</h1>
                                     <p class="text-[16px] text-[#424656] dark:text-slate-400">Collect the initial documents required to proceed with onboarding this client.</p>
                                 </div>
@@ -653,7 +785,7 @@
 
                         <!-- Bottom Bar -->
                         <div class="mt-12 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <button type="button" wire:click="$set('step', 4)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                            <button type="button" wire:click="$set('step', 3)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
                                 <span class="material-symbols-outlined">arrow_back</span>
                                 Back to Setup
                             </button>
@@ -667,12 +799,12 @@
                 @endif
 
 
-                @if($step === 6)
-                    <!-- Step 6: Review & Verification -->
+                @if($step === 5)
+                    <!-- Step 5: Review & Verification -->
                     <div class="animate-fade-in pb-32">
                         <section class="mb-12">
-                            <div class="flex items-center justify-between">
-                                <div>
+                            <div class="flex items-center justify-center">
+                                <div class="text-center">
                                     <h1 class="text-[32px] font-bold text-[#1c1b1b] dark:text-white mb-2 tracking-tight">Review & Verification</h1>
                                     <p class="text-[16px] text-[#424656] dark:text-slate-400">Final audit before activating your automated compliance engine.</p>
                                 </div>
@@ -687,7 +819,7 @@
                                         <span class="material-symbols-outlined">domain</span>
                                         <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Business Profile Summary</h2>
                                     </div>
-                                    <button wire:click="$set('step', 1)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                    <button type="button" wire:click="$set('step', 1)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>
@@ -716,7 +848,7 @@
                                         <span class="material-symbols-outlined">layers</span>
                                         <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Selected Services</h2>
                                     </div>
-                                    <button wire:click="setStep(4)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                    <button type="button" wire:click="setStep(3)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
                                 </div>
                                 <div class="flex flex-col gap-3">
                                     @foreach(\Modules\CA\Models\CACompliance::whereIn('id', $selectedCompliances)->get() as $compliance)
@@ -746,7 +878,7 @@
                                             <span class="material-symbols-outlined">verified_user</span>
                                             <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Document Verification</h2>
                                         </div>
-                                        <button wire:click="setStep(5)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                        <button type="button" wire:click="setStep(4)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
                                     </div>
                                     <div class="space-y-3">
                                         @foreach($this->expectedDocuments['Required Now'] as $doc)
@@ -765,7 +897,7 @@
 
                         <!-- Sticky Footer Bottom Bar -->
                         <div class="mt-12 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <button type="button" wire:click="setStep(5)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                            <button type="button" wire:click="setStep(4)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
                                 <span class="material-symbols-outlined">arrow_back</span>
                                 Back to Documents
                             </button>
@@ -779,8 +911,8 @@
                 @endif
 
 
-                <!-- Navigation Bar for steps 1-3 -->
-                @if($step < 4)
+                <!-- Navigation Bar for steps 1-2 -->
+                @if($step < 3)
                     <div class="mt-10 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex items-center justify-between">
                         @if($step > 1)
                             <button type="button" wire:click="previousStep" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#f6f3f2] hover:bg-[#e5e2e1] dark:bg-slate-900 dark:hover:bg-slate-700 text-[#1c1b1b] dark:text-white rounded-lg font-medium text-[14px] transition-all">

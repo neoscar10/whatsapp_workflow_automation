@@ -4,7 +4,6 @@ namespace Modules\CA\Livewire;
 
 use Livewire\Component;
 use Modules\CA\Models\CABusinessType;
-//
 use Modules\CA\Services\CAClientService;
 use Modules\CA\Models\CAServiceCategory;
 use Modules\CA\Models\CACompliance;
@@ -34,7 +33,8 @@ class ClientOnboardingWizard extends Component
     public $business_type_id;
     public $businessTypes = [];
 
-    // Step 3 & 4: Compliances
+    // Step 3 & 4: Compliances (Now Step 3)
+    public $isIntelligenceLoaded = false;
     public $isLoadingIntelligence = false;
     public $aiSuggestedCompliances = []; // To store AI response
     public $groupedCompliances = []; // To display grouped by category
@@ -62,7 +62,7 @@ class ClientOnboardingWizard extends Component
             ];
         }
 
-        if ($this->step === 4) {
+        if ($this->step === 3) { // WAS 4
             return [
                 'selectedCompliances' => 'array',
             ];
@@ -76,6 +76,11 @@ class ClientOnboardingWizard extends Component
         $this->businessTypes = CABusinessType::where('status', 'active')->get();
     }
 
+    public function updatedBusinessTypeId()
+    {
+        $this->isIntelligenceLoaded = false;
+    }
+
     public function nextStep()
     {
         $rules = $this->rules();
@@ -83,19 +88,16 @@ class ClientOnboardingWizard extends Component
             $this->validate($rules);
         }
 
-        if ($this->step === 2) {
-            // About to go to step 3/4. Load Intelligence.
-            $this->loadIntelligence();
-        }
-
-        if ($this->step === 4) {
+        // We no longer call loadIntelligence synchronously on Step 2.
+        
+        if ($this->step === 3) { // WAS 4
             if (empty($this->selectedCompliances)) {
                 $this->addError('selectedCompliances', 'Please select at least one compliance requirement.');
                 return;
             }
         }
 
-        if ($this->step === 5) {
+        if ($this->step === 4) { // WAS 5
             // Validate collectedData against 'Required Now' expected documents
             $requiredDocs = $this->expectedDocuments['Required Now'] ?? collect();
             foreach ($requiredDocs as $doc) {
@@ -104,6 +106,11 @@ class ClientOnboardingWizard extends Component
                     return;
                 }
             }
+        }
+
+        if ($this->step === 5) { // WAS 6
+            $this->submit();
+            return;
         }
 
         $this->step++;
@@ -126,6 +133,8 @@ class ClientOnboardingWizard extends Component
 
     public function loadIntelligence()
     {
+        sleep(2); // Artificial delay to ensure the AI animation plays
+
         $this->ai_error = null;
         $businessType = CABusinessType::find($this->business_type_id);
         
@@ -229,13 +238,10 @@ class ClientOnboardingWizard extends Component
             })->where('status', 'active');
         })->orderBy('sort_order')->get();
 
-        // Auto-select the ones that apply to this business type
+        // User must manually select the ones that apply to this business type
         $this->selectedCompliances = [];
-        foreach ($this->groupedCompliances as $category) {
-            foreach ($category->compliances as $compliance) {
-                $this->selectedCompliances[] = $compliance->id;
-            }
-        }
+        
+        $this->isIntelligenceLoaded = true;
     }
 
     public function getExpectedDocumentsProperty()
