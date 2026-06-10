@@ -171,6 +171,7 @@ class CompanyIndex extends Component
         ]);
 
         $company = $result['company'];
+        $company->update(['status' => 'active']);
 
         // Assign modules
         if (!empty($this->selectedModules)) {

@@ -716,7 +716,7 @@
                                         <span class="material-symbols-outlined">layers</span>
                                         <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Selected Services</h2>
                                     </div>
-                                    <button wire:click="$set('step', 4)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                    <button wire:click="setStep(4)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
                                 </div>
                                 <div class="flex flex-col gap-3">
                                     @foreach(\Modules\CA\Models\CACompliance::whereIn('id', $selectedCompliances)->get() as $compliance)
@@ -746,7 +746,7 @@
                                             <span class="material-symbols-outlined">verified_user</span>
                                             <h2 class="text-xl font-bold text-[#1c1b1b] dark:text-white">Document Verification</h2>
                                         </div>
-                                        <button wire:click="$set('step', 5)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
+                                        <button wire:click="setStep(5)" class="text-blue-600 dark:text-blue-400 font-bold text-sm hover:bg-blue-600/10 dark:hover:bg-blue-400/10 px-4 py-2 rounded-lg transition-all">EDIT</button>
                                     </div>
                                     <div class="space-y-3">
                                         @foreach($this->expectedDocuments['Required Now'] as $doc)
@@ -765,7 +765,7 @@
 
                         <!-- Sticky Footer Bottom Bar -->
                         <div class="mt-12 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <button type="button" wire:click="$set('step', 5)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                            <button type="button" wire:click="setStep(5)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
                                 <span class="material-symbols-outlined">arrow_back</span>
                                 Back to Documents
                             </button>

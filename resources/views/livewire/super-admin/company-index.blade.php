@@ -316,9 +316,14 @@
                                 @error('createCompanyEmail') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
-                            <div>
+                            <div x-data="{ showPassword: false }">
                                 <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Owner Password <span class="text-red-500">*</span></label>
-                                <input type="password" wire:model="createCompanyPassword" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="Min. 8 characters" required minlength="8" />
+                                <div class="relative">
+                                    <input x-bind:type="showPassword ? 'text' : 'password'" wire:model="createCompanyPassword" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 pr-10 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="Min. 8 characters" required minlength="8" />
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
+                                        <span class="material-symbols-outlined text-[20px]" x-text="showPassword ? 'visibility_off' : 'visibility'">visibility</span>
+                                    </button>
+                                </div>
                                 @error('createCompanyPassword') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                             </div>
                             

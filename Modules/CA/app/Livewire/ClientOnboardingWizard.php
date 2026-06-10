@@ -107,15 +107,21 @@ class ClientOnboardingWizard extends Component
         }
 
         $this->step++;
-        $this->dispatch('scroll-to-top');
+        $this->js('window.scrollTo({ top: 0, behavior: "smooth" })');
     }
 
     public function previousStep()
     {
         if ($this->step > 1) {
             $this->step--;
-            $this->dispatch('scroll-to-top');
+            $this->js('window.scrollTo({ top: 0, behavior: "smooth" })');
         }
+    }
+
+    public function setStep($step)
+    {
+        $this->step = $step;
+        $this->js('window.scrollTo({ top: 0, behavior: "smooth" })');
     }
 
     public function loadIntelligence()
