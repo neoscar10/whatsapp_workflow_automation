@@ -170,7 +170,6 @@ class CampaignFormModal extends Component
         if (strlen($this->contact_search) < 2) {
             $this->search_results = \App\Models\Contact\Contact::forCompany(Auth::user()->company_id)
                 ->latest()
-                ->limit(5)
                 ->get()
                 ->toArray();
             return;
@@ -181,7 +180,6 @@ class CampaignFormModal extends Component
                 $q->where('name', 'like', '%' . $this->contact_search . '%')
                   ->orWhere('phone', 'like', '%' . $this->contact_search . '%');
             })
-            ->limit(10)
             ->get()
             ->toArray();
     }
