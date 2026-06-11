@@ -169,6 +169,30 @@ class WhatsAppWebhookEventService
 
             $message->update($updateData);
 
+            // Sync with CampaignRecipient if this message is part of a campaign
+            $recipient = \App\Models\Campaign\CampaignRecipient::where('conversation_message_id', $message->id)->first();
+            if ($recipient) {
+                $recipientUpdate = ['status' => $newStatus];
+                if ($newStatus === 'delivered') {
+                    $recipientUpdate['delivered_at'] = $updateData['delivered_at'] ?? now();
+                    $recipientUpdate['sent_at'] = $updateData['sent_at'] ?? now();
+                } elseif ($newStatus === 'read') {
+                    $recipientUpdate['read_at'] = $updateData['read_at'] ?? now();
+                    $recipientUpdate['delivered_at'] = $updateData['delivered_at'] ?? now();
+                    $recipientUpdate['sent_at'] = $updateData['sent_at'] ?? now();
+                } elseif ($newStatus === 'failed') {
+                    $recipientUpdate['failed_at'] = $updateData['failed_at'] ?? now();
+                    $recipientUpdate['meta_error_code'] = $updateData['failure_code'] ?? 'unknown';
+                    $recipientUpdate['meta_error_message'] = $updateData['failure_message'] ?? 'Unknown error';
+                    $recipientUpdate['meta_error_payload'] = $updateData['meta_payload'] ?? [];
+                }
+                $recipient->update($recipientUpdate);
+                
+                if ($recipient->campaign) {
+                    app(\App\Services\Campaign\CampaignService::class)->recalculateStats($recipient->campaign);
+                }
+            }
+
             // Update conversation last message timestamp if this is the newest
             $conversation = $message->conversation;
             if ($conversation && ($conversation->last_message_at ?? now()->subYear())->lte($message->created_at)) {
