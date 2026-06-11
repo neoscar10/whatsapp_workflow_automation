@@ -27,7 +27,11 @@ class ChatBroadcastingTest extends TestCase
     {
         parent::setUp();
         
-        $this->company = Company::create(['name' => 'Test Company']);
+        $this->company = Company::create([
+            'name' => 'Test Company',
+            'slug' => 'test-company-' . uniqid(),
+            'primary_email' => 'test-company@example.com'
+        ]);
         $this->user = User::create([
             'name' => 'Test User',
             'email' => 'test-' . uniqid() . '@example.com',
@@ -39,6 +43,7 @@ class ChatBroadcastingTest extends TestCase
             'company_id' => $this->company->id,
             'phone_number_id' => '12345' . uniqid(),
             'display_phone_number' => '12345',
+            'display_name' => 'Test',
             'verified_name' => 'Test',
         ]);
 
@@ -80,7 +85,11 @@ class ChatBroadcastingTest extends TestCase
         );
 
         // Auth failure for other company
-        $otherCompany = Company::create(['name' => 'Other']);
+        $otherCompany = Company::create([
+            'name' => 'Other',
+            'slug' => 'other-company-' . uniqid(),
+            'primary_email' => 'other-company@example.com'
+        ]);
         $otherUser = User::factory()->create(['company_id' => $otherCompany->id]);
 
         $this->assertFalse(

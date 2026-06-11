@@ -59,11 +59,7 @@ class ChatTemplateSendService
             ]
         ]);
 
-        // Update conversation summary
-        $conversation->update([
-            'last_message_preview' => 'Template: ' . ($template->display_title ?? $template->remote_template_name),
-            'last_message_at' => now(),
-        ]);
+        // Conversation summary is automatically updated by the ConversationMessage model observer
 
         // Dispatch the WhatsApp outbound sending logic
         $this->outboundService->sendConversationMessage($message);

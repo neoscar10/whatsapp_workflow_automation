@@ -36,8 +36,6 @@ class ChatMessageService
 
         // Update conversation summary
         $conversation->update([
-            'last_message_at' => now(),
-            'last_message_preview' => substr($message, 0, 50),
             'unread_count' => 0, // usually we clear unread if we reply
         ]);
 
@@ -119,8 +117,6 @@ class ChatMessageService
 
         // Update conversation summary
         $conversation->update([
-            'last_message_at' => now(),
-            'last_message_preview' => ucfirst($type) . ($caption ? ': ' . substr($caption, 0, 30) : ''),
             'unread_count' => 0,
         ]);
 

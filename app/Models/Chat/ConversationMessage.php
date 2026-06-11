@@ -56,4 +56,35 @@ class ConversationMessage extends Model
         // Handle relative paths (e.g. 'chat_media/filename.jpg') — outbound & inbound media
         return \Illuminate\Support\Facades\Storage::disk('public')->url($url);
     }
+
+    /**
+     * Generate a concise preview snippet for the conversation sidebar.
+     */
+    public function generatePreviewText(): string
+    {
+        if ($this->message_type === 'text') {
+            return mb_substr($this->body ?? '', 0, 50);
+        }
+
+        if ($this->message_type === 'template') {
+            $templateName = $this->meta_payload['template_name'] ?? $this->body ?? 'Template';
+            return 'Template: ' . $templateName;
+        }
+
+        $typePrefix = ucfirst($this->message_type);
+        return $this->body ? $typePrefix . ': ' . mb_substr($this->body, 0, 30) : $typePrefix;
+    }
+
+    /**
+     * Boot the model and register lifecycle events.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (ConversationMessage $message) {
+            $message->conversation->update([
+                'last_message_preview' => $message->generatePreviewText(),
+                'last_message_at' => $message->sent_at ?? $message->created_at,
+            ]);
+        });
+    }
 }

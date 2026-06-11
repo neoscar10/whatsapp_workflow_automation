@@ -164,7 +164,7 @@
                                             <span class="material-symbols-outlined text-[20px]">content_copy</span>
                                         </button>
 
-                                        <button wire:confirm="Are you sure you want to delete this campaign?" wire:click="delete({{ $campaign->id }})" class="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Delete">
+                                        <button wire:click="confirmDelete({{ $campaign->id }})" class="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Delete">
                                             <span class="material-symbols-outlined text-[20px]">delete</span>
                                         </button>
                                     </div>
@@ -199,4 +199,53 @@
     </div>
 
     <livewire:campaigns.campaign-form-modal />
+
+    @if($campaignToDelete)
+        <div class="relative z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true" wire:keydown.escape.window="cancelDelete">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="cancelDelete"></div>
+
+            <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                    <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="px-6 py-6">
+                            <div class="flex items-start gap-4">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                                    <span class="material-symbols-outlined text-red-600 dark:text-red-400">warning</span>
+                                </div>
+
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">Delete Campaign</h3>
+                                    <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                        Are you sure you want to delete this campaign? This will remove all associated data. This action cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 dark:border-slate-800/60 dark:bg-slate-800/50 px-6 py-4 sm:flex-row sm:justify-end">
+                            <button
+                                wire:click="cancelDelete"
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                wire:click="deleteCampaign"
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500"
+                            >
+                                <svg wire:loading wire:target="deleteCampaign" class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

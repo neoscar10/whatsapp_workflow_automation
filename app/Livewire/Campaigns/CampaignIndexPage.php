@@ -17,6 +17,7 @@ class CampaignIndexPage extends Component
     public $search = '';
     public $status = '';
     public $type = '';
+    public $campaignToDelete = null;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -80,12 +81,24 @@ class CampaignIndexPage extends Component
         $this->dispatch('open-campaign-modal', id: $new->id);
     }
 
-    public function delete($id, CampaignService $service)
+    public function confirmDelete($id)
     {
-        $campaign = $service->findForCompany(Auth::user(), $id);
-        $campaign->delete();
-        
-        $this->dispatch('notify', ['type' => 'success', 'message' => 'Campaign deleted.']);
+        $this->campaignToDelete = $id;
+    }
+
+    public function cancelDelete()
+    {
+        $this->campaignToDelete = null;
+    }
+
+    public function deleteCampaign(CampaignService $service)
+    {
+        if ($this->campaignToDelete) {
+            $campaign = $service->findForCompany(Auth::user(), $this->campaignToDelete);
+            $campaign->delete();
+            $this->campaignToDelete = null;
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Campaign deleted successfully.']);
+        }
     }
 
     public function render(CampaignService $service)

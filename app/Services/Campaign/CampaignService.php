@@ -221,6 +221,8 @@ class CampaignService
         $stats = $campaign->recipients()
             ->selectRaw('count(*) as total')
             ->selectRaw('count(case when status = "pending" then 1 end) as pending')
+            ->selectRaw('count(case when status = "queued" then 1 end) as queued')
+            ->selectRaw('count(case when status = "sending" then 1 end) as sending')
             ->selectRaw('count(case when status = "sent" then 1 end) as sent')
             ->selectRaw('count(case when status = "delivered" then 1 end) as delivered')
             ->selectRaw('count(case when status = "read" then 1 end) as read_count')
@@ -228,9 +230,11 @@ class CampaignService
             ->selectRaw('count(case when status = "skipped" then 1 end) as skipped')
             ->first();
 
+        $activeCount = ($stats->pending ?? 0) + ($stats->queued ?? 0) + ($stats->sending ?? 0);
+
         $campaign->update([
             'recipient_count' => $stats->total,
-            'pending_count' => $stats->pending,
+            'pending_count' => $activeCount,
             'sent_count' => $stats->sent,
             'delivered_count' => $stats->delivered,
             'read_count' => $stats->read_count,
@@ -240,7 +244,7 @@ class CampaignService
         ]);
 
         // Auto-complete if everything is terminal
-        if ($campaign->status === 'sending' && $stats->pending === 0) {
+        if ($campaign->status === 'sending' && $activeCount === 0) {
             $campaign->update([
                 'status' => 'completed',
                 'completed_at' => now()

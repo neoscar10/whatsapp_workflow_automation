@@ -154,8 +154,6 @@ class ChatConversationResolverService
 
         // 5. Update conversation summary
         $conversation->update([
-            'last_message_preview' => $body,
-            'last_message_at' => now(),
             'last_customer_message_at' => now(), // WhatsApp 24h window trigger
             // Unread count tracking could go here
         ]);

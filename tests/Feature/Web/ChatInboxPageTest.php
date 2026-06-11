@@ -29,13 +29,24 @@ class ChatInboxPageTest extends TestCase
 
     private function setupWhatsAppAccount($company)
     {
-        return \App\Models\WhatsApp\WhatsAppAccount::forceCreate([
+        $account = \App\Models\WhatsApp\WhatsAppAccount::forceCreate([
             'company_id' => $company->id,
             'access_token' => 'dummy-token',
             'waba_id' => '12345',
             'business_id' => '67890',
             'connection_status' => 'connected',
         ]);
+        
+        \App\Models\WhatsApp\WhatsAppPhoneNumber::forceCreate([
+            'company_id' => $company->id,
+            'whatsapp_account_id' => $account->id,
+            'phone_number_id' => '123456789',
+            'display_phone_number' => '+123456789',
+            'display_name' => 'Test Phone',
+            'verified_name' => 'Test Phone',
+        ]);
+        
+        return $account;
     }
 
     public function test_guest_cannot_access_chats_page()
@@ -124,6 +135,7 @@ class ChatInboxPageTest extends TestCase
     public function test_renders_empty_state_when_no_conversations_exist()
     {
         [$user, $company] = $this->setupUserAndCompany();
+        $this->setupWhatsAppAccount($company);
 
         Livewire::actingAs($user)
             ->test(ChatInboxPage::class)
@@ -134,6 +146,7 @@ class ChatInboxPageTest extends TestCase
     public function test_renders_empty_state_when_no_conversation_selected()
     {
         [$user, $company] = $this->setupUserAndCompany();
+        $this->setupWhatsAppAccount($company);
         $conversation = Conversation::create(['company_id' => $company->id, 'contact_name' => 'JohnState', 'contact_phone' => '123']);
 
         Livewire::actingAs($user)
@@ -147,6 +160,7 @@ class ChatInboxPageTest extends TestCase
     public function test_selecting_conversation_removes_empty_state()
     {
         [$user, $company] = $this->setupUserAndCompany();
+        $this->setupWhatsAppAccount($company);
         $conversation = Conversation::create(['company_id' => $company->id, 'contact_name' => 'JohnTransition', 'contact_phone' => '123']);
 
         Livewire::actingAs($user)
@@ -161,6 +175,7 @@ class ChatInboxPageTest extends TestCase
     public function test_search_filters_list_while_empty_state_visible()
     {
         [$user, $company] = $this->setupUserAndCompany();
+        $this->setupWhatsAppAccount($company);
         Conversation::create(['company_id' => $company->id, 'contact_name' => 'JohnFilter', 'contact_phone' => '123']);
         Conversation::create(['company_id' => $company->id, 'contact_name' => 'JaneFilter', 'contact_phone' => '456']);
 
@@ -340,6 +355,6 @@ class ChatInboxPageTest extends TestCase
             'body' => 'Real Template Body',
         ]);
         
-        $this->assertStringContainsString('Template: Send Me', $conversation->fresh()->last_message_preview);
+        $this->assertStringContainsString('Template: send_me', $conversation->fresh()->last_message_preview);
     }
 }
