@@ -562,49 +562,38 @@
                                         <span class="bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest animate-pulse">Live</span>
                                     </div>
                                     <div class="space-y-8">
-                                        <!-- Expected Documents -->
+                                        <!-- Selected Services -->
                                         <div>
                                             <div class="flex items-center gap-2 mb-4">
-                                                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px]">description</span>
-                                                <h4 class="font-medium text-sm font-bold text-[#424656] dark:text-slate-300 uppercase tracking-wider">Expected Documents</h4>
+                                                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px]">task_alt</span>
+                                                <h4 class="font-medium text-sm font-bold text-[#424656] dark:text-slate-300 uppercase tracking-wider">Selected Services</h4>
                                                 <span wire:loading wire:target="selectedCompliances" class="material-symbols-outlined animate-spin text-blue-500 text-[16px] ml-2">refresh</span>
                                             </div>
                                             
-                                            <div class="space-y-5">
+                                            <div class="space-y-3">
                                                 @if(count($selectedCompliances) > 0)
-                                                    @if($this->expectedDocuments->isEmpty())
-                                                        <p class="text-xs text-[#727687] dark:text-slate-500 italic">No specific documents required for current selection.</p>
-                                                    @else
-                                                        @foreach($this->expectedDocuments as $groupName => $documents)
+                                                    @foreach($groupedCompliances as $category)
+                                                        @php
+                                                            $selectedInCategory = collect($category->compliances)->filter(fn($c) => in_array($c->id, $selectedCompliances));
+                                                        @endphp
+                                                        @if($selectedInCategory->isNotEmpty())
                                                             <div>
-                                                                <h5 class="text-[11px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-bold mb-2">{{ $groupName }}</h5>
+                                                                <h5 class="text-[11px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-bold mb-2 mt-2">{{ $category->name }}</h5>
                                                                 <div class="space-y-2">
-                                                                    @foreach($documents as $doc)
-                                                                        <div class="flex items-center justify-between p-3 bg-[#f0eded]/50 dark:bg-slate-900/50 rounded-lg">
-                                                                            <div class="flex items-center gap-3">
-                                                                                <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-[#c2c6d8]/30 dark:border-slate-700">
-                                                                                    @if(in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']))
-                                                                                        <span class="material-symbols-outlined text-[16px] text-blue-600">file_upload</span>
-                                                                                    @elseif(in_array($doc->input_type, ['text', 'textarea', 'date', 'number']))
-                                                                                        <span class="material-symbols-outlined text-[16px] text-purple-600">keyboard</span>
-                                                                                    @else
-                                                                                        <span class="material-symbols-outlined text-[16px] text-[#727687]">post_add</span>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="flex flex-col">
-                                                                                    <span class="font-sans text-sm text-[#1c1b1b] dark:text-slate-300 font-medium">{{ $doc->name }}</span>
-                                                                                    <span class="text-[10px] font-mono text-[#727687] dark:text-slate-500 uppercase">{{ in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']) ? 'File Upload' : 'Data Input' }}</span>
-                                                                                </div>
+                                                                    @foreach($selectedInCategory as $service)
+                                                                        <div class="flex items-center gap-3 p-3 bg-[#f0eded]/50 dark:bg-slate-900/50 rounded-lg">
+                                                                            <div class="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center shrink-0">
+                                                                                <span class="material-symbols-outlined text-[16px] text-blue-600">check</span>
                                                                             </div>
-                                                                            <span class="material-symbols-outlined text-teal-600 dark:text-teal-400 text-[18px]">check_circle</span>
+                                                                            <span class="font-sans text-sm text-[#1c1b1b] dark:text-slate-300 font-medium leading-tight">{{ $service->name }}</span>
                                                                         </div>
                                                                     @endforeach
                                                                 </div>
                                                             </div>
-                                                        @endforeach
-                                                    @endif
+                                                        @endif
+                                                    @endforeach
                                                 @else
-                                                    <p class="text-xs text-[#727687] dark:text-slate-500 italic">Select services to generate document checklist.</p>
+                                                    <p class="text-xs text-[#727687] dark:text-slate-500 italic">Select services to generate preview.</p>
                                                 @endif
                                             </div>
                                         </div>
