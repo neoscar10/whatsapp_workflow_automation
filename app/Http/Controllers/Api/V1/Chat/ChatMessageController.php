@@ -73,7 +73,7 @@ class ChatMessageController extends Controller
             return $this->successResponse(new ChatMessageResource($message), 'Text message sent successfully.');
         } catch (\Exception $e) {
             Log::error('API Send Text Message Error', ['error' => $e->getMessage(), 'conversation_id' => $conversationId]);
-            return $this->errorResponse('WhatsApp message provider rejected the request. Check recipient number or account configuration.', [], 500);
+            return $this->errorResponse('Failed to send text message: ' . $e->getMessage(), [], 500);
         }
     }
 

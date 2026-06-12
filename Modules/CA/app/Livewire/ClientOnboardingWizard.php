@@ -493,7 +493,7 @@ class ClientOnboardingWizard extends Component
                 }
 
                 session()->flash('message', 'Client successfully onboarded!');
-                return redirect()->route('ca.clients.show', $client->id);
+                return $this->redirect(route('ca.clients.show', $client->id), navigate: true);
             }
         } catch (Exception $e) {
             session()->flash('error', 'Error completing onboarding: ' . $e->getMessage());

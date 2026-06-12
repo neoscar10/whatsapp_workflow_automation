@@ -752,7 +752,6 @@
                                                             <div class="flex flex-col gap-1 flex-1 min-w-0 pr-2">
                                                                 <div class="flex items-center gap-2">
                                                                     <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
-                                                                    <span class="bg-slate-100 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-slate-700 dark:text-slate-400 shrink-0">Optional</span>
                                                                 </div>
                                                                 @if(!empty($doc->compliance_names))
                                                                     <span class="inline-block w-full bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-1 rounded-md border border-slate-100 dark:border-slate-800 font-medium whitespace-normal" title="{{ $doc->compliance_names }}">Optional for: {{ $doc->compliance_names }}</span>
