@@ -359,13 +359,17 @@ class CampaignFormModal extends Component
 
     public function render()
     {
-        $groups = app(\App\Services\Contact\ContactGroupService::class)->listForCompany(Auth::user()->company_id);
+        $companyId = Auth::user()->company_id;
+        
+        $groups = $companyId ? app(\App\Services\Contact\ContactGroupService::class)->listForCompany($companyId) : collect();
+        $phoneNumbers = $companyId ? WhatsAppPhoneNumber::forCompany($companyId)->get() : collect();
+        $templates = $companyId ? WhatsAppTemplate::forCompany($companyId)->where('status', 'approved')->get() : collect();
 
         return view('livewire.campaigns.campaign-form-modal', [
-            'phoneNumbers' => WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->get(),
+            'phoneNumbers' => $phoneNumbers,
             'groups' => $groups,
             'selectedContacts' => \App\Models\Contact\Contact::whereIn('id', $this->selected_contact_ids)->get(),
-            'templates' => WhatsAppTemplate::forCompany(Auth::user()->company_id)->where('status', 'approved')->get(),
+            'templates' => $templates,
             'personalizationFields' => app(CampaignTemplateVariableService::class)->provideAvailablePersonalizationFields(),
         ]);
     }
