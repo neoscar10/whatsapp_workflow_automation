@@ -320,6 +320,26 @@ class CampaignFormModal extends Component
     {
         $campaign = Campaign::findOrFail($this->campaignId);
         
+        if (in_array($this->send_mode, ['now', 'schedule'])) {
+            $billingType = 'text';
+            if ($this->type === 'template') {
+                $template = WhatsAppTemplate::find($this->whatsapp_template_id);
+                if ($template) {
+                    $category = strtolower($template->category);
+                    if (in_array($category, ['utility', 'authentication', 'marketing'])) {
+                        $billingType = 'template_' . ($category === 'authentication' ? 'auth' : $category);
+                    } else {
+                        $billingType = 'template_utility';
+                    }
+                }
+            }
+
+            if (!app(\App\Services\Payment\BillingService::class)->canAffordActivity(Auth::user()->company, $billingType)) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => "Insufficient wallet balance to start or schedule this campaign."]);
+                return;
+            }
+        }
+
         if ($this->send_mode === 'now') {
             app(CampaignService::class)->update(Auth::user(), $campaign, ['status' => 'queued']);
             app(\App\Services\Campaign\CampaignDispatchService::class)->dispatchCampaign($campaign);

@@ -38,8 +38,8 @@ class BillingService
 
         $package = CompanyPackage::where('company_id', $company->id)->where('status', 'active')->first();
         if (!$package) {
-            Log::warning("Company {$company->id} has no active package, fallback to free.");
-            return 0.00;
+            Log::warning("Company {$company->id} has no active package, access denied.");
+            throw new \Exception("No active package found for the company.");
         }
 
         return (float) $package->getAttribute("{$type}_rate");
@@ -50,7 +50,11 @@ class BillingService
      */
     public function canAffordActivity(Company $company, string $type): bool
     {
-        $rate = $this->getActiveRate($company, $type);
+        try {
+            $rate = $this->getActiveRate($company, $type);
+        } catch (\Exception $e) {
+            return false;
+        }
         
         if ($rate <= 0) {
             return true;
