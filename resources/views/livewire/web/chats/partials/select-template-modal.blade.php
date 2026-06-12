@@ -31,7 +31,7 @@
             {{-- Body --}}
             <div class="flex min-h-0 flex-1 overflow-hidden">
                 {{-- Left Pane --}}
-                <div class="flex w-full shrink-0 flex-col border-r border-slate-100 dark:border-slate-800/50 md:w-[34%] xl:w-[30%] overflow-y-auto no-scrollbar">
+                <div class="w-full h-full shrink-0 border-r border-slate-100 dark:border-slate-800/50 md:w-[34%] xl:w-[30%] overflow-y-auto min-h-0 no-scrollbar">
                     <div class="shrink-0 space-y-5 p-6">
                         {{-- Search --}}
                         <div class="relative group">
@@ -108,10 +108,10 @@
 
                         <div
                             wire:key="template-preview-shell-{{ $selectedTemplateId }}-{{ $hasConfigurationPanel ? 'with-config' : 'without-config' }}"
-                            class="grid min-h-0 flex-1 overflow-hidden {{ $hasConfigurationPanel ? 'grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1.05fr)_400px]' : 'grid-cols-1' }}"
+                            class="grid h-full min-h-0 flex-1 overflow-hidden {{ $hasConfigurationPanel ? 'grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1.05fr)_400px]' : 'grid-cols-1' }}"
                         >
                             {{-- Preview Column --}}
-                            <div class="min-h-0 overflow-hidden {{ $hasConfigurationPanel ? 'border-r border-slate-100 dark:border-slate-800/50' : '' }} bg-white/50 backdrop-blur-sm dark:bg-slate-900/40">
+                            <div class="h-full min-h-0 overflow-hidden {{ $hasConfigurationPanel ? 'border-r border-slate-100 dark:border-slate-800/50' : '' }} bg-white/50 backdrop-blur-sm dark:bg-slate-900/40">
                                 <div class="no-scrollbar h-full overflow-y-auto p-8 lg:p-10">
                                     <div class="mb-8 flex items-center gap-3">
                                         <div class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -189,7 +189,7 @@
 
                             {{-- Configuration Sidebar --}}
                             @if($hasConfigurationPanel)
-                                <div class="min-h-0 overflow-hidden bg-slate-50/40 dark:bg-slate-950/20">
+                                <div class="h-full min-h-0 overflow-hidden bg-slate-50/40 dark:bg-slate-950/20">
                                     <div class="no-scrollbar h-full overflow-y-auto p-8">
                                         @if($hasMediaHeader)
                                             <div class="{{ $hasVariables ? 'mb-10' : '' }}">
