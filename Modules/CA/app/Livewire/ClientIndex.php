@@ -20,6 +20,9 @@ class ClientIndex extends Component
     
     public $businessTypes;
 
+    public $showDeleteModal = false;
+    public $clientToDelete = null;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'business_type_filter' => ['except' => ''],
@@ -34,6 +37,41 @@ class ClientIndex extends Component
     public function updatingSearch()
     {
         $this->resetPage();
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->clientToDelete = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDelete()
+    {
+        $this->showDeleteModal = false;
+        $this->clientToDelete = null;
+    }
+
+    public function deleteClient()
+    {
+        if (!$this->clientToDelete) {
+            return;
+        }
+
+        $client = CAClient::where('company_id', Auth::user()->company_id)->findOrFail($this->clientToDelete);
+        
+        $suffix = '_deleted_' . time();
+        if ($client->email) {
+            $client->email = $client->email . $suffix;
+        }
+        if ($client->phone) {
+            $client->phone = $client->phone . $suffix;
+        }
+        $client->save();
+        $client->delete();
+
+        $this->showDeleteModal = false;
+        $this->clientToDelete = null;
+        session()->flash('message', 'Client successfully deleted.');
     }
 
     public function render()
