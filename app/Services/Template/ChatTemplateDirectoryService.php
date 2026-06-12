@@ -16,7 +16,8 @@ class ChatTemplateDirectoryService
         $search = $filters['search'] ?? '';
         $filter = $filters['filter'] ?? 'all';
 
-        $query = WhatsAppTemplate::where('company_id', $user->company_id);
+        $query = WhatsAppTemplate::where('company_id', $user->company_id)
+            ->whereNotIn('status', ['rejected', 'REJECTED']);
 
         // Filter by search
         if ($search) {
