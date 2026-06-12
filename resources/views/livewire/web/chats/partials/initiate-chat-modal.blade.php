@@ -37,7 +37,7 @@
             </div>
 
             {{-- Contacts List --}}
-            <div class="custom-scrollbar max-h-[350px] overflow-y-auto px-8 pb-8 pt-4">
+            <div class="no-scrollbar max-h-[350px] overflow-y-auto px-8 pb-8 pt-4">
                 <div class="space-y-3">
                     @forelse($contactsForInitiation as $contact)
                         <div 

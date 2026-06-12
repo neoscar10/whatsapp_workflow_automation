@@ -117,7 +117,7 @@
                     </button>
                 </div>
 
-                <div class="custom-scrollbar flex-1 overflow-y-auto">
+                <div class="no-scrollbar flex-1 overflow-y-auto">
                     @forelse($conversationList as $conversation)
                         <button
                             type="button"
@@ -207,7 +207,7 @@
                             });
                             observer.observe($el, { childList: true, subtree: true });
                         "
-                        class="custom-scrollbar relative flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40"
+                        class="no-scrollbar relative flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40"
                     >
                         @foreach($messages as $message)
                             @if($message['message_type'] === 'card')
@@ -369,7 +369,7 @@
                         </div>
                     </div>
 
-                    <div class="border-t border-slate-100 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div class="border-t border-slate-50 bg-white p-6 dark:border-slate-800/30 dark:bg-slate-900">
                         @if($errorMessage)
                             <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                                 {{ $errorMessage }}
@@ -467,7 +467,7 @@
                                     wire:model.defer="messageText"
                                     type="text"
                                     placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"
-                                    class="flex-1 border-none bg-transparent px-2 text-sm placeholder:text-slate-500 focus:ring-0"
+                                    class="flex-1 border-0 border-transparent bg-transparent px-2 text-sm placeholder:text-slate-500 focus:border-transparent focus:ring-0 outline-none shadow-none"
                                     wire:keydown.enter="sendMessage"
                                 />
 
@@ -513,7 +513,7 @@
                     x-transition:leave="transition-all ease-in duration-200 origin-right"
                     x-transition:leave-start="opacity-100 translate-x-0 w-64 md:w-80"
                     x-transition:leave-end="opacity-0 translate-x-4 w-0"
-                    class="custom-scrollbar w-64 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 flex flex-col override-transition"
+                    class="no-scrollbar w-64 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 flex flex-col override-transition"
                 >
                     <div class="border-b border-slate-200 p-10 text-center dark:border-slate-800">
                         <div class="mb-6 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-xl dark:border-slate-800 mx-auto h-28 w-28">

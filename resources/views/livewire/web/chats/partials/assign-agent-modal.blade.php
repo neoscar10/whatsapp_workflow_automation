@@ -43,7 +43,7 @@
             </div>
 
             {{-- Agent List --}}
-            <div class="custom-scrollbar max-h-[400px] overflow-y-auto px-8 pb-8 pt-4">
+            <div class="no-scrollbar max-h-[400px] overflow-y-auto px-8 pb-8 pt-4">
                 <div class="space-y-3">
                     @forelse($assignAgents as $agent)
                         <label class="group relative flex cursor-pointer items-center gap-4 rounded-2xl border border-transparent p-4 transition-all hover:bg-white dark:hover:bg-slate-800/50 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none {{ (int) $selectedAgentId === (int) $agent['id'] ? 'bg-white dark:bg-slate-800 border-primary/20 shadow-xl' : '' }} {{ !($agent['is_assignable'] ?? true) ? 'opacity-50 grayscale' : '' }}">
