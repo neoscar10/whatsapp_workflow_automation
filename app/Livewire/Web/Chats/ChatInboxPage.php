@@ -613,7 +613,7 @@ class ChatInboxPage extends Component
             }
             
         } catch (\Exception $e) {
-            Log::error('Template Send Error', ['message' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('Template Send Error', ['message' => $e->getMessage()]);
             $this->templateModalError = $e->getMessage();
         }
     }
