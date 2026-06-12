@@ -7,9 +7,9 @@
         ></div>
 
         {{-- Modal --}}
-        <div class="relative mx-auto flex h-[85vh] max-h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2.5rem] border border-white/10 bg-white shadow-2xl dark:border-slate-800/60 dark:bg-[#0B0F1A]">
+        <div class="relative mx-auto flex h-[92vh] max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2.5rem] border border-white/10 bg-white shadow-2xl dark:border-slate-800/60 dark:bg-[#0B0F1A]">
             {{-- Header --}}
-            <div class="shrink-0 border-b border-slate-100 bg-white/80 px-8 py-6 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#0B0F1A]/80">
+            <div class="shrink-0 border-b border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#0B0F1A]/80">
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Select Template</h2>
@@ -31,8 +31,8 @@
             {{-- Body --}}
             <div class="flex min-h-0 flex-1 overflow-hidden">
                 {{-- Left Pane --}}
-                <div class="flex w-full shrink-0 flex-col border-r border-slate-100 dark:border-slate-800/50 md:w-[34%] xl:w-[30%]">
-                    <div class="shrink-0 space-y-6 p-8 pb-5">
+                <div class="flex w-full shrink-0 flex-col border-r border-slate-100 dark:border-slate-800/50 md:w-[34%] xl:w-[30%] overflow-y-auto no-scrollbar">
+                    <div class="shrink-0 space-y-5 p-6">
                         {{-- Search --}}
                         <div class="relative group">
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-primary">
@@ -42,7 +42,7 @@
                                 wire:model.live.debounce.300ms="templateSearch"
                                 type="text"
                                 placeholder="Search templates..."
-                                class="w-full rounded-full border-none bg-slate-100/70 py-4 pl-12 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 dark:bg-slate-800/60 dark:text-white"
+                                class="w-full rounded-full border-none bg-slate-100/70 py-3 pl-12 pr-4 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 dark:bg-slate-800/60 dark:text-white"
                             />
                         </div>
 
@@ -52,7 +52,7 @@
                                 <button
                                     type="button"
                                     wire:click="$set('templateFilter', '{{ $key }}')"
-                                    class="whitespace-nowrap rounded-full px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all {{ $templateFilter === $key ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700' }}"
+                                    class="whitespace-nowrap rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all {{ $templateFilter === $key ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700' }}"
                                 >
                                     {{ $label }}
                                 </button>
@@ -60,27 +60,27 @@
                         </div>
 
                         @if($templateModalError)
-                            <div class="rounded-2xl bg-red-50 px-4 py-3 text-xs font-bold text-red-600 dark:bg-red-950/20 dark:text-red-400">
+                            <div class="rounded-xl bg-red-50 px-4 py-3 text-xs font-bold text-red-600 dark:bg-red-950/20 dark:text-red-400">
                                 {{ $templateModalError }}
                             </div>
                         @endif
                     </div>
 
                     {{-- Template List --}}
-                    <div class="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto px-8 pb-8">
+                    <div class="flex-1 space-y-2 px-6 pb-6">
                         @forelse($availableTemplates as $template)
                             <button
                                 type="button"
                                 wire:click="selectTemplate({{ $template['id'] }})"
-                                class="group relative flex w-full items-center gap-4 rounded-2xl border border-transparent p-4 text-left transition-all {{ (int) $selectedTemplateId === (int) $template['id'] ? 'border-primary/20 bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/30' }}"
+                                class="group relative flex w-full items-center gap-3 rounded-[1rem] border border-transparent p-3 text-left transition-all {{ (int) $selectedTemplateId === (int) $template['id'] ? 'border-primary/20 bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/30' }}"
                             >
-                                <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-all {{ (int) $selectedTemplateId === (int) $template['id'] ? 'scale-105 bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-300' }}">
-                                    <span class="material-symbols-outlined text-[24px]">{{ $template['icon'] ?? 'description' }}</span>
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm transition-all {{ (int) $selectedTemplateId === (int) $template['id'] ? 'scale-105 bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-300' }}">
+                                    <span class="material-symbols-outlined text-[20px]">{{ $template['icon'] ?? 'description' }}</span>
                                 </div>
 
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-base font-bold text-slate-900 dark:text-white">{{ $template['name'] }}</p>
-                                    <p class="truncate text-sm font-medium text-slate-400">{{ $template['subtitle'] }}</p>
+                                    <p class="truncate text-[13px] font-bold text-slate-900 dark:text-white">{{ $template['name'] }}</p>
+                                    <p class="truncate text-[11px] font-medium text-slate-400">{{ $template['subtitle'] }}</p>
                                 </div>
 
                                 @if((int) $selectedTemplateId === (int) $template['id'])
@@ -112,7 +112,7 @@
                         >
                             {{-- Preview Column --}}
                             <div class="min-h-0 overflow-hidden {{ $hasConfigurationPanel ? 'border-r border-slate-100 dark:border-slate-800/50' : '' }} bg-white/50 backdrop-blur-sm dark:bg-slate-900/40">
-                                <div class="custom-scrollbar h-full overflow-y-auto p-8 lg:p-10">
+                                <div class="no-scrollbar h-full overflow-y-auto p-8 lg:p-10">
                                     <div class="mb-8 flex items-center gap-3">
                                         <div class="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
                                             <span class="material-symbols-outlined text-[20px]">visibility</span>
@@ -190,7 +190,7 @@
                             {{-- Configuration Sidebar --}}
                             @if($hasConfigurationPanel)
                                 <div class="min-h-0 overflow-hidden bg-slate-50/40 dark:bg-slate-950/20">
-                                    <div class="custom-scrollbar h-full overflow-y-auto p-8">
+                                    <div class="no-scrollbar h-full overflow-y-auto p-8">
                                         @if($hasMediaHeader)
                                             <div class="{{ $hasVariables ? 'mb-10' : '' }}">
                                                 <div class="mb-6 flex items-center gap-3">
@@ -403,7 +403,7 @@
             </div>
 
             {{-- Footer --}}
-            <div class="shrink-0 border-t border-slate-100 bg-white/80 px-8 py-6 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#0B0F1A]/80">
+            <div class="shrink-0 border-t border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#0B0F1A]/80">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="min-w-0">
                         @if($selectedTemplatePreview)
