@@ -46,6 +46,21 @@ class BillingService
     }
 
     /**
+     * Check if the company has sufficient balance for a specific activity.
+     */
+    public function canAffordActivity(Company $company, string $type): bool
+    {
+        $rate = $this->getActiveRate($company, $type);
+        
+        if ($rate <= 0) {
+            return true;
+        }
+
+        $wallet = $this->walletService->getOrCreateWallet($company->owner);
+        return $this->walletService->hasSufficientBalance($wallet, $rate);
+    }
+
+    /**
      * Debit the wallet for a specific activity.
      */
     public function debitForActivity(Company $company, string $type, string $description, ?array $metadata = null): bool

@@ -24,6 +24,10 @@ class ChatMessageService
             return null;
         }
 
+        if (!app(\App\Services\Payment\BillingService::class)->canAffordActivity($conversation->company, 'text')) {
+            throw new \App\Exceptions\InsufficientWalletBalanceException('Insufficient wallet balance to send this text message.');
+        }
+
         // Persist local message
         $msg = $conversation->messages()->create([
             'direction' => 'outbound',
@@ -57,6 +61,10 @@ class ChatMessageService
         $conversation = $this->inboxService->getActiveConversationForUser($user, $conversationId);
         if (!$conversation) {
             return null;
+        }
+
+        if (!app(\App\Services\Payment\BillingService::class)->canAffordActivity($conversation->company, 'text')) {
+            throw new \App\Exceptions\InsufficientWalletBalanceException('Insufficient wallet balance to send this media message.');
         }
 
         // 1. Identify media type

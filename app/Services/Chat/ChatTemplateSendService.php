@@ -40,6 +40,17 @@ class ChatTemplateSendService
             throw new Exception('Template not found or access denied.');
         }
 
+        $category = strtolower($template->category);
+        if (in_array($category, ['utility', 'authentication', 'marketing'])) {
+            $billingType = 'template_' . ($category === 'authentication' ? 'auth' : $category);
+        } else {
+            $billingType = 'template_utility';
+        }
+
+        if (!app(\App\Services\Payment\BillingService::class)->canAffordActivity($conversation->company, $billingType)) {
+            throw new \App\Exceptions\InsufficientWalletBalanceException("Insufficient wallet balance to send this {$billingType} message.");
+        }
+
         // Resolve body with actual values for local persistence/preview
         $components = $payload['components'] ?? [];
         $messageBody = $this->resolveTemplateBody($template, $components);
