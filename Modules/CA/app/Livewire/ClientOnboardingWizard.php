@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\Url;
 
 class ClientOnboardingWizard extends Component
 {
     use WithFileUploads;
 
+    #[Url(as: 'draft_id')]
     public $draft_client_id = null;
     public $step = 1;
 
@@ -83,7 +85,7 @@ class ClientOnboardingWizard extends Component
         $this->businessTypes = CABusinessType::where('status', 'active')->get();
         $actor = Auth::user();
         
-        $draftId = request()->query('draft_id');
+        $draftId = $this->draft_client_id ?? request()->query('draft_id');
         
         if ($draftId) {
             $draft = CAClient::where('company_id', $actor->company_id)

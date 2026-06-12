@@ -28,6 +28,7 @@ class CAClient extends Model
         'state',
         'country',
         'status',
+        'current_step',
         'notes',
         'created_by',
     ];
