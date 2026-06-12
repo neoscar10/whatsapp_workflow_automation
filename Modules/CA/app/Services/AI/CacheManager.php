@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class CacheManager
 {
-    public const CACHE_VERSION = 2; // Incremented for Phase 3 requirements schema
+    public const CACHE_VERSION = 3; // Incremented for Phase 3 V2 requirements schema with document_type and required_stage
 
     public function getCachedResponse(string $providerName, string $prompt, int $version = self::CACHE_VERSION)
     {

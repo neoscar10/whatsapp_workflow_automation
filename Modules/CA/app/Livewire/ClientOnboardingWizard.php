@@ -4,6 +4,7 @@ namespace Modules\CA\Livewire;
 
 use Livewire\Component;
 use Modules\CA\Models\CABusinessType;
+use Modules\CA\Models\CAClient;
 use Modules\CA\Services\CAClientService;
 use Modules\CA\Models\CAServiceCategory;
 use Modules\CA\Models\CACompliance;
@@ -16,6 +17,7 @@ class ClientOnboardingWizard extends Component
 {
     use WithFileUploads;
 
+    public $draft_client_id = null;
     public $step = 1;
 
     // Step 1: Client Info
@@ -33,14 +35,19 @@ class ClientOnboardingWizard extends Component
     public $business_type_id;
     public $businessTypes = [];
 
-    // Step 3 & 4: Compliances (Now Step 3)
+    // Step 3 & 4: Compliances
     public $isIntelligenceLoaded = false;
     public $isLoadingIntelligence = false;
-    public $aiSuggestedCompliances = []; // To store AI response
-    public $groupedCompliances = []; // To display grouped by category
-    public $selectedCompliances = []; // Selected by user
-    public $ai_error = null; // Store AI errors
-    public $collectedData = []; // Store document inputs (files/text)
+    public $aiSuggestedCompliances = [];
+    public $groupedCompliances = [];
+    public $selectedCompliances = [];
+    public $ai_error = null;
+    public $collectedData = [];
+    public $recurrenceConfigs = [];
+    public $configuringRequirementId = null;
+    public $configureFrequency = '';
+    public $configureConfig = [];
+    public $configureNextDueDatePreview = null;
 
     public function rules()
     {
@@ -62,7 +69,7 @@ class ClientOnboardingWizard extends Component
             ];
         }
 
-        if ($this->step === 3) { // WAS 4
+        if ($this->step === 3) {
             return [
                 'selectedCompliances' => 'array',
             ];
@@ -74,6 +81,48 @@ class ClientOnboardingWizard extends Component
     public function mount()
     {
         $this->businessTypes = CABusinessType::where('status', 'active')->get();
+        $actor = Auth::user();
+        
+        $draftId = request()->query('draft_id');
+        
+        if ($draftId) {
+            $draft = CAClient::where('company_id', $actor->company_id)
+                ->where('created_by', $actor->id)
+                ->where('status', 'draft')
+                ->where('id', $draftId)
+                ->first();
+
+            if ($draft) {
+                $this->draft_client_id = $draft->id;
+                $this->step = $draft->current_step;
+                $this->client_name = $draft->client_name;
+                $this->email = $draft->email;
+                
+                // Extract country code naive logic or just map raw
+                if ($draft->phone && str_starts_with($draft->phone, '+')) {
+                    $this->phone = substr($draft->phone, 3);
+                    $this->country_code = substr($draft->phone, 0, 3);
+                } else {
+                    $this->phone = $draft->phone;
+                }
+                
+                $this->address = $draft->address;
+                $this->city = $draft->city;
+                $this->state = $draft->state;
+                $this->country = $draft->country;
+                $this->notes = $draft->notes;
+                $this->business_type_id = $draft->ca_business_type_id;
+
+                if ($this->business_type_id && $this->step >= 3) {
+                    $this->loadGroupedCompliances();
+                    $this->isIntelligenceLoaded = true;
+                    
+                    if ($this->step >= 4) {
+                        $this->selectedCompliances = $draft->clientCompliances()->pluck('ca_compliance_id')->toArray();
+                    }
+                }
+            }
+        }
     }
 
     public function updatedBusinessTypeId()
@@ -88,16 +137,65 @@ class ClientOnboardingWizard extends Component
             $this->validate($rules);
         }
 
-        // We no longer call loadIntelligence synchronously on Step 2.
-        
-        if ($this->step === 3) { // WAS 4
-            if (empty($this->selectedCompliances)) {
-                $this->addError('selectedCompliances', 'Please select at least one compliance requirement.');
+        $clientService = app(CAClientService::class);
+        $actor = Auth::user();
+
+        // Save Draft Step 1
+        if ($this->step === 1) {
+            $data = [
+                'client_name' => $this->client_name,
+                'phone' => $this->country_code . $this->phone,
+                'email' => $this->email,
+                'address' => $this->address,
+                'city' => $this->city,
+                'state' => $this->state,
+                'country' => $this->country,
+                'notes' => $this->notes,
+            ];
+
+            try {
+                if ($this->draft_client_id) {
+                    $client = CAClient::findOrFail($this->draft_client_id);
+                    $data['current_step'] = 2;
+                    $clientService->updateClient($actor, $client, $data);
+                } else {
+                    $client = $clientService->createClient($actor, $data, null);
+                    $this->draft_client_id = $client->id;
+                    $client->update(['current_step' => 2]);
+                }
+            } catch (Exception $e) {
+                $this->addError('phone', $e->getMessage());
                 return;
             }
         }
 
-        if ($this->step === 4) { // WAS 5
+        // Save Draft Step 2
+        if ($this->step === 2) {
+            if ($this->draft_client_id) {
+                $client = CAClient::findOrFail($this->draft_client_id);
+                $clientService->updateClient($actor, $client, [
+                    'ca_business_type_id' => $this->business_type_id,
+                    'current_step' => 3
+                ]);
+            }
+        }
+
+        if ($this->step === 3) {
+            if (empty($this->selectedCompliances)) {
+                $this->addError('selectedCompliances', 'Please select at least one compliance requirement.');
+                return;
+            }
+            if ($this->draft_client_id) {
+                $client = CAClient::findOrFail($this->draft_client_id);
+                $clientService->updateClient($actor, $client, ['current_step' => 4]);
+                // Note: assignments are persisted finally or here as draft assignments.
+                // For now, we will assign them at step 3, but the actual submit at 5 wraps it up.
+                // It's safer to persist them right before step 4 so requirements show up.
+                $clientService->assignCompliances($actor, $client, $this->selectedCompliances);
+            }
+        }
+
+        if ($this->step === 4) {
             // Validate collectedData against 'Required Now' expected documents
             $requiredDocs = $this->expectedDocuments['Required Now'] ?? collect();
             foreach ($requiredDocs as $doc) {
@@ -106,9 +204,13 @@ class ClientOnboardingWizard extends Component
                     return;
                 }
             }
+            if ($this->draft_client_id) {
+                $client = CAClient::findOrFail($this->draft_client_id);
+                $clientService->updateClient($actor, $client, ['current_step' => 5]);
+            }
         }
 
-        if ($this->step === 5) { // WAS 6
+        if ($this->step === 5) {
             $this->submit();
             return;
         }
@@ -121,6 +223,10 @@ class ClientOnboardingWizard extends Component
     {
         if ($this->step > 1) {
             $this->step--;
+            if ($this->draft_client_id) {
+                $client = CAClient::findOrFail($this->draft_client_id);
+                $client->update(['current_step' => $this->step]);
+            }
             $this->js('document.querySelector("main").scrollTo({ top: 0, behavior: "smooth" })');
         }
     }
@@ -128,106 +234,50 @@ class ClientOnboardingWizard extends Component
     public function setStep($step)
     {
         $this->step = $step;
+        if ($this->draft_client_id) {
+            $client = CAClient::findOrFail($this->draft_client_id);
+            $client->update(['current_step' => $this->step]);
+        }
         $this->js('document.querySelector("main").scrollTo({ top: 0, behavior: "smooth" })');
     }
 
     public function loadIntelligence()
     {
-        sleep(2); // Artificial delay to ensure the AI animation plays
-
+        // Removed artificial sleep(2)
         $this->ai_error = null;
         $businessType = CABusinessType::find($this->business_type_id);
         
         try {
             $aiService = app(\Modules\CA\Services\AI\KnowledgeEngineService::class);
+            $persistenceService = app(\Modules\CA\Services\ComplianceKnowledgePersistenceService::class);
+
             $intelligence = $aiService->generateComplianceKnowledge($businessType->name);
             $this->aiSuggestedCompliances = $intelligence ?? [];
             
-            // Populate database based on AI response
-            if (!empty($intelligence) && isset($intelligence['service_categories'])) {
-                $totalAiItems = 0;
-                foreach ($intelligence['service_categories'] as $catData) {
-                    $category = CAServiceCategory::firstOrCreate(
-                        ['slug' => \Illuminate\Support\Str::slug($catData['name'])],
-                        [
-                            'name' => $catData['name'],
-                            'description' => $catData['description'] ?? null,
-                            'sort_order' => 0
-                        ]
-                    );
-
-                    foreach ($catData['compliances'] as $compData) {
-                        $compliance = CACompliance::firstOrCreate(
-                            ['slug' => \Illuminate\Support\Str::slug($compData['name'])],
-                            [
-                                'ca_service_category_id' => $category->id,
-                                'name' => $compData['name'],
-                                'description' => $compData['description'] ?? null,
-                                'is_recurring' => $compData['is_recurring'] ?? false,
-                            ]
-                        );
-                        
-                        // Save requirements (documents)
-                        if (isset($compData['requirements']) && is_array($compData['requirements'])) {
-                            foreach ($compData['requirements'] as $reqData) {
-                                \Modules\CA\Models\CAComplianceRequirement::firstOrCreate(
-                                    [
-                                        'ca_compliance_id' => $compliance->id,
-                                        'slug' => \Illuminate\Support\Str::slug($reqData['name'])
-                                    ],
-                                    [
-                                        'name' => $reqData['name'],
-                                        'description' => $reqData['description'] ?? null,
-                                        'requirement_type' => $reqData['requirement_type'] ?? 'document',
-                                        'input_type' => $reqData['input_type'] ?? 'file',
-                                        'is_required' => $reqData['is_required'] ?? true,
-                                        'required_when' => $reqData['required_when'] ?? 'Required Now',
-                                    ]
-                                );
-                            }
-                        }
-
-                        // Save master deadlines
-                        $hasDeadlineData = isset($compData['frequency']) || isset($compData['due_day']) || isset($compData['due_month']);
-                        if ($hasDeadlineData) {
-                            $frequency = $compData['frequency'] ?? 'one_time';
-                            $dueDay = $compData['due_day'] ?? null;
-                            $dueMonth = $compData['due_month'] ?? null;
-                            $desc = $compData['name'] . ' Due';
-
-                            if (!empty($compData['deadlines']) && is_array($compData['deadlines'])) {
-                                $desc = $compData['deadlines'][0]['deadline_name'] ?? $desc;
-                            }
-
-                            \Modules\CA\Models\CAComplianceDeadline::firstOrCreate(
-                                [
-                                    'ca_compliance_id' => $compliance->id,
-                                    'frequency' => $frequency,
-                                    'description' => $desc,
-                                ],
-                                [
-                                    'due_day' => $dueDay,
-                                    'due_month' => $dueMonth,
-                                    'reminder_window' => 15,
-                                    'status' => 'active',
-                                ]
-                            );
-                        }
-
-                        $businessType->compliances()->syncWithoutDetaching([$compliance->id]);
-                        $totalAiItems++;
-                    }
-                }
-                
-                session()->flash('ai_success', "AI successfully generated {$totalAiItems} compliance requirements for this business type.");
+            if (!empty($intelligence)) {
+                $totalAiItems = $persistenceService->persistKnowledge($businessType, $intelligence);
+                session()->flash('ai_success', "AI successfully processed compliance requirements.");
             }
         } catch (Exception $e) {
             Log::error("Failed to load AI intelligence: " . $e->getMessage());
-            $this->ai_error = "AI Intelligence failed to load: " . $e->getMessage();
-            // Fallback: we still load database mapped compliances if AI fails
+            $this->ai_error = "AI Intelligence failed to load. Falling back to saved mapped compliances.";
         }
 
-        // Group compliances for display based on db mappings
+        $this->loadGroupedCompliances();
+        
+        // Ensure user must manually select what applies
+        if (empty($this->selectedCompliances)) {
+             $this->selectedCompliances = [];
+        }
+        
+        $this->isIntelligenceLoaded = true;
+    }
+
+    private function loadGroupedCompliances()
+    {
+        $businessType = CABusinessType::find($this->business_type_id);
+        if (!$businessType) return;
+
         $this->groupedCompliances = CAServiceCategory::with(['compliances' => function($q) use ($businessType) {
             $q->whereHas('businessTypes', function($sq) use ($businessType) {
                 $sq->where('ca_business_types.id', $businessType->id);
@@ -237,11 +287,95 @@ class ClientOnboardingWizard extends Component
                 $sq->where('ca_business_types.id', $businessType->id);
             })->where('status', 'active');
         })->orderBy('sort_order')->get();
+    }
 
-        // User must manually select the ones that apply to this business type
-        $this->selectedCompliances = [];
+    public function openRecurrenceModal($reqId)
+    {
+        $this->configuringRequirementId = $reqId;
+        $existing = $this->recurrenceConfigs[$reqId] ?? [];
+        $this->configureFrequency = $existing['frequency'] ?? '';
+        $this->configureConfig = $existing['config'] ?? [];
         
-        $this->isIntelligenceLoaded = true;
+        if ($this->configureFrequency === 'weekly' && !isset($this->configureConfig['days'])) {
+            $this->configureConfig['days'] = [];
+        }
+        
+        $this->updateNextDueDatePreview();
+    }
+
+    public function closeRecurrenceModal()
+    {
+        $this->configuringRequirementId = null;
+        $this->configureFrequency = '';
+        $this->configureConfig = [];
+        $this->configureNextDueDatePreview = null;
+        $this->resetErrorBag(['configureFrequency', 'configureConfig.*']);
+    }
+
+    public function updatedConfigureFrequency()
+    {
+        $this->configureConfig = [];
+        if ($this->configureFrequency === 'weekly') {
+            $this->configureConfig['days'] = [];
+        }
+        $this->updateNextDueDatePreview();
+    }
+
+    public function updatedConfigureConfig()
+    {
+        $this->updateNextDueDatePreview();
+    }
+
+    public function updateNextDueDatePreview()
+    {
+        if (empty($this->configureFrequency) || empty($this->configureConfig)) {
+            $this->configureNextDueDatePreview = null;
+            return;
+        }
+        
+        $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+        $nextDate = $deadlineService->calculateNextDueDate($this->configureFrequency, $this->configureConfig);
+        $this->configureNextDueDatePreview = $nextDate ? $nextDate->format('d M Y') : null;
+    }
+
+    public function saveRecurrenceModal()
+    {
+        $freq = $this->configureFrequency;
+        $config = $this->configureConfig;
+        $this->resetErrorBag(['configureFrequency', 'configureConfig.*']);
+        
+        if (empty($freq)) {
+            $this->addError('configureFrequency', 'Select a frequency.');
+            return;
+        }
+
+        if ($freq === 'weekly' && empty($config['days'])) {
+            $this->addError('configureConfig.days', 'Select at least one day.');
+            return;
+        } elseif ($freq === 'monthly' && empty($config['day_of_month'])) {
+            $this->addError('configureConfig.day_of_month', 'Select a day of the month.');
+            return;
+        } elseif ($freq === 'quarterly' && (empty($config['quarter_type']) || !isset($config['due_days_after_quarter_end']))) {
+            $this->addError('configureConfig.quarter_type', 'Select quarter type and due days.');
+            return;
+        } elseif ($freq === 'yearly' && (empty($config['month']) || empty($config['day']))) {
+            $this->addError('configureConfig.month', 'Select month and day.');
+            return;
+        } elseif ($freq === 'custom' && empty($config['interval'])) {
+            $this->addError('configureConfig.interval', 'Enter repeat interval.');
+            return;
+        }
+
+        $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+        $nextDate = $deadlineService->calculateNextDueDate($this->configureFrequency, $this->configureConfig);
+
+        $this->recurrenceConfigs[$this->configuringRequirementId] = [
+            'frequency' => $this->configureFrequency,
+            'config' => $this->configureConfig,
+            'next_due_date' => $nextDate ? $nextDate->toDateString() : null,
+        ];
+        
+        $this->closeRecurrenceModal();
     }
 
     public function getExpectedDocumentsProperty()
@@ -261,41 +395,108 @@ class ClientOnboardingWizard extends Component
             })
             ->values()
             ->groupBy(function($item) {
-                return $item->required_when ?? 'Required Now';
+                if ($item->is_recurring) {
+                    return 'Recurring Tracking';
+                }
+                return $item->is_required ? 'Required Now' : 'Required Later';
             });
     }
 
     public function submit()
     {
         $clientService = app(CAClientService::class);
-        
         $actor = Auth::user();
 
         try {
-            // 1. Create client
-            $client = $clientService->createClient($actor, [
-                'client_name' => $this->client_name,
-                'phone' => $this->country_code . $this->phone,
-                'email' => $this->email,
-                'address' => $this->address,
-                'city' => $this->city,
-                'state' => $this->state,
-                'country' => $this->country,
-                'notes' => $this->notes,
-            ], $this->business_type_id);
+            if ($this->draft_client_id) {
+                $client = CAClient::findOrFail($this->draft_client_id);
+                
+                // Completing the onboarding
+                $clientService->completeOnboarding($actor, $client);
+                
+                // Save recurrence configurations
+                if (!empty($this->recurrenceConfigs)) {
+                    $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+                    foreach ($this->recurrenceConfigs as $reqId => $data) {
+                        if (!empty($data['frequency']) && !empty($data['next_due_date'])) {
+                            $requirements = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function ($q) use ($client) {
+                                $q->where('ca_client_id', $client->id);
+                            })->where('ca_compliance_requirement_id', $reqId)->get();
 
-            // 2. Assign compliances
-            if (!empty($this->selectedCompliances)) {
-                $clientService->assignCompliances($actor, $client, $this->selectedCompliances);
+                            foreach ($requirements as $requirement) {
+                                if ($requirement->is_recurring) {
+                                    $requirement->update([
+                                        'recurrence_frequency' => $data['frequency'],
+                                        'recurrence_config' => $data['config'] ?? null,
+                                        'next_due_date' => $data['next_due_date'],
+                                    ]);
+                                    $deadlineService->generateRecurringDeadlines($requirement);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $documentService = app(\Modules\CA\Services\DocumentService::class);
+                $timelineService = app(\Modules\CA\Services\ComplianceTimelineService::class);
+                
+                $clientRequirements = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function ($q) use ($client) {
+                    $q->where('ca_client_id', $client->id);
+                })->get();
+
+                foreach ($this->collectedData as $masterReqId => $value) {
+                    if (empty($value)) continue;
+
+                    $reqs = $clientRequirements->where('ca_compliance_requirement_id', $masterReqId);
+                    foreach($reqs as $req) {
+                        if ($value instanceof \Illuminate\Http\UploadedFile) {
+                            $doc = $documentService->storeDocument($value, $actor, [
+                                'ca_client_id' => $client->id,
+                                'ca_client_compliance_id' => $req->ca_client_compliance_id,
+                                'ca_client_compliance_requirement_id' => $req->id,
+                                'document_name' => $req->name,
+                            ]);
+                            $req->update([
+                                'status' => 'uploaded',
+                                'submitted_at' => now(),
+                            ]);
+                            $timelineService->logEvent(
+                                $actor->company_id,
+                                $client->id,
+                                'document_uploaded',
+                                'Document Uploaded',
+                                "Uploaded file for {$req->name}",
+                                $req->ca_client_compliance_id,
+                                $req->id,
+                                $doc->id,
+                                $actor
+                            );
+                        } else {
+                            $req->update([
+                                'status' => 'uploaded',
+                                'submitted_at' => now(),
+                                'metadata_json' => array_merge($req->metadata_json ?? [], ['collected_data' => $value])
+                            ]);
+                            $timelineService->logEvent(
+                                $actor->company_id,
+                                $client->id,
+                                'data_submitted',
+                                'Data Submitted',
+                                "Provided details for {$req->name}",
+                                $req->ca_client_compliance_id,
+                                $req->id,
+                                null,
+                                $actor
+                            );
+                        }
+                    }
+                }
+
+                session()->flash('message', 'Client successfully onboarded!');
+                return redirect()->route('ca.clients.show', $client->id);
             }
-
-            session()->flash('message', 'Client successfully onboarded!');
-            
-            // Redirect to detail page
-            return redirect()->route('ca.clients.show', $client->id);
-            
         } catch (Exception $e) {
-            session()->flash('error', 'Error onboarding client: ' . $e->getMessage());
+            session()->flash('error', 'Error completing onboarding: ' . $e->getMessage());
         }
     }
 

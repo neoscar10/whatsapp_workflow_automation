@@ -29,6 +29,7 @@ class RequirementSnapshotService
                     'requirement_type' => $masterReq->requirement_type,
                     'input_type' => $masterReq->input_type,
                     'is_required' => $masterReq->is_required,
+                    'is_recurring' => $masterReq->is_recurring,
                     'status' => 'pending',
                 ]
             );

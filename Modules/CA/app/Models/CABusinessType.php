@@ -19,6 +19,10 @@ class CABusinessType extends Model
         'status',
     ];
 
+    protected $casts = [
+        'metadata_json' => 'array',
+    ];
+
     public function compliances(): BelongsToMany
     {
         return $this->belongsToMany(CACompliance::class, 'ca_business_type_compliance', 'ca_business_type_id', 'ca_compliance_id');

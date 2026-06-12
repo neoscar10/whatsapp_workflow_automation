@@ -54,4 +54,9 @@ class CAClientCompliance extends Model
     {
         return $this->hasMany(CADocument::class, 'ca_client_compliance_id');
     }
+
+    public function timelines()
+    {
+        return $this->hasMany(CAComplianceTimeline::class, 'ca_client_compliance_id')->orderBy('created_at', 'desc');
+    }
 }

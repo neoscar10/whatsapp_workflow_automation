@@ -19,20 +19,30 @@ class CAClientComplianceRequirement extends Model
         'requirement_type',
         'input_type',
         'is_required',
+        'is_recurring',
+        'required_stage',
+        'recurrence_frequency',
+        'recurrence_config',
         'status',
         'is_completed',
         'due_date',
+        'next_due_date',
         'submitted_at',
         'approved_at',
         'remarks',
+        'metadata_json',
     ];
 
     protected $casts = [
         'is_required' => 'boolean',
+        'is_recurring' => 'boolean',
         'is_completed' => 'boolean',
         'due_date' => 'date',
+        'next_due_date' => 'date',
         'submitted_at' => 'datetime',
         'approved_at' => 'datetime',
+        'recurrence_config' => 'array',
+        'metadata_json' => 'array',
     ];
 
     public function clientCompliance(): BelongsTo

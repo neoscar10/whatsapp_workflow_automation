@@ -82,6 +82,10 @@
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex items-center gap-1.5 w-fit">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
                                     </span>
+                                @elseif($client->status === 'draft')
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 flex items-center gap-1.5 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Draft
+                                    </span>
                                 @else
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 flex items-center gap-1.5 w-fit">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> {{ ucfirst($client->status) }}
@@ -89,9 +93,15 @@
                                 @endif
                             </td>
                             <td class="p-4 text-right">
-                                <a href="{{ route('ca.clients.show', $client->id) }}" class="inline-flex p-2 text-slate-400 hover:text-primary dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all" title="View Profile">
-                                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                                </a>
+                                @if($client->status === 'draft')
+                                    <a href="{{ route('ca.clients.onboard', ['draft_id' => $client->id]) }}" class="inline-flex p-2 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all" title="Resume Onboarding">
+                                        <span class="material-symbols-outlined text-[20px]">edit_document</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('ca.clients.show', $client->id) }}" class="inline-flex p-2 text-slate-400 hover:text-primary dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all" title="View Profile">
+                                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                     @empty

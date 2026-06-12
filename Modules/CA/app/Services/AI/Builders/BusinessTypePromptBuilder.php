@@ -21,9 +21,6 @@ Return the response STRICTLY as a JSON object with the following structure:
                     "name": "Compliance Name (e.g., GST Registration)",
                     "description": "What is this compliance about?",
                     "is_recurring": false,
-                    "frequency": "one_time", // options: monthly, quarterly, half_yearly, annually, one_time
-                    "due_month": null, // integer 1-12 (null if not applicable)
-                    "due_day": null, // integer 1-31 (null if not applicable)
                     "requirements": [
                         {
                             "name": "PAN Card",
@@ -31,31 +28,20 @@ Return the response STRICTLY as a JSON object with the following structure:
                             "requirement_type": "document", // document, text, date, number, boolean
                             "input_type": "file", // file, image, pdf, text, textarea, date, select, checkbox, multi_file
                             "is_required": true,
-                            "is_recurring": false,
-                            "required_when": "Required Now", // "Required Now" or "Required Later"
-                            "document_type": {
-                                "name": "PAN Card",
-                                "category": "Identity",
-                                "allowed_extensions": ["pdf", "jpg", "png"],
-                                "allowed_mime_types": ["application/pdf", "image/jpeg", "image/png"],
-                                "preview_type": "image"
-                            },
+                            "is_recurring": false, // Must be true or false
+                            "required_stage": "onboarding", // "onboarding", "post_onboarding", or "both" (default to onboarding if is_recurring=false, post_onboarding if is_recurring=true)
+                            "document_type": "pan_card", // standard document type key if applicable
                             "validation_notes": "Must be clear and legible."
                         }
                     ],
-                    "deadlines": [
-                        {
-                            "deadline_name": "GST Registration Due",
-                            "deadline_type": "Statutory",
-                            "due_date_rule": "Within 30 days of crossing threshold"
-                        }
-                    ]
+                    "deadlines": []
                 }
             ]
         }
     ]
 }
 Do not include any markdown formatting, only raw valid JSON.
+Note: You must NOT specify frequency, due_month, or due_day for compliances. CA firms will configure recurrence frequencies manually. AI should only identify if a requirement is recurring or not.
 PROMPT;
     }
 }

@@ -11,6 +11,10 @@ use Modules\CA\Events\ClientUpdated;
 use Modules\CA\Events\ClientDeleted;
 use Modules\CA\Events\CompliancesAssigned;
 use Illuminate\Support\Facades\DB;
+use App\Support\PhoneNumberNormalizer;
+use App\Models\Contact\Contact;
+use Modules\CA\Services\RequirementSnapshotService;
+use Modules\CA\Services\DeadlineService;
 use Exception;
 
 class CAClientService
@@ -25,24 +29,29 @@ class CAClientService
     /**
      * Create a new CA Client and sync with the Contact module.
      */
-    public function createClient(User $actor, array $data, int $businessTypeId): CAClient
+    public function createClient(User $actor, array $data, ?int $businessTypeId = null): CAClient
     {
         return DB::transaction(function () use ($actor, $data, $businessTypeId) {
             // 1. Synchronize/Create Contact
             $contact = null;
             if (!empty($data['phone'])) {
-                try {
+                $normalizedPhone = PhoneNumberNormalizer::normalize($data['phone']);
+                $contact = Contact::where('company_id', $actor->company_id)
+                    ->where('normalized_phone', $normalizedPhone)
+                    ->first();
+
+                if ($contact) {
+                    // Update notes if linking
+                    $contact->update([
+                        'notes' => trim($contact->notes . "\nLinked to CA Client Onboarding")
+                    ]);
+                } else {
                     $contact = $this->contactService->create($actor, [
                         'name' => $data['client_name'],
                         'phone' => $data['phone'],
                         'source' => 'ca_onboarding',
                         'notes' => 'Created via CA Client Onboarding'
                     ]);
-                } catch (Exception $e) {
-                    // Contact might exist, we could fetch it, but for strict MVP we let exception bubble 
-                    // or handle the 'phone exists' gracefully.
-                    // For now, assume we create a new one. If exception, bubble up.
-                    throw $e;
                 }
             }
 
@@ -59,7 +68,9 @@ class CAClientService
                 'state' => $data['state'] ?? null,
                 'country' => $data['country'] ?? null,
                 'notes' => $data['notes'] ?? null,
-                'status' => 'active',
+                'status' => 'draft',
+                'current_step' => 1,
+                'onboarding_status' => 'in_progress',
                 'created_by' => $actor->id,
             ]);
 
@@ -69,7 +80,21 @@ class CAClientService
             return $client;
         });
     }
+    /**
+     * Mark a draft client as completed.
+     */
+    public function completeOnboarding(User $actor, CAClient $client): void
+    {
+        if ($client->company_id !== $actor->company_id) {
+            throw new Exception("Unauthorized access to client.");
+        }
 
+        $client->update([
+            'status' => 'active',
+            'onboarding_status' => 'completed',
+            'onboarding_completed_at' => now(),
+        ]);
+    }
     /**
      * Update an existing CA Client
      */

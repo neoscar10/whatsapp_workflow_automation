@@ -147,90 +147,16 @@
                 @if($step === 2)
                     <!-- Step 2: Business Type -->
                     <div class="animate-fade-in">
+                    <div class="animate-fade-in">
                         @php
-                            $businessDetails = [
-                                'Hindu Undivided Family (HUF)' => [ 
-                                    'icon' => 'family_restroom', 'title' => 'Hindu Undivided Family (HUF)', 
-                                    'services' => ['PAN/TAN Registration', 'Tax Planning', 'ITR Filing'], 
-                                    'docs' => ['HUF Deed', 'Karta ID', 'Bank Statement'], 
-                                    'time' => '3-5 Business Days',
-                                    'description' => 'A separate tax entity formed automatically by members of a Hindu family, managed by the Karta.',
-                                    'advantages' => ['Separate tax exemption limit', 'Can pool family assets'],
-                                    'ideal_for' => 'Traditional families with joint businesses or ancestral property.'
-                                ],
-                                'Limited Liability Partnership (LLP)' => [ 
-                                    'icon' => 'account_balance_wallet', 'title' => 'Limited Liability Partnership', 
-                                    'services' => ['LLP Incorporation', 'RoC Compliance', 'Agreements'], 
-                                    'docs' => ['LLP Agreement', 'DPIN Proofs', 'Office Address'], 
-                                    'time' => '10-14 Business Days',
-                                    'description' => 'An alternative corporate business form that gives the benefits of limited liability of a company and the flexibility of a partnership.',
-                                    'advantages' => ['Limited liability for partners', 'Lower compliance burden than a company', 'No minimum capital requirement'],
-                                    'ideal_for' => 'Professional services firms and small-to-medium enterprises.'
-                                ],
-                                'One Person Company (OPC)' => [ 
-                                    'icon' => 'person', 'title' => 'One Person Company', 
-                                    'services' => ['OPC Registration', 'Director DIN', 'GST Registration'], 
-                                    'docs' => ['ID Proof', 'Address Proof', 'Nominee Details'], 
-                                    'time' => '7-10 Business Days',
-                                    'description' => 'A company structure tailored for solo entrepreneurs, providing limited liability protection while allowing a single individual to act as both director and shareholder.',
-                                    'advantages' => ['Limited liability protection', 'Separate legal entity status', 'Easier to raise funds than a proprietorship'],
-                                    'ideal_for' => 'Solo founders looking to formalize their business structure.'
-                                ],
-                                'Partnership Firm' => [ 
-                                    'icon' => 'groups', 'title' => 'Partnership Firm', 
-                                    'services' => ['Partnership Deed', 'Firm Registration', 'Tax Compliance'], 
-                                    'docs' => ['Deed Copy', 'Partners ID', 'Rent Agreement'], 
-                                    'time' => '8-12 Business Days',
-                                    'description' => 'A business structure where two or more individuals manage and operate a business in accordance with the terms and objectives set out in a Partnership Deed.',
-                                    'advantages' => ['Easy to form', 'Shared responsibility', 'Minimal compliance requirements'],
-                                    'ideal_for' => 'Small businesses and home-based businesses with multiple co-owners.'
-                                ],
-                                'Private Limited Company' => [ 
-                                    'icon' => 'business', 'title' => 'Private Limited Company', 
-                                    'services' => ['RoC Filing', 'Corporate Governance', 'Board Resolutions'], 
-                                    'docs' => ['AoA / MoA', 'Director DIN', 'PAN/TAN'], 
-                                    'time' => '7-10 Business Days',
-                                    'description' => 'The most popular corporate entity in India, offering limited liability, separate legal entity status, and the ability to raise equity funding from investors.',
-                                    'advantages' => ['Limited liability for shareholders', 'High credibility with investors and banks', 'Perpetual existence'],
-                                    'ideal_for' => 'Startups and growing businesses seeking external investments.'
-                                ],
-                                'Proprietorship' => [ 
-                                    'icon' => 'store', 'title' => 'Proprietorship', 
-                                    'services' => ['GST Registration', 'Trade License', 'MSME Registration'], 
-                                    'docs' => ['Address Proof', 'Shop Photo', 'PAN Card'], 
-                                    'time' => '5-7 Business Days',
-                                    'description' => 'An unincorporated business with a single owner who pays personal income tax on profits earned from the business. The easiest to set up but offers no liability protection.',
-                                    'advantages' => ['Complete control over operations', 'No separate corporate taxes', 'Minimal compliance burden'],
-                                    'ideal_for' => 'Freelancers, consultants, and very small retail traders.'
-                                ],
-                                'Public Limited Company' => [ 
-                                    'icon' => 'location_city', 'title' => 'Public Limited Company', 
-                                    'services' => ['IPO Advisory', 'SEBI Compliance', 'Secretarial Audit'], 
-                                    'docs' => ['AoA / MoA', 'Directors KYC', 'Prospectus'], 
-                                    'time' => '15-30 Business Days',
-                                    'description' => 'A corporate structure whose ownership is distributed amongst general public shareholders via freely traded shares.',
-                                    'advantages' => ['Ability to raise capital from the public', 'High public transparency', 'Increased brand visibility'],
-                                    'ideal_for' => 'Large-scale enterprises planning for rapid expansion or an IPO.'
-                                ],
-                                'Section 8 Company' => [ 
-                                    'icon' => 'volunteer_activism', 'title' => 'Section 8 Company', 
-                                    'services' => ['Section 8 Registration', '80G & 12A Exemption', 'Annual Compliance'], 
-                                    'docs' => ['Objective Proofs', 'Founders KYC', 'Utility Bill'], 
-                                    'time' => '20-25 Business Days',
-                                    'description' => 'A Non-Governmental Organization (NGO) registered as a company for promoting commerce, art, science, sports, education, research, social welfare, or charity.',
-                                    'advantages' => ['Tax exemptions for donors (80G)', 'No minimum capital requirement', 'Corporate structure credibility'],
-                                    'ideal_for' => 'Non-profit organizations, charities, and social welfare groups.'
-                                ],
-                                'Trust / Society / NGO' => [ 
-                                    'icon' => 'volunteer_activism', 'title' => 'NGO / Trust / Society', 
-                                    'services' => ['Trust Registration', 'FCRA Registration', 'Donation Planning'], 
-                                    'docs' => ['Trust Deed', 'Bylaws', 'Donor Proofs'], 
-                                    'time' => '15-20 Business Days',
-                                    'description' => 'A traditional non-profit setup created through a Trust Deed or Society Registration Act for charitable purposes.',
-                                    'advantages' => ['Easy registration process', 'Flexibility in operations', 'Family members can be trustees'],
-                                    'ideal_for' => 'Educational institutions, hospitals, and traditional charitable foundations.'
-                                ],
-                            ];
+                            $businessDetails = $businessTypes->keyBy('name')->map(function($t) {
+                                return array_merge([
+                                    'icon' => $t->icon ?? 'domain',
+                                    'title' => $t->name,
+                                    'description' => $t->long_description ?? $t->description,
+                                    'time' => $t->estimated_setup_time ?? 'N/A'
+                                ], is_array($t->metadata_json) ? $t->metadata_json : []);
+                            })->toArray();
                         @endphp
 
                         <div x-data='{ 
@@ -527,8 +453,15 @@
                                                             : 'border-[#c2c6d8]/30 dark:border-slate-700 hover:border-blue-600/50 dark:hover:border-blue-500/50 hover:shadow-lg' }}">
                                                         
                                                         <div class="flex items-start justify-between gap-3 w-full">
-                                                            <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
-                                                                <h5 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words flex-1 min-w-0">{{ $compliance->name }}</h5>
+                                                            <div class="flex flex-col gap-2 flex-1 min-w-0 pr-2">
+                                                                <h5 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $compliance->name }}</h5>
+                                                                <div class="flex">
+                                                                    @if($compliance->is_recurring)
+                                                                        <span class="bg-blue-100 text-blue-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-blue-900/30 dark:text-blue-400 shrink-0">Recurring</span>
+                                                                    @else
+                                                                        <span class="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-slate-800 dark:text-slate-400 shrink-0">One-Time</span>
+                                                                    @endif
+                                                                </div>
                                                             </div>
                                                             
                                                             <div class="shrink-0 mt-0.5">
@@ -598,6 +531,43 @@
                                             </div>
                                         </div>
 
+                                        <!-- Document Requirements Preview -->
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-4 mt-6">
+                                                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[20px]">folder_open</span>
+                                                <h4 class="font-medium text-sm font-bold text-[#424656] dark:text-slate-300 uppercase tracking-wider">Required Documents</h4>
+                                            </div>
+                                            
+                                            <div class="space-y-4">
+                                                @if(count($this->expectedDocuments) > 0)
+                                                    @foreach($this->expectedDocuments as $groupName => $docs)
+                                                        <div class="bg-white dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl p-3 shadow-sm">
+                                                            <h5 class="text-[11px] uppercase tracking-widest {{ $groupName === 'Recurring Tracking' ? 'text-teal-600 dark:text-teal-400' : 'text-blue-600 dark:text-blue-400' }} font-bold mb-2 flex items-center gap-2">
+                                                                @if($groupName === 'Recurring Tracking')
+                                                                    <span class="material-symbols-outlined text-[14px]">event_repeat</span>
+                                                                @else
+                                                                    <span class="material-symbols-outlined text-[14px]">assignment</span>
+                                                                @endif
+                                                                {{ $groupName }}
+                                                            </h5>
+                                                            <ul class="space-y-2">
+                                                                @foreach($docs as $doc)
+                                                                    <li class="flex items-start gap-2">
+                                                                        <span class="material-symbols-outlined text-[14px] text-[#727687] dark:text-slate-500 mt-0.5">description</span>
+                                                                        <div>
+                                                                            <span class="font-sans text-[13px] text-[#1c1b1b] dark:text-slate-300 font-medium leading-tight">{{ $doc->name }}</span>
+                                                                        </div>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <p class="text-xs text-[#727687] dark:text-slate-500 italic">Select services to preview required documents.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+
                                         <!-- Onboarding Complexity -->
                                         <div>
                                             @php
@@ -637,12 +607,12 @@
 
                     <!-- Bottom Bar -->
                     <div class="mt-10 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <button type="button" wire:click="$set('step', 2)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                        <button type="button" wire:click="$set('step', 2)" class="flex items-center gap-2 px-6 py-3 cursor-pointer rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
                             <span class="material-symbols-outlined">arrow_back</span>
                             Back
                         </button>
                         
-                        <button type="button" wire:click="nextStep" class="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" {{ count($selectedCompliances) == 0 ? 'disabled' : '' }}>
+                        <button type="button" wire:click="nextStep" class="w-full md:w-auto px-10 py-3.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" {{ count($selectedCompliances) == 0 ? 'disabled' : '' }}>
                             Continue to Documents
                             <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
@@ -655,15 +625,17 @@
                     <div class="animate-fade-in pb-32">
                         @php
                             $requiredNowDocs = $this->expectedDocuments['Required Now'] ?? collect();
-                            $collectedCount = collect($this->collectedData)->filter(fn($val) => !empty($val))->count();
-                            $totalCount = $requiredNowDocs->count();
-                            $totalRequiredCount = $requiredNowDocs->where('is_required', true)->count();
+                            $requiredLaterDocs = $this->expectedDocuments['Required Later'] ?? collect();
+                            $recurringDocs = $this->expectedDocuments['Recurring Tracking'] ?? collect();
+                            
+                            $totalCount = $requiredNowDocs->count() + $requiredLaterDocs->count() + $recurringDocs->count();
+                            $totalRequiredCount = $requiredNowDocs->count();
                             
                             $collectedCount = collect($this->collectedData)->filter(fn($val) => !empty($val))->count();
                             
                             $collectedRequiredCount = 0;
                             foreach ($requiredNowDocs as $doc) {
-                                if ($doc->is_required && !empty($this->collectedData[$doc->id])) {
+                                if (!empty($this->collectedData[$doc->id])) {
                                     $collectedRequiredCount++;
                                 }
                             }
@@ -686,13 +658,16 @@
                                         <p class="text-[#424656] dark:text-slate-400">You can proceed to complete the onboarding process.</p>
                                     </div>
                                 @else
-                                    <section>
-                                        <h2 class="text-[20px] font-bold text-[#1c1b1b] dark:text-white mb-4 flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">task</span>
-                                            Required Information
-                                        </h2>
+                                    <section x-data="{ open: true }">
+                                        <div @click="open = !open" class="flex items-center justify-between cursor-pointer mb-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors select-none">
+                                            <h2 class="text-[20px] font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">task</span>
+                                                Required Information
+                                            </h2>
+                                            <span class="material-symbols-outlined text-[#727687] dark:text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                                        </div>
                                         
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div x-show="open" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             @foreach($requiredNowDocs as $doc)
                                                 <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md p-5 rounded-2xl flex flex-col gap-4 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 dark:border-green-500/30' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} hover:shadow-md transition-all">
                                                     <div class="flex items-start justify-between gap-3 w-full">
@@ -758,6 +733,140 @@
                                             @endforeach
                                         </div>
                                     </section>
+
+                                    @if($requiredLaterDocs->count() > 0)
+                                    <section class="mt-8" x-data="{ open: true }">
+                                        <div @click="open = !open" class="flex items-center justify-between cursor-pointer mb-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors select-none">
+                                            <h2 class="text-[20px] font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-[#727687] dark:text-slate-400">inventory_2</span>
+                                                Optional Information
+                                            </h2>
+                                            <span class="material-symbols-outlined text-[#727687] dark:text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                                        </div>
+                                        
+                                        <div x-show="open" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            @foreach($requiredLaterDocs as $doc)
+                                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md p-5 rounded-2xl flex flex-col gap-4 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 dark:border-green-500/30' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} hover:shadow-md transition-all">
+                                                    <div class="flex items-start justify-between gap-3 w-full">
+                                                        <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
+                                                            <div class="flex flex-col gap-1 flex-1 min-w-0 pr-2">
+                                                                <div class="flex items-center gap-2">
+                                                                    <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
+                                                                    <span class="bg-slate-100 text-slate-500 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-slate-700 dark:text-slate-400 shrink-0">Optional</span>
+                                                                </div>
+                                                                @if(!empty($doc->compliance_names))
+                                                                    <span class="inline-block w-full bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-1 rounded-md border border-slate-100 dark:border-slate-800 font-medium whitespace-normal" title="{{ $doc->compliance_names }}">Optional for: {{ $doc->compliance_names }}</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="shrink-0 mt-0.5">
+                                                            @if(!empty($collectedData[$doc->id]))
+                                                                <span class="material-symbols-outlined text-green-600" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                                            @else
+                                                                <span class="bg-[#f0eded] dark:bg-slate-700 text-[#727687] dark:text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Optional</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <p class="font-mono text-xs text-[#727687] dark:text-slate-400 leading-relaxed mt-1">{{ $doc->description ?? 'Not strictly required right now.' }}</p>
+
+                                                    <div class="mt-2">
+                                                        @if(in_array($doc->input_type, ['file', 'pdf', 'image', 'multi_file']))
+                                                            <div class="relative">
+                                                                <input type="file" wire:model.live="collectedData.{{ $doc->id }}" id="doc_{{ $doc->id }}" class="hidden" />
+                                                                <label for="doc_{{ $doc->id }}" class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 bg-green-500/5' : 'border-[#c2c6d8] dark:border-slate-600 bg-[#f6f3f2] dark:bg-slate-900/50 hover:bg-[#f0eded] dark:hover:bg-slate-800' }} rounded-xl cursor-pointer transition-colors group">
+                                                                    @if(!empty($collectedData[$doc->id]))
+                                                                        <div class="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium text-sm">
+                                                                            <span class="material-symbols-outlined">description</span>
+                                                                            File Selected
+                                                                        </div>
+                                                                    @else
+                                                                        <div class="flex items-center gap-2 text-[#727687] dark:text-slate-400 font-medium text-sm group-hover:scale-105 transition-transform">
+                                                                            <span class="material-symbols-outlined text-[18px]">upload</span>
+                                                                            Click to Upload
+                                                                        </div>
+                                                                    @endif
+                                                                </label>
+                                                                <div wire:loading.flex wire:target="collectedData.{{ $doc->id }}" class="absolute inset-0 bg-white/80 dark:bg-slate-800/80 rounded-xl items-center justify-center">
+                                                                    <span class="material-symbols-outlined animate-spin text-slate-600">refresh</span>
+                                                                </div>
+                                                            </div>
+                                                        @elseif($doc->input_type === 'textarea')
+                                                            <textarea wire:model.lazy="collectedData.{{ $doc->id }}" 
+                                                                class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500 resize-none" 
+                                                                rows="3"
+                                                                placeholder="Enter details here..."></textarea>
+                                                        @else
+                                                            <input type="{{ $doc->input_type === 'date' ? 'date' : ($doc->input_type === 'number' ? 'number' : 'text') }}" 
+                                                                wire:model.lazy="collectedData.{{ $doc->id }}" 
+                                                                class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500" 
+                                                                placeholder="Enter details here...">
+                                                        @endif
+                                                        @error('collectedData.'.$doc->id) <span class="text-[12px] text-red-500 mt-1 block font-medium">{{ $message }}</span> @enderror
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </section>
+                                    @endif
+
+                                    @if($recurringDocs->count() > 0)
+                                    <section class="mt-8" x-data="{ open: true }">
+                                        <div @click="open = !open" class="cursor-pointer mb-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 p-2 -mx-2 rounded-xl transition-colors select-none">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h2 class="text-[20px] font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-teal-600 dark:text-teal-400">event_repeat</span>
+                                                    Recurring Document Configuration
+                                                </h2>
+                                                <span class="material-symbols-outlined text-[#727687] dark:text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''">expand_more</span>
+                                            </div>
+                                            <p class="text-[14px] text-[#424656] dark:text-slate-400">Configure the frequency and starting date for documents that will need to be collected regularly post-onboarding.</p>
+                                        </div>
+                                        
+                                        <div x-show="open" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            @foreach($recurringDocs as $doc)
+                                                <div class="bg-white/70 dark:bg-slate-800/80 backdrop-blur-md p-5 rounded-2xl flex flex-col gap-4 border border-teal-500/30 dark:border-teal-500/20 hover:shadow-md transition-all">
+                                                    <div class="flex items-start justify-between gap-3 w-full">
+                                                        <div class="flex gap-3 items-center flex-1 min-w-0 pr-2">
+                                                            <div class="flex flex-col gap-1 flex-1 min-w-0 pr-2">
+                                                                <div class="flex items-center gap-2">
+                                                                    <h3 class="font-sans text-base font-bold text-[#1c1b1b] dark:text-white leading-tight break-words">{{ $doc->name }}</h3>
+                                                                    <span class="bg-teal-100 text-teal-700 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider dark:bg-teal-900/50 dark:text-teal-400 shrink-0">Recurring</span>
+                                                                </div>
+                                                                @if(!empty($doc->compliance_names))
+                                                                    <span class="inline-block w-full bg-slate-50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-1 rounded-md border border-slate-100 dark:border-slate-800 font-medium whitespace-normal" title="{{ $doc->compliance_names }}">For: {{ $doc->compliance_names }}</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <p class="font-mono text-xs text-[#727687] dark:text-slate-400 leading-relaxed mt-1">{{ $doc->description ?? 'Recurring compliance requirement.' }}</p>
+
+                                                    @php
+                                                        $isConfigured = !empty($recurrenceConfigs[$doc->id]['frequency']) && !empty($recurrenceConfigs[$doc->id]['next_due_date']);
+                                                    @endphp
+                                                    <div class="mt-4 p-4 bg-[#f6f3f2] dark:bg-slate-900 rounded-xl border {{ $isConfigured ? 'border-teal-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} flex flex-col gap-3">
+                                                        <div class="flex items-center justify-between">
+                                                            <span class="text-xs font-bold uppercase tracking-wider {{ $isConfigured ? 'text-teal-600 dark:text-teal-400' : 'text-[#727687] dark:text-slate-500' }}">
+                                                                <span class="material-symbols-outlined text-[14px] align-middle mr-1">{{ $isConfigured ? 'check_circle' : 'pending' }}</span>
+                                                                {{ $isConfigured ? 'Configured' : 'Not Configured' }}
+                                                            </span>
+                                                        </div>
+                                                        @if($isConfigured)
+                                                            <p class="text-sm text-[#424656] dark:text-slate-300 font-medium">
+                                                                Will start tracking from <span class="text-[#1c1b1b] dark:text-white font-bold">{{ \Carbon\Carbon::parse($recurrenceConfigs[$doc->id]['next_due_date'])->format('d M Y') }}</span> based on a <span class="capitalize font-bold">{{ $recurrenceConfigs[$doc->id]['frequency'] }}</span> schedule.
+                                                            </p>
+                                                        @endif
+                                                        <button type="button" wire:click="openRecurrenceModal({{ $doc->id }})" class="w-full py-2.5 cursor-pointer bg-white dark:bg-slate-800 border border-teal-600/30 dark:border-teal-400/30 text-teal-600 dark:text-teal-400 font-bold rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm mt-2">
+                                                            <span class="material-symbols-outlined text-[18px]">tune</span>
+                                                            {{ $isConfigured ? 'Edit Schedule' : 'Configure Schedule' }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </section>
+                                    @endif
                                 @endif
                             </div>
 
@@ -920,12 +1029,12 @@
 
                         <!-- Sticky Footer Bottom Bar -->
                         <div class="mt-12 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                            <button type="button" wire:click="setStep(4)" class="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                            <button type="button" wire:click="setStep(4)" class="flex items-center gap-2 px-6 py-3 cursor-pointer rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-[#fcf9f8] dark:hover:bg-slate-800 transition-colors font-semibold text-[#424656] dark:text-slate-300">
                                 <span class="material-symbols-outlined">arrow_back</span>
                                 Back to Documents
                             </button>
                             
-                            <button type="button" wire:click="submit" class="w-full md:w-auto px-10 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3">
+                            <button type="button" wire:click="submit" class="w-full md:w-auto px-10 py-3.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3">
                                 Activate Compliance Setup
                                 <span class="material-symbols-outlined">rocket_launch</span>
                             </button>
@@ -938,7 +1047,7 @@
                 @if($step < 3)
                     <div class="mt-10 pt-6 border-t border-[#c2c6d8]/50 dark:border-slate-700 flex items-center justify-between">
                         @if($step > 1)
-                            <button type="button" wire:click="previousStep" class="inline-flex items-center gap-2 px-6 py-2.5 bg-[#f6f3f2] hover:bg-[#e5e2e1] dark:bg-slate-900 dark:hover:bg-slate-700 text-[#1c1b1b] dark:text-white rounded-lg font-medium text-[14px] transition-all">
+                            <button type="button" wire:click="previousStep" class="inline-flex items-center gap-2 px-6 py-2.5 cursor-pointer bg-[#f6f3f2] hover:bg-[#e5e2e1] dark:bg-slate-900 dark:hover:bg-slate-700 text-[#1c1b1b] dark:text-white rounded-lg font-medium text-[14px] transition-all">
                                 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                                 Back
                             </button>
@@ -948,7 +1057,7 @@
                         
                         <div class="flex items-center gap-4">
                             @if($step < 3)
-                                <button type="button" wire:click="nextStep" wire:loading.attr="disabled" class="inline-flex items-center gap-2 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-lg font-medium text-[14px] transition-all shadow-md disabled:opacity-75 disabled:cursor-wait">
+                                <button type="button" wire:click="nextStep" wire:loading.attr="disabled" class="inline-flex items-center gap-2 px-8 py-2.5 cursor-pointer bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-lg font-medium text-[14px] transition-all shadow-md disabled:opacity-75 disabled:cursor-wait">
                                     <span wire:loading.remove wire:target="nextStep">Continue</span>
                                     <span wire:loading wire:target="nextStep">Analyzing...</span>
                                     <span wire:loading.remove wire:target="nextStep" class="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -961,6 +1070,133 @@
             </form>
         </div>
     </div>
+
+    <!-- Recurrence Configuration Modal -->
+    @if($configuringRequirementId)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-[#c2c6d8]/50 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                    <h3 class="text-lg font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-teal-600 dark:text-teal-400">calendar_month</span>
+                        Configure Collection Schedule
+                    </h3>
+                    <button type="button" wire:click="closeRecurrenceModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Frequency</label>
+                        <select wire:model.live="configureFrequency" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                            <option value="">Select frequency...</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                        @error('configureFrequency') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    @if($configureFrequency === 'weekly')
+                        <div>
+                            <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-3">Select Day(s) of the Week</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                                    <label class="flex items-center gap-2 p-3 bg-[#f6f3f2] dark:bg-slate-900 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <input type="checkbox" wire:model.live="configureConfig.days" value="{{ $day }}" class="text-teal-600 rounded border-[#c2c6d8] dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-teal-500">
+                                        <span class="text-sm font-medium text-[#1c1b1b] dark:text-white">{{ $day }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('configureConfig.days') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    @elseif($configureFrequency === 'monthly')
+                        <div>
+                            <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day of the Month</label>
+                            <select wire:model.live="configureConfig.day_of_month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                <option value="">Select day (1-31)</option>
+                                @for($i = 1; $i <= 31; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            </select>
+                            <p class="text-xs text-slate-500 mt-2 italic">Note: If the selected day does not exist in a month (e.g. 31st in February), the last day of the month will be used.</p>
+                            @error('configureConfig.day_of_month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    @elseif($configureFrequency === 'quarterly')
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Quarter Type</label>
+                                <select wire:model.live="configureConfig.quarter_type" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                    <option value="">Select quarter type...</option>
+                                    <option value="calendar">Calendar (Mar, Jun, Sep, Dec)</option>
+                                    <option value="financial">Financial (Jun, Sep, Dec, Mar)</option>
+                                </select>
+                                @error('configureConfig.quarter_type') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Due Days After Quarter End</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" min="0" max="90" wire:model.live="configureConfig.due_days_after_quarter_end" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white" placeholder="e.g. 15">
+                                    <span class="text-sm font-medium text-slate-600 dark:text-slate-400">days</span>
+                                </div>
+                                @error('configureConfig.due_days_after_quarter_end') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    @elseif($configureFrequency === 'yearly')
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Month</label>
+                                <select wire:model.live="configureConfig.month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                    <option value="">Select month...</option>
+                                    @foreach(['1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May','6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $mon)
+                                        <option value="{{ $num }}">{{ $mon }}</option>
+                                    @endforeach
+                                </select>
+                                @error('configureConfig.month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day</label>
+                                <select wire:model.live="configureConfig.day" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                    <option value="">Select day...</option>
+                                    @for($i = 1; $i <= 31; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                @error('configureConfig.day') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Live Preview -->
+                    <div class="mt-8 p-4 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800/30 rounded-xl flex items-start gap-3">
+                        <span class="material-symbols-outlined text-teal-600 dark:text-teal-400 mt-0.5">event_available</span>
+                        <div>
+                            <h4 class="text-sm font-bold text-teal-800 dark:text-teal-300">Live Schedule Preview</h4>
+                            @if($configureNextDueDatePreview)
+                                <p class="text-sm text-teal-700 dark:text-teal-400 mt-1">Based on this rule, the next due date will be generated as: <span class="font-bold text-[#1c1b1b] dark:text-white">{{ $configureNextDueDatePreview }}</span></p>
+                            @else
+                                <p class="text-sm text-teal-700/70 dark:text-teal-400/70 mt-1 italic">Complete configuration to see preview.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-[#c2c6d8]/50 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                    <button type="button" wire:click="closeRecurrenceModal" class="px-6 py-2.5 cursor-pointer rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                        Cancel
+                    </button>
+                    <button type="button" wire:click="saveRecurrenceModal" class="px-8 py-2.5 cursor-pointer bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Save Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
 
