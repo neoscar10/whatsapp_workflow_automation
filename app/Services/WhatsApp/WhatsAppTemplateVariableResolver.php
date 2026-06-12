@@ -28,7 +28,7 @@ class WhatsAppTemplateVariableResolver
      */
     public function resolve(string $key, ?Conversation $conversation = null, ?User $actor = null): string
     {
-        return match ($key) {
+        $resolved = match ($key) {
             'contact_name' => $conversation?->contact_name ?? 'Customer',
             'contact_phone' => $conversation?->contact_phone ?? '',
             'agent_name' => $actor?->name ?? 'Agent',
@@ -37,6 +37,12 @@ class WhatsAppTemplateVariableResolver
             'current_time' => Carbon::now()->format('H:i'),
             default => '',
         };
+
+        if (is_array($resolved) || is_object($resolved)) {
+            return is_string($resolved) ? $resolved : json_encode($resolved);
+        }
+
+        return (string) $resolved;
     }
 
     /**
@@ -47,6 +53,14 @@ class WhatsAppTemplateVariableResolver
         foreach ($mappings as $key => $config) {
             $value = $this->getValueFromMapping($config, $conversation, $actor);
             $placeholder = $config['name'] ?? $key;
+            
+            if (is_array($placeholder)) {
+                $placeholder = implode(',', $placeholder);
+            }
+            if (is_array($value)) {
+                $value = implode(',', $value);
+            }
+            
             $text = str_replace("{{{$placeholder}}}", $value ?: "{{{$placeholder}}}", $text);
         }
 
