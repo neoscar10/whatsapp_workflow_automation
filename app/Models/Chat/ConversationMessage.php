@@ -58,6 +58,54 @@ class ConversationMessage extends Model
     }
 
     /**
+     * Get the fully rendered template body (with parameters resolved) if message_type is template.
+     */
+    public function getRenderedBodyAttribute(): string
+    {
+        if ($this->message_type !== 'template') {
+            return $this->body ?? '';
+        }
+
+        $templateName = $this->meta_payload['template_name'] ?? $this->body;
+        if (!$templateName) {
+            return $this->body ?? '';
+        }
+
+        $template = \App\Models\WhatsApp\WhatsAppTemplate::where('remote_template_name', $templateName)
+            ->where('company_id', $this->conversation->company_id)
+            ->first();
+
+        if (!$template) {
+            $template = \App\Models\WhatsApp\WhatsAppTemplate::where('remote_template_name', $templateName)->first();
+            if (!$template) {
+                return $this->body ?? '';
+            }
+        }
+
+        $bodyText = $template->body_text;
+        $components = $this->meta_payload['components'] ?? [];
+        $bodyParameters = [];
+
+        foreach ($components as $component) {
+            if (($component['type'] ?? '') === 'body' && !empty($component['parameters'])) {
+                foreach ($component['parameters'] as $param) {
+                    if (isset($param['text'])) {
+                        $bodyParameters[] = $param['text'];
+                    }
+                }
+            }
+        }
+
+        $rendered = $bodyText;
+        foreach ($bodyParameters as $index => $value) {
+            $placeholder = '{{' . ($index + 1) . '}}';
+            $rendered = str_replace($placeholder, $value, $rendered);
+        }
+
+        return $rendered;
+    }
+
+    /**
      * Generate a concise preview snippet for the conversation sidebar.
      */
     public function generatePreviewText(): string

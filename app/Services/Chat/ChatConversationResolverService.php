@@ -75,29 +75,19 @@ class ChatConversationResolverService
 
             // Download and save to disk so it can be served directly (like outbound media)
             if ($mediaId) {
-                $accessToken = $localNumber->account->access_token ?? null;
-                if ($accessToken) {
+                $resolver = app(\App\Services\WhatsApp\Simulation\SimulatedWhatsAppMediaResolver::class);
+                $isSimulated = $resolver->isSimulatedMediaId($mediaId);
+
+                if ($isSimulated) {
                     try {
-                        $graphClient = app(\App\Services\WhatsApp\WhatsAppGraphClient::class);
-
-                        // Step 1: Get the direct download URL from Meta
-                        $mediaInfo = $graphClient->getMedia($mediaId, $accessToken);
-
-                        if ($mediaInfo['success'] && !empty($mediaInfo['url'])) {
-                            // Step 2: Download binary content
-                            $fileContents = $graphClient->downloadMediaFile($mediaInfo['url'], $accessToken);
-
+                        $simMedia = $resolver->getSimulatedMedia($mediaId);
+                        if ($simMedia) {
+                            $fileContents = $resolver->getMediaContents($mediaId);
                             if ($fileContents) {
-                                // Step 3: Determine file extension from MIME type
-                                $detectedMime = $mediaInfo['mime_type'] ?? $mimeType;
-                                $ext = explode('/', $detectedMime)[1] ?? 'bin';
-                                if (str_contains($ext, ';')) {
-                                    $ext = trim(explode(';', $ext)[0]);
-                                }
+                                $ext = $simMedia->extension;
                                 $filename = time() . '_' . $mediaId . '.' . $ext;
                                 $localPath = 'chat_media/' . $filename;
 
-                                // Step 4: Save to public disk (same as outbound media)
                                 $disk = \Illuminate\Support\Facades\Storage::disk('public');
                                 if (!$disk->exists('chat_media')) {
                                     $disk->makeDirectory('chat_media');
@@ -105,28 +95,68 @@ class ChatConversationResolverService
                                 if ($disk->put($localPath, $fileContents)) {
                                     $mediaUrl = $localPath;
                                     $mediaMeta['local_path'] = $localPath;
-                                    $mediaMeta['size'] = $mediaInfo['file_size'] ?? null;
-                                    Log::info("INBOUND_MEDIA: Saved to disk", ['path' => $localPath, 'type' => $type]);
-                                } else {
-                                    Log::error("INBOUND_MEDIA: Failed to write to disk", ['path' => $localPath]);
+                                    $mediaMeta['size'] = $simMedia->file_size;
+                                    Log::info("INBOUND_MEDIA (SIMULATED): Saved to disk", ['path' => $localPath, 'type' => $type]);
                                 }
-                            } else {
-                                Log::error("INBOUND_MEDIA: Empty file download", ['media_id' => $mediaId]);
                             }
-                        } else {
-                            Log::error("INBOUND_MEDIA: getMedia failed", [
-                                'media_id' => $mediaId,
-                                'error' => $mediaInfo['error'] ?? 'unknown',
-                            ]);
                         }
                     } catch (\Exception $e) {
-                        Log::error("INBOUND_MEDIA: Exception downloading media: " . $e->getMessage(), [
-                            'media_id' => $mediaId,
-                            'type' => $type,
-                        ]);
+                        Log::error("INBOUND_MEDIA (SIMULATED): Exception loading: " . $e->getMessage());
                     }
                 } else {
-                    Log::error("INBOUND_MEDIA: No access token for phone number", ['id' => $localNumber->id]);
+                    $accessToken = $localNumber->account->access_token ?? null;
+                    if ($accessToken) {
+                        try {
+                            $graphClient = app(\App\Services\WhatsApp\WhatsAppGraphClient::class);
+
+                            // Step 1: Get the direct download URL from Meta
+                            $mediaInfo = $graphClient->getMedia($mediaId, $accessToken);
+
+                            if ($mediaInfo['success'] && !empty($mediaInfo['url'])) {
+                                // Step 2: Download binary content
+                                $fileContents = $graphClient->downloadMediaFile($mediaInfo['url'], $accessToken);
+
+                                if ($fileContents) {
+                                    // Step 3: Determine file extension from MIME type
+                                    $detectedMime = $mediaInfo['mime_type'] ?? $mimeType;
+                                    $ext = explode('/', $detectedMime)[1] ?? 'bin';
+                                    if (str_contains($ext, ';')) {
+                                        $ext = trim(explode(';', $ext)[0]);
+                                    }
+                                    $filename = time() . '_' . $mediaId . '.' . $ext;
+                                    $localPath = 'chat_media/' . $filename;
+
+                                    // Step 4: Save to public disk (same as outbound media)
+                                    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                                    if (!$disk->exists('chat_media')) {
+                                        $disk->makeDirectory('chat_media');
+                                    }
+                                    if ($disk->put($localPath, $fileContents)) {
+                                        $mediaUrl = $localPath;
+                                        $mediaMeta['local_path'] = $localPath;
+                                        $mediaMeta['size'] = $mediaInfo['file_size'] ?? null;
+                                        Log::info("INBOUND_MEDIA: Saved to disk", ['path' => $localPath, 'type' => $type]);
+                                    } else {
+                                        Log::error("INBOUND_MEDIA: Failed to write to disk", ['path' => $localPath]);
+                                    }
+                                } else {
+                                    Log::error("INBOUND_MEDIA: Empty file download", ['media_id' => $mediaId]);
+                                }
+                            } else {
+                                Log::error("INBOUND_MEDIA: getMedia failed", [
+                                    'media_id' => $mediaId,
+                                    'error' => $mediaInfo['error'] ?? 'unknown',
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            Log::error("INBOUND_MEDIA: Exception downloading media: " . $e->getMessage(), [
+                                'media_id' => $mediaId,
+                                'type' => $type,
+                            ]);
+                        }
+                    } else {
+                        Log::error("INBOUND_MEDIA: No access token for phone number", ['id' => $localNumber->id]);
+                    }
                 }
             }
 

@@ -7,6 +7,24 @@
         </div>
     </div>
 
+    @if(session()->has('error'))
+        <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-800 dark:text-red-300 flex items-start gap-2.5 shadow-sm animate-fade-in">
+            <span class="material-symbols-outlined text-[20px] text-red-600 dark:text-red-400 shrink-0">error</span>
+            <div>
+                <span class="font-bold">Error:</span> {{ session('error') }}
+            </div>
+        </div>
+    @endif
+
+    @if(session()->has('message'))
+        <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 rounded-xl text-sm text-green-800 dark:text-green-300 flex items-start gap-2.5 shadow-sm animate-fade-in">
+            <span class="material-symbols-outlined text-[20px] text-green-600 dark:text-green-400 shrink-0">check_circle</span>
+            <div>
+                {{ session('message') }}
+            </div>
+        </div>
+    @endif
+
     <div class="bg-white dark:bg-slate-800 border border-[#c2c6d8] dark:border-slate-700 rounded-2xl shadow-sm">
         <div class="p-8">
             <!-- Progress Stepper -->
@@ -717,10 +735,17 @@
                                                                 </div>
                                                             </div>
                                                         @elseif($doc->input_type === 'textarea')
-                                                            <textarea wire:model.lazy="collectedData.{{ $doc->id }}" 
-                                                                class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500 resize-none" 
-                                                                rows="3"
-                                                                placeholder="Enter details here..."></textarea>
+                                                            <div class="flex flex-col gap-2">
+                                                                @if(!empty($collectedData[$doc->id]))
+                                                                    <p class="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 line-clamp-2 font-mono leading-relaxed">{{ $collectedData[$doc->id] }}</p>
+                                                                @endif
+                                                                <button type="button" wire:click="openTextareaModal({{ $doc->id }}, '{{ addslashes($doc->name) }}')"
+                                                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-dashed cursor-pointer transition-all
+                                                                        {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 text-green-700 dark:text-green-400 bg-green-50/50 dark:bg-green-900/10 hover:bg-green-50 dark:hover:bg-green-900/20' : 'border-[#c2c6d8] dark:border-slate-600 text-blue-600 dark:text-blue-400 bg-[#f6f3f2] dark:bg-slate-900/50 hover:bg-[#f0eded] dark:hover:bg-slate-800' }}">
+                                                                    <span class="material-symbols-outlined text-[18px]">{{ !empty($collectedData[$doc->id]) ? 'edit_note' : 'notes' }}</span>
+                                                                    <span class="text-sm font-semibold">{{ !empty($collectedData[$doc->id]) ? 'Edit Details' : 'Enter Details' }}</span>
+                                                                </button>
+                                                            </div>
                                                         @else
                                                             <input type="{{ $doc->input_type === 'date' ? 'date' : ($doc->input_type === 'number' ? 'number' : 'text') }}" 
                                                                 wire:model.lazy="collectedData.{{ $doc->id }}" 
@@ -791,10 +816,17 @@
                                                                 </div>
                                                             </div>
                                                         @elseif($doc->input_type === 'textarea')
-                                                            <textarea wire:model.lazy="collectedData.{{ $doc->id }}" 
-                                                                class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500 resize-none" 
-                                                                rows="3"
-                                                                placeholder="Enter details here..."></textarea>
+                                                            <div class="flex flex-col gap-2">
+                                                                @if(!empty($collectedData[$doc->id]))
+                                                                    <p class="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 line-clamp-2 font-mono leading-relaxed">{{ $collectedData[$doc->id] }}</p>
+                                                                @endif
+                                                                <button type="button" wire:click="openTextareaModal({{ $doc->id }}, '{{ addslashes($doc->name) }}')"
+                                                                    class="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-dashed cursor-pointer transition-all
+                                                                        {{ !empty($collectedData[$doc->id]) ? 'border-green-500/50 text-green-700 dark:text-green-400 bg-green-50/50 dark:bg-green-900/10 hover:bg-green-50 dark:hover:bg-green-900/20' : 'border-[#c2c6d8] dark:border-slate-600 text-blue-600 dark:text-blue-400 bg-[#f6f3f2] dark:bg-slate-900/50 hover:bg-[#f0eded] dark:hover:bg-slate-800' }}">
+                                                                    <span class="material-symbols-outlined text-[18px]">{{ !empty($collectedData[$doc->id]) ? 'edit_note' : 'notes' }}</span>
+                                                                    <span class="text-sm font-semibold">{{ !empty($collectedData[$doc->id]) ? 'Edit Details' : 'Enter Details' }}</span>
+                                                                </button>
+                                                            </div>
                                                         @else
                                                             <input type="{{ $doc->input_type === 'date' ? 'date' : ($doc->input_type === 'number' ? 'number' : 'text') }}" 
                                                                 wire:model.lazy="collectedData.{{ $doc->id }}" 
@@ -841,19 +873,59 @@
                                                     
                                                     <p class="font-mono text-xs text-[#727687] dark:text-slate-400 leading-relaxed mt-1">{{ $doc->description ?? 'Recurring compliance requirement.' }}</p>
 
+                                                    <!-- Enable Automations Toggle -->
+                                                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-[#c2c6d8]/30 dark:border-slate-800">
+                                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Enable Automated Collection Reminders</span>
+                                                        <button type="button" wire:click="$toggle('automationsEnabledByDoc.{{ $doc->id }}')" 
+                                                            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ ($automationsEnabledByDoc[$doc->id] ?? true) ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700' }}">
+                                                            <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ ($automationsEnabledByDoc[$doc->id] ?? true) ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                                        </button>
+                                                    </div>
+
                                                     @php
                                                         $isConfigured = !empty($recurrenceConfigs[$doc->id]['frequency']) && !empty($recurrenceConfigs[$doc->id]['next_due_date']);
                                                     @endphp
                                                     <div class="mt-4 p-4 bg-[#f6f3f2] dark:bg-slate-900 rounded-xl border {{ $isConfigured ? 'border-teal-500/50' : 'border-[#c2c6d8]/50 dark:border-slate-700' }} flex flex-col gap-3">
                                                         <div class="flex items-center justify-between">
                                                             <span class="text-xs font-bold uppercase tracking-wider {{ $isConfigured ? 'text-teal-600 dark:text-teal-400' : 'text-[#727687] dark:text-slate-500' }}">
-                                                                <span class="material-symbols-outlined text-[14px] align-middle mr-1">{{ $isConfigured ? 'check_circle' : 'pending' }}</span>
-                                                                {{ $isConfigured ? 'Configured' : 'Not Configured' }}
+                                                                 <span class="material-symbols-outlined text-[14px] align-middle mr-1">{{ $isConfigured ? 'check_circle' : 'pending' }}</span>
+                                                                 {{ $isConfigured ? 'Configured' : 'Not Configured' }}
                                                             </span>
                                                         </div>
                                                         @if($isConfigured)
+                                                            @php
+                                                                $cfg = $recurrenceConfigs[$doc->id]['config'] ?? [];
+                                                                $schedules = $cfg['schedules'] ?? [];
+                                                                $summaryParts = [];
+                                                                foreach ($schedules as $sched) {
+                                                                    $freq = $sched['frequency'] ?? '';
+                                                                    $sConf = $sched['config'] ?? [];
+                                                                    $partStr = '';
+                                                                    if ($freq === 'daily') {
+                                                                        $partStr = 'Daily at ' . ($sConf['time'] ?? '09:00');
+                                                                    } elseif ($freq === 'weekly') {
+                                                                        $partStr = 'Weekly on ' . implode(', ', $sConf['days'] ?? []);
+                                                                    } elseif ($freq === 'monthly') {
+                                                                        $partStr = 'Monthly on day ' . ($sConf['day_of_month'] ?? '1');
+                                                                    } elseif ($freq === 'quarterly') {
+                                                                        $partStr = 'Quarterly (' . ($sConf['quarter_type'] ?? 'calendar') . ')';
+                                                                    } elseif ($freq === 'yearly') {
+                                                                        $partStr = 'Yearly on ' . ($sConf['day'] ?? '1') . '/' . ($sConf['month'] ?? '1');
+                                                                    }
+                                                                    
+                                                                    if (!empty($sched['automation_id']) && ($automationsEnabledByDoc[$doc->id] ?? false)) {
+                                                                        $matched = collect($companyAutomations)->firstWhere('id', $sched['automation_id']);
+                                                                        $partStr .= ' (Auto: ' . ($matched ? $matched['name'] : 'Linked') . ')';
+                                                                    }
+                                                                    $summaryParts[] = $partStr;
+                                                                }
+                                                                $summary = implode(' & ', $summaryParts);
+                                                                if (empty($summary)) {
+                                                                    $summary = ucfirst($recurrenceConfigs[$doc->id]['frequency'] ?? 'monthly');
+                                                                }
+                                                            @endphp
                                                             <p class="text-sm text-[#424656] dark:text-slate-300 font-medium">
-                                                                Will start tracking from <span class="text-[#1c1b1b] dark:text-white font-bold">{{ \Carbon\Carbon::parse($recurrenceConfigs[$doc->id]['next_due_date'])->format('d M Y') }}</span> based on a <span class="capitalize font-bold">{{ $recurrenceConfigs[$doc->id]['frequency'] }}</span> schedule.
+                                                                Will start tracking from <span class="text-[#1c1b1b] dark:text-white font-bold">{{ \Carbon\Carbon::parse($recurrenceConfigs[$doc->id]['next_due_date'])->format('d M Y') }}</span> based on: <span class="font-bold text-[#1c1b1b] dark:text-white">{{ $summary }}</span>.
                                                             </p>
                                                         @endif
                                                         <button type="button" wire:click="openRecurrenceModal({{ $doc->id }})" class="w-full py-2.5 cursor-pointer bg-white dark:bg-slate-800 border border-teal-600/30 dark:border-teal-400/30 text-teal-600 dark:text-teal-400 font-bold rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm mt-2">
@@ -1033,7 +1105,7 @@
                                 Back to Documents
                             </button>
                             
-                            <button type="button" wire:click="submit" class="w-full md:w-auto px-10 py-3.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3">
+                            <button type="button" wire:click="completeOnboardingProcess" class="w-full md:w-auto px-10 py-3.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3">
                                 Activate Compliance Setup
                                 <span class="material-symbols-outlined">rocket_launch</span>
                             </button>
@@ -1087,87 +1159,166 @@
 
                 <!-- Modal Body -->
                 <div class="p-6 overflow-y-auto flex-1 space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Frequency</label>
-                        <select wire:model.live="configureFrequency" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
-                            <option value="">Select frequency...</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="quarterly">Quarterly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                        @error('configureFrequency') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    @if($configureFrequency === 'weekly')
+                    <!-- Configured Schedules List -->
+                    @if(!empty($configureSchedules))
                         <div>
-                            <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-3">Select Day(s) of the Week</label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
-                                    <label class="flex items-center gap-2 p-3 bg-[#f6f3f2] dark:bg-slate-900 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                        <input type="checkbox" wire:model.live="configureConfig.days" value="{{ $day }}" class="text-teal-600 rounded border-[#c2c6d8] dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-teal-500">
-                                        <span class="text-sm font-medium text-[#1c1b1b] dark:text-white">{{ $day }}</span>
-                                    </label>
+                            <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-3">Configured Schedules</label>
+                            <div class="space-y-2">
+                                @foreach($configureSchedules as $index => $sched)
+                                    @php
+                                        $schedFreq = $sched['frequency'] ?? '';
+                                        $schedConf = $sched['config'] ?? [];
+                                        $desc = '';
+                                        if ($schedFreq === 'daily') {
+                                            $desc = 'Daily at ' . ($schedConf['time'] ?? '09:00');
+                                        } elseif ($schedFreq === 'weekly') {
+                                            $desc = 'Weekly on ' . implode(', ', $schedConf['days'] ?? []);
+                                        } elseif ($schedFreq === 'monthly') {
+                                            $desc = 'Monthly on day ' . ($schedConf['day_of_month'] ?? '1');
+                                        } elseif ($schedFreq === 'quarterly') {
+                                            $desc = 'Quarterly (' . ($schedConf['quarter_type'] ?? 'calendar') . ')';
+                                        } elseif ($schedFreq === 'yearly') {
+                                            $desc = 'Yearly on ' . ($schedConf['day'] ?? '1') . '/' . ($schedConf['month'] ?? '1');
+                                        }
+                                    @endphp
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700">
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-teal-600 dark:text-teal-400 text-[18px]">event_repeat</span>
+                                            <span class="text-sm font-medium text-[#1c1b1b] dark:text-white capitalize">{{ $schedFreq }}:</span>
+                                            <span class="text-sm text-[#424656] dark:text-slate-300 font-semibold">{{ $desc }}</span>
+                                            @if(!empty($sched['automation_id']) && ($automationsEnabledByDoc[$configuringRequirementId] ?? false))
+                                                @php
+                                                    $matched = collect($companyAutomations)->firstWhere('id', $sched['automation_id']);
+                                                @endphp
+                                                <span class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] px-2 py-0.5 rounded font-bold ml-2">
+                                                    Auto: {{ $matched ? $matched['name'] : 'Linked' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <button type="button" wire:click="removeSchedule({{ $index }})" class="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors p-1 flex items-center justify-center cursor-pointer">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                    </div>
                                 @endforeach
-                            </div>
-                            @error('configureConfig.days') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                    @elseif($configureFrequency === 'monthly')
-                        <div>
-                            <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day of the Month</label>
-                            <select wire:model.live="configureConfig.day_of_month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
-                                <option value="">Select day (1-31)</option>
-                                @for($i = 1; $i <= 31; $i++)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
-                            </select>
-                            <p class="text-xs text-slate-500 mt-2 italic">Note: If the selected day does not exist in a month (e.g. 31st in February), the last day of the month will be used.</p>
-                            @error('configureConfig.day_of_month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-                    @elseif($configureFrequency === 'quarterly')
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Quarter Type</label>
-                                <select wire:model.live="configureConfig.quarter_type" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
-                                    <option value="">Select quarter type...</option>
-                                    <option value="calendar">Calendar (Mar, Jun, Sep, Dec)</option>
-                                    <option value="financial">Financial (Jun, Sep, Dec, Mar)</option>
-                                </select>
-                                @error('configureConfig.quarter_type') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Due Days After Quarter End</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" min="0" max="90" wire:model.live="configureConfig.due_days_after_quarter_end" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white" placeholder="e.g. 15">
-                                    <span class="text-sm font-medium text-slate-600 dark:text-slate-400">days</span>
-                                </div>
-                                @error('configureConfig.due_days_after_quarter_end') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                    @elseif($configureFrequency === 'yearly')
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Month</label>
-                                <select wire:model.live="configureConfig.month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
-                                    <option value="">Select month...</option>
-                                    @foreach(['1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May','6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $mon)
-                                        <option value="{{ $num }}">{{ $mon }}</option>
-                                    @endforeach
-                                </select>
-                                @error('configureConfig.month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day</label>
-                                <select wire:model.live="configureConfig.day" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
-                                    <option value="">Select day...</option>
-                                    @for($i = 1; $i <= 31; $i++)
-                                        <option value="{{ $i }}">{{ $i }}</option>
-                                    @endfor
-                                </select>
-                                @error('configureConfig.day') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         </div>
                     @endif
+
+                    <div class="border-t border-[#c2c6d8]/30 dark:border-slate-700/50 pt-4">
+                        <h4 class="text-sm font-bold text-[#1c1b1b] dark:text-white mb-3">Add Schedule Option</h4>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-[#424656] dark:text-slate-400 uppercase mb-2">Frequency</label>
+                            <select wire:model.live="configureFrequency" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                <option value="">Select frequency...</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                            @error('configureFrequency') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        @if(!empty($configureFrequency) && ($automationsEnabledByDoc[$configuringRequirementId] ?? false))
+                            <div class="mt-4">
+                                <label class="block text-xs font-bold text-[#424656] dark:text-slate-400 uppercase mb-2">Attach Automation Template</label>
+                                <select wire:model.live="configureAutomationId" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                    <option value="">-- Select Automation --</option>
+                                    @foreach($companyAutomations as $opt)
+                                        @if(empty($opt['frequency']) || $opt['frequency'] === $configureFrequency)
+                                            <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <div class="mt-4">
+                            @if($configureFrequency === 'daily')
+                                <div>
+                                    <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Time of Day</label>
+                                    <input type="time" onclick="this.showPicker()" wire:model.live="configureConfig.time" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white cursor-pointer">
+                                    @error('configureConfig.time') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            @elseif($configureFrequency === 'weekly')
+                                <div>
+                                    <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-3">Select Day(s) of the Week</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                                            <label class="flex items-center gap-2 p-3 bg-[#f6f3f2] dark:bg-slate-900 rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                                <input type="checkbox" wire:model.live="configureConfig.days" value="{{ $day }}" class="text-teal-600 rounded border-[#c2c6d8] dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-teal-500">
+                                                <span class="text-sm font-medium text-[#1c1b1b] dark:text-white">{{ $day }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    @error('configureConfig.days') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            @elseif($configureFrequency === 'monthly')
+                                <div>
+                                    <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day of the Month</label>
+                                    <select wire:model.live="configureConfig.day_of_month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                        <option value="">Select day (1-31)</option>
+                                        @for($i = 1; $i <= 31; $i++)
+                                            <option value="{{ $i }}">{{ $i }}</option>
+                                        @endfor
+                                    </select>
+                                    <p class="text-xs text-slate-500 mt-2 italic">Note: If the selected day does not exist in a month (e.g. 31st in February), the last day of the month will be used.</p>
+                                    @error('configureConfig.day_of_month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            @elseif($configureFrequency === 'quarterly')
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Quarter Type</label>
+                                        <select wire:model.live="configureConfig.quarter_type" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                            <option value="">Select quarter type...</option>
+                                            <option value="calendar">Calendar (Mar, Jun, Sep, Dec)</option>
+                                            <option value="financial">Financial (Jun, Sep, Dec, Mar)</option>
+                                        </select>
+                                        @error('configureConfig.quarter_type') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Due Days After Quarter End</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="90" wire:model.live="configureConfig.due_days_after_quarter_end" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white" placeholder="e.g. 15">
+                                            <span class="text-sm font-medium text-slate-600 dark:text-slate-400">days</span>
+                                        </div>
+                                        @error('configureConfig.due_days_after_quarter_end') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            @elseif($configureFrequency === 'yearly')
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Month</label>
+                                        <select wire:model.live="configureConfig.month" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                            <option value="">Select month...</option>
+                                            @foreach(['1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May','6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec'] as $num => $mon)
+                                                <option value="{{ $num }}">{{ $mon }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('configureConfig.month') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-[#424656] dark:text-slate-300 mb-2">Day</label>
+                                        <select wire:model.live="configureConfig.day" class="w-full text-sm bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 py-3 px-4 text-[#1c1b1b] dark:text-white">
+                                            <option value="">Select day...</option>
+                                            @for($i = 1; $i <= 31; $i++)
+                                                <option value="{{ $i }}">{{ $i }}</option>
+                                            @endfor
+                                        </select>
+                                        @error('configureConfig.day') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if(!empty($configureFrequency))
+                            <button type="button" wire:click="addSchedule" class="mt-4 px-4 py-2.5 bg-teal-600 text-white font-bold text-xs rounded-xl hover:bg-teal-700 transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">add</span>
+                                Add Option to Schedule
+                            </button>
+                        @endif
+                    </div>
 
                     <!-- Live Preview -->
                     <div class="mt-8 p-4 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800/30 rounded-xl flex items-start gap-3">
@@ -1196,6 +1347,180 @@
             </div>
         </div>
     @endif
+
+    <!-- Reminder Modal -->
+    @if($showReminderModal)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-[#c2c6d8]/50 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                    <h3 class="text-lg font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">notifications_active</span>
+                        Customize Reminder Rules & Message Template
+                    </h3>
+                    <button type="button" wire:click="closeReminderModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                    @error('editingRules')
+                        <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl text-sm text-red-800 dark:text-red-300">
+                            {{ $message }}
+                        </div>
+                    @enderror
+
+                    <!-- Reminder Rules Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-sm font-bold text-[#1c1b1b] dark:text-white uppercase tracking-wider">Reminder Schedule</h4>
+                            <button type="button" wire:click="addReminderRule" class="inline-flex items-center gap-1 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                                <span class="material-symbols-outlined text-[16px]">add_circle</span> Add Reminder
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            @if(empty($editingRules))
+                                <div class="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-slate-400">
+                                    No reminder rules defined. Click "Add Reminder" to define schedules.
+                                </div>
+                            @else
+                                @foreach($editingRules as $index => $rule)
+                                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 transition-all">
+                                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <!-- Trigger Type -->
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Trigger</label>
+                                                <select wire:model="editingRules.{{ $index }}.trigger_type" 
+                                                    class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-lg text-sm text-[#1c1b1b] dark:text-white focus:border-blue-600">
+                                                    <option value="before_due">Before Due Date</option>
+                                                    <option value="on_due">On Due Date</option>
+                                                    <option value="after_due">After Due Date</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Offset Days -->
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Offset Days</label>
+                                                <input type="number" min="0" wire:model.number="editingRules.{{ $index }}.offset_days" 
+                                                    {{ ($rule['trigger_type'] ?? '') === 'on_due' ? 'disabled' : '' }}
+                                                    class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-lg text-sm text-[#1c1b1b] dark:text-white focus:border-blue-600 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-900">
+                                            </div>
+
+                                            <!-- Send Time -->
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Send Time (24h)</label>
+                                                <input type="time" onclick="this.showPicker()" wire:model="editingRules.{{ $index }}.send_time" 
+                                                    class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-lg text-sm text-[#1c1b1b] dark:text-white focus:border-blue-600 cursor-pointer block select-all">
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-end justify-end sm:pt-4">
+                                            <button type="button" wire:click="removeReminderRule({{ $index }})" 
+                                                class="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" 
+                                                title="Delete Rule">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Message Template Customization -->
+                    <div class="border-t border-[#c2c6d8]/30 dark:border-slate-700/50 pt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-sm font-bold text-[#1c1b1b] dark:text-white uppercase tracking-wider">WhatsApp Message Template</h4>
+                            <button type="button" wire:click="resetMessageToDefault({{ $editingAutomationLibraryId }})" 
+                                class="inline-flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:underline">
+                                <span class="material-symbols-outlined text-[14px]">restart_alt</span> Reset to Default
+                            </button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Message Title / Header</label>
+                                <input type="text" wire:model="editingMessageTitle" 
+                                    class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl text-sm text-[#1c1b1b] dark:text-white focus:border-blue-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Message Body</label>
+                                <textarea wire:model="editingMessageBody" rows="8"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-[#c2c6d8]/50 dark:border-slate-700 rounded-xl text-sm text-[#1c1b1b] dark:text-white focus:border-blue-600 font-mono resize-none"></textarea>
+                                <p class="text-[10px] text-[#727687] dark:text-slate-500 mt-1.5">You can use variables: <code class="font-bold text-slate-700 dark:text-slate-300">@{{client_name}}</code>, <code class="font-bold text-slate-700 dark:text-slate-300">@{{firm_name}}</code>, <code class="font-bold text-slate-700 dark:text-slate-300">@{{document_name}}</code>, <code class="font-bold text-slate-700 dark:text-slate-300">@{{due_date}}</code>, <code class="font-bold text-slate-700 dark:text-slate-300">@{{days_remaining}}</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-[#c2c6d8]/50 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                    <button type="button" wire:click="closeReminderModal" class="px-6 py-2.5 cursor-pointer rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                        Cancel
+                    </button>
+                    <button type="button" wire:click="saveReminderModal" class="px-8 py-2.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Textarea Detail Modal -->
+    @if($showTextareaModal)
+        <div class="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-[#c2c6d8]/50 dark:border-slate-700 flex flex-col" style="max-height: 90vh;">
+                <!-- Modal Header -->
+                <div class="px-6 py-4 border-b border-[#c2c6d8]/50 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                    <h3 class="text-base font-bold text-[#1c1b1b] dark:text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">edit_note</span>
+                        {{ $textareaModalDocName }}
+                    </h3>
+                    <button type="button" wire:click="closeTextareaModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 flex-1 overflow-y-auto">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Details</label>
+                    <textarea wire:model="textareaModalValue"
+                        rows="14"
+                        autofocus
+                        placeholder="Type all the relevant details here..."
+                        class="w-full px-4 py-3 bg-[#f6f3f2] dark:bg-slate-900 border border-[#c2c6d8]/50 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-600 dark:focus:border-blue-500 rounded-xl text-sm text-[#1c1b1b] dark:text-white transition-all placeholder:text-[#727687] dark:placeholder:text-slate-500 resize-none focus:outline-none font-mono leading-relaxed"></textarea>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">Enter any details, numbers, descriptions or notes. This will be saved against the document entry for this client.</p>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-[#c2c6d8]/50 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
+                    <button type="button" wire:click="closeTextareaModal"
+                        class="px-6 py-2.5 cursor-pointer rounded-xl border border-[#c2c6d8]/50 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 transition-colors font-semibold text-[#424656] dark:text-slate-300">
+                        Cancel
+                    </button>
+                    <button type="button" wire:click="saveTextareaModal"
+                        class="px-8 py-2.5 cursor-pointer bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Save Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <style>
+        /* Invert time picker clock icon so it shows white/visible in dark mode or custom styling */
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(100%);
+            cursor: pointer;
+        }
+    </style>
 </div>
+
+
 
 

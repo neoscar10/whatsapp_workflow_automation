@@ -30,7 +30,9 @@ class DeadlineMonitoringService
             
             if ($dueDate->isPast()) {
                 // If it just passed, we might want to flag it or rely on health service
-                $this->healthService->recalculateHealth($deadline->clientCompliance);
+                if ($deadline->clientCompliance) {
+                    $this->healthService->recalculateHealth($deadline->clientCompliance);
+                }
                 continue;
             }
 
@@ -45,7 +47,9 @@ class DeadlineMonitoringService
     protected function triggerDeadlineWarning(CAClientComplianceDeadline $deadline, int $daysRemaining): void
     {
         // Recalculate health first (might shift to 'at_risk')
-        $this->healthService->recalculateHealth($deadline->clientCompliance);
+        if ($deadline->clientCompliance) {
+            $this->healthService->recalculateHealth($deadline->clientCompliance);
+        }
 
         // Fire event -> triggering ca.compliance_due automation
         event(new \Modules\CA\Events\ComplianceDue($deadline, $daysRemaining));

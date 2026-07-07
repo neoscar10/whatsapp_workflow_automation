@@ -38,6 +38,16 @@ class CAServiceProvider extends ServiceProvider
             'module' => 'ca',
             'order' => 10,
         ]);
+
+        \App\Support\Sidebar\SidebarRegistry::register([
+            'title' => 'Automation Library',
+            'route' => 'ca.knowledge-base.index',
+            'icon' => 'library_books',
+            'activePattern' => 'ca.knowledge-base.index',
+            'group' => 'modules',
+            'module' => 'ca',
+            'order' => 10.5,
+        ]);
         
         \App\Support\Sidebar\SidebarRegistry::register([
             'title' => 'CA Clients',

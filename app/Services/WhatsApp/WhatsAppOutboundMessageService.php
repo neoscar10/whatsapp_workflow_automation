@@ -103,7 +103,21 @@ class WhatsAppOutboundMessageService
                 return false;
             }
 
-            $result = $this->dispatchToMeta($message, $phoneNumberId, $accessToken, $to, $correlationId);
+            $isSimulated = config('services.whatsapp.simulator.enabled') && ($phoneNumberId === config('services.whatsapp.simulator.fake_phone_number_id', 'LOCAL_PHONE_NUMBER_ID'));
+
+            if ($isSimulated) {
+                $result = [
+                    'success' => true,
+                    'message_id' => 'wamid.simulated_outbound_' . uniqid(),
+                    'data' => [
+                        'simulated' => true,
+                        'source' => 'local_simulator',
+                        'simulator_user_id' => auth()->id() ?? 1,
+                    ]
+                ];
+            } else {
+                $result = $this->dispatchToMeta($message, $phoneNumberId, $accessToken, $to, $correlationId);
+            }
 
             if ($result['success']) {
                 Log::info("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_SUCCESS: Message acknowledged by provider", [
@@ -114,7 +128,7 @@ class WhatsAppOutboundMessageService
                 $message->update([
                     'external_message_id' => $result['message_id'],
                     'status' => 'sent',
-                    'meta_payload' => $result['data']
+                    'meta_payload' => array_merge((array)($message->meta_payload ?? []), $result['data'])
                 ]);
 
                 $this->billingService->debitForActivity(

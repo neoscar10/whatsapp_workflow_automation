@@ -50,7 +50,7 @@ class DeadlineService
         }
         
         if (is_array($config) && !empty($config)) {
-            $calculated = $this->calculateNextDueDate($requirement->recurrence_frequency, $config);
+            $calculated = $this->calculateNextDueDateForRequirement($requirement->recurrence_frequency, $config);
             if ($calculated) {
                 $dueDateStr = $calculated->toDateString();
                 if ($requirement->next_due_date !== $dueDateStr) {
@@ -64,7 +64,11 @@ class DeadlineService
         }
 
         $dueDate = Carbon::parse($dueDateStr)->toDateString();
-        $deadlineName = $requirement->name . ' - ' . ucfirst($requirement->recurrence_frequency) . ' Due';
+        $freqName = $requirement->recurrence_frequency;
+        if ($freqName === 'multiple') {
+            $freqName = 'Recurring';
+        }
+        $deadlineName = $requirement->name . ' - ' . ucfirst($freqName) . ' Due';
 
         CAClientComplianceDeadline::updateOrCreate(
             [
@@ -80,12 +84,52 @@ class DeadlineService
         );
     }
 
+    public function calculateNextDueDateForRequirement(?string $frequency, ?array $config, ?Carbon $from = null): ?Carbon
+    {
+        $frequency = $frequency ?? 'monthly';
+        $config = $config ?? [];
+        $now = $from ?? Carbon::today();
+        
+        if (isset($config['schedules']) && is_array($config['schedules'])) {
+            $nextDates = [];
+            foreach ($config['schedules'] as $schedule) {
+                $freq = $schedule['frequency'] ?? '';
+                $conf = $schedule['config'] ?? [];
+                if (!empty($freq)) {
+                    $nextDate = $this->calculateNextDueDate($freq, $conf, $now);
+                    if ($nextDate) {
+                        $nextDates[] = $nextDate;
+                    }
+                }
+            }
+            if (empty($nextDates)) {
+                return null;
+            }
+            usort($nextDates, fn($a, $b) => $a->timestamp <=> $b->timestamp);
+            return current($nextDates);
+        }
+        
+        return $this->calculateNextDueDate($frequency, $config, $now);
+    }
+
     public function calculateNextDueDate(string $frequency, array $config, ?Carbon $from = null): ?Carbon
     {
         $now = $from ?? Carbon::today();
         
         try {
             switch (strtolower($frequency)) {
+                case 'daily':
+                    $time = $config['time'] ?? '09:00';
+                    $candidate = clone $now;
+                    $parts = explode(':', $time);
+                    $hour = isset($parts[0]) ? (int)$parts[0] : 9;
+                    $minute = isset($parts[1]) ? (int)$parts[1] : 0;
+                    $candidate->setTime($hour, $minute, 0);
+                    if ($candidate->isBefore($now)) {
+                        $candidate->addDay();
+                    }
+                    return $candidate;
+
                 case 'weekly':
                     if (empty($config['days']) || !is_array($config['days'])) return null;
                     $nextDates = [];

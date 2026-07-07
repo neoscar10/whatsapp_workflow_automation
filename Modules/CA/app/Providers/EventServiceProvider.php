@@ -42,6 +42,9 @@ class EventServiceProvider extends ServiceProvider
         RequirementCompleted::class => [
             TriggerCAAutomation::class,
         ],
+        \App\Events\Chat\ChatMessageReceived::class => [
+            \Modules\CA\Listeners\HandleInboundWhatsAppDocument::class,
+        ],
     ];
 
     /**

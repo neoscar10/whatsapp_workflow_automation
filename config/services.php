@@ -34,6 +34,12 @@ return [
     'whatsapp' => [
         'app_id' => env('WHATSAPP_APP_ID'),
         'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
+        'simulator' => [
+            'enabled' => env('WHATSAPP_SIMULATOR_ENABLED', false),
+            'capture_outbound' => env('WHATSAPP_SIMULATOR_CAPTURE_OUTBOUND', true),
+            'fake_phone_number_id' => env('WHATSAPP_SIMULATOR_FAKE_PHONE_NUMBER_ID', 'LOCAL_PHONE_NUMBER_ID'),
+            'fake_waba_id' => env('WHATSAPP_SIMULATOR_FAKE_WABA_ID', 'SIMULATED_WABA_ID'),
+        ],
     ],
 
 ];

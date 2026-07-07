@@ -36,7 +36,7 @@ class ComplianceHealthService
     protected function determineStatus(CAClientCompliance $compliance): string
     {
         // Get all requirements for this compliance snapshot
-        $requirements = $compliance->requirements;
+        $requirements = $compliance->clientRequirements;
 
         if ($requirements->isEmpty()) {
             return 'pending';

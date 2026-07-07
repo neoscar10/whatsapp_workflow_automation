@@ -44,6 +44,16 @@ class ContactIndexPage extends Component
     public $importResults = null;
     public $isProcessing = false;
 
+    // Simulator Modal State
+    public $showSimulatorModal = false;
+    public $simulatorContactId = null;
+    public $simulatorContactName = '';
+    public $simulatorContactPhone = '';
+    public $simulatorMessages = [];
+    public $simulatorMessageText = '';
+    public $simulatorUploadFile = null;
+    public $simulatorErrorMessage = null;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
@@ -203,6 +213,106 @@ class ContactIndexPage extends Component
     public function refresh()
     {
         // This method just triggers a re-render
+    }
+
+    // WhatsApp Inbound Simulator Methods
+    public function openSimulatorModal(int $contactId): void
+    {
+        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+            abort(403, "WhatsApp Simulator is disabled in this environment.");
+        }
+
+        $this->resetSimulatorForm();
+
+        $contact = \App\Models\Contact\Contact::where('company_id', auth()->user()->company_id)->findOrFail($contactId);
+
+        $this->simulatorContactId = $contact->id;
+        $this->simulatorContactName = $contact->name ?: $contact->phone;
+        $this->simulatorContactPhone = $contact->phone;
+
+        $this->loadSimulatorMessages();
+        $this->showSimulatorModal = true;
+    }
+
+    public function loadSimulatorMessages(): void
+    {
+        $this->simulatorErrorMessage = null;
+        if (!$this->simulatorContactId) return;
+
+        $contact = \App\Models\Contact\Contact::find($this->simulatorContactId);
+        if ($contact) {
+            $conversation = \App\Models\Chat\Conversation::where('company_id', auth()->user()->company_id)
+                ->where('contact_phone', $contact->phone)
+                ->first();
+
+            if ($conversation) {
+                $this->simulatorMessages = $conversation->messages()
+                    ->orderBy('created_at', 'asc')
+                    ->get()
+                    ->map(function ($msg) {
+                        return [
+                            'id'          => $msg->id,
+                            'direction'   => $msg->direction,
+                            'message_type'=> $msg->message_type,
+                            'body'        => $msg->message_type === 'template'
+                                                ? ($msg->rendered_body ?: $msg->body)
+                                                : $msg->body,
+                            'media_url'   => $msg->media_url,
+                            'status'      => $msg->status,
+                            'created_at'  => $msg->created_at,
+                        ];
+                    })
+                    ->toArray();
+            } else {
+                $this->simulatorMessages = [];
+            }
+        }
+    }
+
+    public function sendSimulatedMessage(): void
+    {
+        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+            abort(403, "WhatsApp Simulator is disabled in this environment.");
+        }
+
+        $this->validate([
+            'simulatorMessageText' => 'required_without:simulatorUploadFile|nullable|string',
+            'simulatorUploadFile' => 'nullable|file|max:10240', // 10MB max
+        ]);
+
+        try {
+            $simulatorService = app(\App\Services\WhatsApp\Simulation\WhatsAppInboundSimulatorService::class);
+            $simulatorService->simulate(
+                contactId: $this->simulatorContactId,
+                body: $this->simulatorMessageText,
+                file: $this->simulatorUploadFile,
+                userId: auth()->id()
+            );
+
+            $this->simulatorMessageText = '';
+            $this->simulatorUploadFile = null;
+            $this->loadSimulatorMessages();
+            $this->dispatch('notify', ['message' => 'Simulated message delivered successfully', 'type' => 'success']);
+        } catch (\Exception $e) {
+            $this->simulatorErrorMessage = $e->getMessage();
+        }
+    }
+
+    public function resetSimulatorForm(): void
+    {
+        $this->simulatorContactId = null;
+        $this->simulatorContactName = '';
+        $this->simulatorContactPhone = '';
+        $this->simulatorMessages = [];
+        $this->simulatorMessageText = '';
+        $this->simulatorUploadFile = null;
+        $this->simulatorErrorMessage = null;
+    }
+
+    public function closeSimulatorModal(): void
+    {
+        $this->showSimulatorModal = false;
+        $this->resetSimulatorForm();
     }
 
     public function render()

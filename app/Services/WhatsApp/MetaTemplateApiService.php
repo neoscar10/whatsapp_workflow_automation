@@ -22,6 +22,12 @@ class MetaTemplateApiService
      */
     public function listTemplates(WhatsAppAccount $account, array $params = []): array
     {
+        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+            return [
+                'data' => []
+            ];
+        }
+
         $this->ensureAccountConnected($account);
 
         $defaultParams = [
@@ -66,6 +72,13 @@ class MetaTemplateApiService
      */
     public function createTemplate(WhatsAppAccount $account, array $payload): array
     {
+        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+            return [
+                'id' => 'mock_waba_template_' . rand(100000, 999999),
+                'status' => 'APPROVED',
+            ];
+        }
+
         $this->ensureAccountConnected($account);
 
         $response = Http::withToken($account->access_token)
@@ -85,6 +98,13 @@ class MetaTemplateApiService
      */
     public function updateTemplate(WhatsAppAccount $account, string $remoteTemplateId, array $payload): array
     {
+        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+            return [
+                'id' => $remoteTemplateId,
+                'status' => 'APPROVED',
+            ];
+        }
+
         $this->ensureAccountConnected($account);
 
         $response = Http::withToken($account->access_token)
@@ -103,6 +123,12 @@ class MetaTemplateApiService
      */
     public function deleteTemplate(WhatsAppAccount $account, string $name): array
     {
+        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+            return [
+                'success' => true,
+            ];
+        }
+
         $this->ensureAccountConnected($account);
 
         $response = Http::withToken($account->access_token)

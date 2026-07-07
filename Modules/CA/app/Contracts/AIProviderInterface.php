@@ -14,7 +14,7 @@ interface AIProviderInterface
      * @throws \Modules\CA\Exceptions\AIProviderException
      * @throws \Modules\CA\Exceptions\AIParsingException
      */
-    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = []): array;
+    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = [], ?string $filePath = null): array;
 
     /**
      * Get the name of the provider.

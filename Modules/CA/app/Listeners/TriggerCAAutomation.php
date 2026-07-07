@@ -25,7 +25,7 @@ class TriggerCAAutomation
             ->whereJsonContains('config->trigger_definition_key', $payload['_trigger_key'])
             ->whereHas('flow', function($q) use ($payload) {
                 $q->where('company_id', $payload['company_id'])
-                  ->where('is_active', true);
+                  ->where('is_enabled', true);
             })
             ->get();
 

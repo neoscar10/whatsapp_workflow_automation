@@ -369,7 +369,7 @@
                         </div>
                     </div>
 
-                    <div class="border-t border-slate-50 bg-white p-6 dark:border-slate-800/30 dark:bg-slate-900">
+                    <div class="border-t border-transparent bg-white p-6 dark:border-transparent dark:bg-slate-900">
                         @if($errorMessage)
                             <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                                 {{ $errorMessage }}
@@ -433,9 +433,22 @@
 
                         @if($activeConversation['is_session_active'])
                             <div class="flex items-center gap-3 rounded-xl bg-slate-100 p-2 dark:bg-slate-800">
-                                <button type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
-                                    <span class="material-symbols-outlined">sentiment_satisfied</span>
-                                </button>
+                                <div x-data="{ showEmoji: false }" class="relative flex items-center">
+                                    <button @click="showEmoji = !showEmoji" type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
+                                        <span class="material-symbols-outlined">sentiment_satisfied</span>
+                                    </button>
+                                    
+                                    <div 
+                                        x-show="showEmoji" 
+                                        @click.away="showEmoji = false" 
+                                        class="absolute bottom-full left-0 mb-4 z-50 shadow-2xl rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700"
+                                        style="display: none;"
+                                    >
+                                        <emoji-picker 
+                                            @emoji-click="$wire.set('messageText', ($wire.messageText || '') + $event.detail.unicode); showEmoji = false; $nextTick(() => { document.getElementById('messageInput').focus(); });"
+                                        ></emoji-picker>
+                                    </div>
+                                </div>
                                 
                                 {{-- Hidden File Input --}}
                                 <input 
@@ -463,7 +476,7 @@
                                     <span class="material-symbols-outlined">auto_awesome</span>
                                 </button>
 
-                                <input
+                                <input id="messageInput"
                                     wire:model.defer="messageText"
                                     type="text"
                                     placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"

@@ -29,7 +29,7 @@ class CAOnboardingWizardTest extends TestCase
         Livewire::actingAs($user)
             ->test(ClientOnboardingWizard::class)
             ->set('client_name', 'Tech Innovators')
-            ->set('phone', '+919999999999')
+            ->set('phone', '9999999999')
             ->call('nextStep')
             ->assertSet('step', 2)
             ->set('business_type_id', $businessType->id)

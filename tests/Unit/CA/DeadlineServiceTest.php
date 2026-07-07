@@ -102,11 +102,45 @@ class DeadlineServiceTest extends TestCase
             'start_date' => '2026-05-01'
         ];
         $result = $this->service->calculateNextDueDate('custom', $config, $now);
-        // Start: May 1
-        // +3 weeks = May 22 (before now)
-        // +3 weeks = Jun 12 (is now)
-        // wait, the while condition is isBefore($now). If it equals now, it returns today.
-        // Let's see: loop runs while isBefore(now). If $candidate is exactly now, it stops and returns it.
         $this->assertEquals('2026-06-12', $result->toDateString());
+    }
+
+    public function test_calculate_next_due_date_daily()
+    {
+        // Set fixed date/time: 2026-06-12 12:00:00
+        $now = Carbon::create(2026, 6, 12, 12, 0, 0);
+
+        // Target time is 14:00 (in the future today)
+        $configFuture = ['time' => '14:00'];
+        $resultFuture = $this->service->calculateNextDueDate('daily', $configFuture, $now);
+        $this->assertEquals('2026-06-12 14:00:00', $resultFuture->toDateTimeString());
+
+        // Target time is 09:00 (in the past today)
+        $configPast = ['time' => '09:00'];
+        $resultPast = $this->service->calculateNextDueDate('daily', $configPast, $now);
+        $this->assertEquals('2026-06-13 09:00:00', $resultPast->toDateTimeString());
+    }
+
+    public function test_calculate_next_due_date_for_requirement_multiple()
+    {
+        // 2026-06-12 (Friday)
+        $now = Carbon::create(2026, 6, 12, 12, 0, 0);
+
+        $config = [
+            'schedules' => [
+                [
+                    'frequency' => 'monthly',
+                    'config' => ['day_of_month' => 1] // next: 2026-07-01
+                ],
+                [
+                    'frequency' => 'monthly',
+                    'config' => ['day_of_month' => 15] // next: 2026-06-15
+                ]
+            ]
+        ];
+
+        $result = $this->service->calculateNextDueDateForRequirement('multiple', $config, $now);
+        // The earliest next due date between 2026-07-01 and 2026-06-15 is 2026-06-15
+        $this->assertEquals('2026-06-15', $result->toDateString());
     }
 }

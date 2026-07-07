@@ -5,9 +5,15 @@ namespace Modules\CA\Livewire;
 use Livewire\Component;
 use Modules\CA\Models\CABusinessType;
 use Modules\CA\Models\CAClient;
+use Modules\CA\Models\CAClientAutomation;
+use Modules\CA\Models\CAClientAutomationRule;
 use Modules\CA\Services\CAClientService;
 use Modules\CA\Models\CAServiceCategory;
 use Modules\CA\Models\CACompliance;
+use Modules\CA\Services\AutomationSuggestionService;
+use Modules\CA\Services\AutomationConfigurationService;
+use Modules\CA\Services\AutomationTemplateLibraryService;
+use Modules\CA\Services\ReminderRuleService;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -50,6 +56,26 @@ class ClientOnboardingWizard extends Component
     public $configureFrequency = '';
     public $configureConfig = [];
     public $configureNextDueDatePreview = null;
+    public $configureSchedules = [];
+
+    // Step 4/5: Automation Attachments
+    public array $automationsEnabledByDoc = [];
+    public $configureAutomationId = '';
+    public $companyAutomations = [];
+
+    // Reminder Modal
+    public bool $showReminderModal = false;
+    public $reminderModalAutomationId = null;
+    public array $editingRules = [];
+    public $editingMessageTitle = '';
+    public $editingMessageBody = '';
+    public $editingAutomationLibraryId = null;
+
+    // Textarea Detail Modal
+    public bool $showTextareaModal = false;
+    public $textareaModalDocId = null;
+    public string $textareaModalDocName = '';
+    public string $textareaModalValue = '';
 
     public function rules()
     {
@@ -209,6 +235,7 @@ class ClientOnboardingWizard extends Component
             if ($this->draft_client_id) {
                 $client = CAClient::findOrFail($this->draft_client_id);
                 $clientService->updateClient($actor, $client, ['current_step' => 5]);
+                $this->persistRecurrenceSchedules();
             }
         }
 
@@ -235,6 +262,9 @@ class ClientOnboardingWizard extends Component
 
     public function setStep($step)
     {
+        if ($step === 5) {
+            $this->persistRecurrenceSchedules();
+        }
         $this->step = $step;
         if ($this->draft_client_id) {
             $client = CAClient::findOrFail($this->draft_client_id);
@@ -295,14 +325,38 @@ class ClientOnboardingWizard extends Component
     {
         $this->configuringRequirementId = $reqId;
         $existing = $this->recurrenceConfigs[$reqId] ?? [];
-        $this->configureFrequency = $existing['frequency'] ?? '';
-        $this->configureConfig = $existing['config'] ?? [];
+        $this->configureSchedules = [];
         
-        if ($this->configureFrequency === 'weekly' && !isset($this->configureConfig['days'])) {
-            $this->configureConfig['days'] = [];
+        if (!empty($existing)) {
+            $config = $existing['config'] ?? [];
+            $frequency = $existing['frequency'] ?? '';
+            
+            if (isset($config['schedules']) && is_array($config['schedules'])) {
+                $this->configureSchedules = $config['schedules'];
+            } elseif (!empty($frequency)) {
+                $this->configureSchedules[] = [
+                    'frequency' => $frequency,
+                    'config' => $config,
+                    'automation_id' => null,
+                ];
+            }
         }
         
+        $this->configureFrequency = '';
+        $this->configureConfig = [];
+        $this->configureAutomationId = '';
         $this->updateNextDueDatePreview();
+
+        // Load company automations
+        $this->companyAutomations = \Modules\CA\Models\CAClientAutomation::where('company_id', Auth::user()->company_id)
+            ->whereNull('client_id')
+            ->with('automationLibrary')
+            ->get()
+            ->map(fn($a) => [
+                'id' => $a->id,
+                'name' => $a->automationLibrary->name . ' (' . ucfirst($a->frequency) . ')',
+                'frequency' => $a->frequency
+            ])->toArray();
     }
 
     public function closeRecurrenceModal()
@@ -310,8 +364,33 @@ class ClientOnboardingWizard extends Component
         $this->configuringRequirementId = null;
         $this->configureFrequency = '';
         $this->configureConfig = [];
+        $this->configureSchedules = [];
         $this->configureNextDueDatePreview = null;
         $this->resetErrorBag(['configureFrequency', 'configureConfig.*']);
+    }
+
+    public function openTextareaModal($docId, string $docName): void
+    {
+        $this->textareaModalDocId   = $docId;
+        $this->textareaModalDocName = $docName;
+        $this->textareaModalValue   = $this->collectedData[$docId] ?? '';
+        $this->showTextareaModal    = true;
+    }
+
+    public function saveTextareaModal(): void
+    {
+        if ($this->textareaModalDocId !== null) {
+            $this->collectedData[$this->textareaModalDocId] = $this->textareaModalValue;
+        }
+        $this->closeTextareaModal();
+    }
+
+    public function closeTextareaModal(): void
+    {
+        $this->showTextareaModal    = false;
+        $this->textareaModalDocId   = null;
+        $this->textareaModalDocName = '';
+        $this->textareaModalValue   = '';
     }
 
     public function updatedConfigureFrequency()
@@ -330,17 +409,44 @@ class ClientOnboardingWizard extends Component
 
     public function updateNextDueDatePreview()
     {
-        if (empty($this->configureFrequency) || empty($this->configureConfig)) {
+        $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+        $tempSchedules = $this->configureSchedules;
+        
+        if (!empty($this->configureFrequency)) {
+            $valid = false;
+            $freq = $this->configureFrequency;
+            $config = $this->configureConfig;
+            
+            if ($freq === 'daily' && !empty($config['time'])) {
+                $valid = true;
+            } elseif ($freq === 'weekly' && !empty($config['days'])) {
+                $valid = true;
+            } elseif ($freq === 'monthly' && !empty($config['day_of_month'])) {
+                $valid = true;
+            } elseif ($freq === 'quarterly' && !empty($config['quarter_type']) && isset($config['due_days_after_quarter_end'])) {
+                $valid = true;
+            } elseif ($freq === 'yearly' && !empty($config['month']) && !empty($config['day'])) {
+                $valid = true;
+            }
+            
+            if ($valid) {
+                $tempSchedules[] = [
+                    'frequency' => $freq,
+                    'config' => $config,
+                ];
+            }
+        }
+        
+        if (empty($tempSchedules)) {
             $this->configureNextDueDatePreview = null;
             return;
         }
         
-        $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
-        $nextDate = $deadlineService->calculateNextDueDate($this->configureFrequency, $this->configureConfig);
+        $nextDate = $deadlineService->calculateNextDueDateForRequirement('multiple', ['schedules' => $tempSchedules]);
         $this->configureNextDueDatePreview = $nextDate ? $nextDate->format('d M Y') : null;
     }
 
-    public function saveRecurrenceModal()
+    public function addSchedule()
     {
         $freq = $this->configureFrequency;
         $config = $this->configureConfig;
@@ -351,7 +457,10 @@ class ClientOnboardingWizard extends Component
             return;
         }
 
-        if ($freq === 'weekly' && empty($config['days'])) {
+        if ($freq === 'daily' && empty($config['time'])) {
+            $this->addError('configureConfig.time', 'Select a time of day.');
+            return;
+        } elseif ($freq === 'weekly' && empty($config['days'])) {
             $this->addError('configureConfig.days', 'Select at least one day.');
             return;
         } elseif ($freq === 'monthly' && empty($config['day_of_month'])) {
@@ -368,12 +477,60 @@ class ClientOnboardingWizard extends Component
             return;
         }
 
+        $this->configureSchedules[] = [
+            'frequency' => $freq,
+            'config' => $config,
+            'automation_id' => $this->configureAutomationId ?: null,
+        ];
+
+        $this->configureFrequency = '';
+        $this->configureConfig = [];
+        $this->configureAutomationId = '';
+        
+        $this->updateNextDueDatePreview();
+    }
+
+    public function removeSchedule($index)
+    {
+        if (isset($this->configureSchedules[$index])) {
+            unset($this->configureSchedules[$index]);
+            $this->configureSchedules = array_values($this->configureSchedules);
+        }
+        $this->updateNextDueDatePreview();
+    }
+
+    public function saveRecurrenceModal()
+    {
+        $this->resetErrorBag(['configureFrequency', 'configureConfig.*']);
+        
+        if (empty($this->configureSchedules)) {
+            if (empty($this->configureFrequency)) {
+                $this->addError('configureFrequency', 'Please configure and add at least one schedule.');
+                return;
+            } else {
+                $this->addSchedule();
+                if (!empty($this->getErrorBag()->all())) {
+                    return;
+                }
+            }
+        }
+
         $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
-        $nextDate = $deadlineService->calculateNextDueDate($this->configureFrequency, $this->configureConfig);
+        
+        $finalFreq = 'multiple';
+        if (count($this->configureSchedules) === 1) {
+            $finalFreq = $this->configureSchedules[0]['frequency'];
+        }
+        
+        $finalConfig = [
+            'schedules' => $this->configureSchedules
+        ];
+        
+        $nextDate = $deadlineService->calculateNextDueDateForRequirement($finalFreq, $finalConfig);
 
         $this->recurrenceConfigs[$this->configuringRequirementId] = [
-            'frequency' => $this->configureFrequency,
-            'config' => $this->configureConfig,
+            'frequency' => $finalFreq,
+            'config' => $finalConfig,
             'next_due_date' => $nextDate ? $nextDate->toDateString() : null,
         ];
         
@@ -404,8 +561,12 @@ class ClientOnboardingWizard extends Component
             });
     }
 
-    public function submit()
+    public function completeOnboardingProcess()
     {
+        Log::info('ClientOnboardingWizard::submit called', [
+            'draft_client_id' => $this->draft_client_id,
+            'collectedData' => $this->collectedData,
+        ]);
         $clientService = app(CAClientService::class);
         $actor = Auth::user();
 
@@ -417,27 +578,10 @@ class ClientOnboardingWizard extends Component
                 $clientService->completeOnboarding($actor, $client);
                 
                 // Save recurrence configurations
-                if (!empty($this->recurrenceConfigs)) {
-                    $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
-                    foreach ($this->recurrenceConfigs as $reqId => $data) {
-                        if (!empty($data['frequency']) && !empty($data['next_due_date'])) {
-                            $requirements = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function ($q) use ($client) {
-                                $q->where('ca_client_id', $client->id);
-                            })->where('ca_compliance_requirement_id', $reqId)->get();
+                $this->persistRecurrenceSchedules();
 
-                            foreach ($requirements as $requirement) {
-                                if ($requirement->is_recurring) {
-                                    $requirement->update([
-                                        'recurrence_frequency' => $data['frequency'],
-                                        'recurrence_config' => $data['config'] ?? null,
-                                        'next_due_date' => $data['next_due_date'],
-                                    ]);
-                                    $deadlineService->generateRecurringDeadlines($requirement);
-                                }
-                            }
-                        }
-                    }
-                }
+                // Clone attached company-level automations to client-level active automations
+                $this->cloneAttachedAutomations($client);
 
                 $documentService = app(\Modules\CA\Services\DocumentService::class);
                 $timelineService = app(\Modules\CA\Services\ComplianceTimelineService::class);
@@ -502,8 +646,416 @@ class ClientOnboardingWizard extends Component
         }
     }
 
+    // ─── Automation Step 5 Methods ────────────────────────────────────────────
+
+    public function loadAutomationSuggestions(): void
+    {
+        if (empty($this->draft_client_id)) return;
+
+        try {
+            $clientId = $this->draft_client_id;
+            $client = CAClient::findOrFail($clientId);
+            $recurringCount = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function($q) use ($clientId) {
+                $q->where('ca_client_id', $clientId);
+            })
+            ->where('is_recurring', true)
+            ->count();
+
+            if ($recurringCount === 0) {
+                $this->generateMissingRecurringRequirements($client);
+            }
+
+            $suggestionService = app(AutomationSuggestionService::class);
+            $templateService   = app(AutomationTemplateLibraryService::class);
+
+            $raw = $suggestionService->suggestForClient($this->draft_client_id);
+
+            $this->automationSuggestions = [];
+            $this->automationAiError = null;
+
+            foreach ($raw as $suggestion) {
+                $library   = $suggestion['library'];
+                $frequency = $suggestion['frequency'];
+                $libraryId = $library->id;
+
+                // Get or generate AI template (DB cache first)
+                $template = $templateService->getOrGenerateTemplate($library);
+
+                // Pre-populate config if not already set
+                if (!isset($this->automationConfigs[$libraryId])) {
+                    $defaultRules = app(ReminderRuleService::class)->getDefaultRules($frequency);
+                    $this->automationConfigs[$libraryId] = [
+                        'library_id'           => $libraryId,
+                        'frequency'            => $frequency,
+                        'is_enabled'           => true,
+                        'requirement_ids'      => $suggestion['documents']->pluck('id')->toArray(),
+                        'rules'                => $defaultRules,
+                        'custom_message_title' => $template['message_title'],
+                        'custom_message_body'  => $template['message_body'],
+                    ];
+                }
+
+                $this->automationSuggestions[] = [
+                    'library_id'               => $libraryId,
+                    'name'                     => $library->name,
+                    'frequency'                => $frequency,
+                    'icon'                     => $library->icon,
+                    'color'                    => $library->color,
+                    'documents'                => $suggestion['documents']->map(fn($d) => [
+                        'id'   => $d->id,
+                        'name' => $d->name,
+                    ])->toArray(),
+                    'estimated_reminder_count' => $suggestion['estimated_reminder_count'],
+                    'message_title'            => $template['message_title'],
+                    'message_body'             => $template['message_body'],
+                ];
+            }
+        } catch (Exception $e) {
+            Log::error('loadAutomationSuggestions failed: ' . $e->getMessage());
+            $this->automationAiError = 'Could not load automation suggestions. You can configure them later.';
+        }
+    }
+
+    public function openReminderModal(int $libraryId): void
+    {
+        $this->editingAutomationLibraryId = $libraryId;
+        $config = $this->automationConfigs[$libraryId] ?? [];
+        $this->editingRules         = $config['rules'] ?? [];
+        $this->editingMessageTitle  = $config['custom_message_title'] ?? '';
+        $this->editingMessageBody   = $config['custom_message_body'] ?? '';
+        $this->showReminderModal    = true;
+    }
+
+    public function closeReminderModal(): void
+    {
+        $this->showReminderModal          = false;
+        $this->editingAutomationLibraryId = null;
+        $this->editingRules               = [];
+        $this->editingMessageTitle        = '';
+        $this->editingMessageBody         = '';
+    }
+
+    public function addReminderRule(): void
+    {
+        $this->editingRules[] = [
+            'trigger_type' => 'before_due',
+            'offset_days'  => 1,
+            'send_time'    => '09:00',
+            'is_enabled'   => true,
+        ];
+    }
+
+    public function removeReminderRule(int $index): void
+    {
+        if (isset($this->editingRules[$index])) {
+            unset($this->editingRules[$index]);
+            $this->editingRules = array_values($this->editingRules);
+        }
+    }
+
+    public function saveReminderModal(): void
+    {
+        $libraryId = $this->editingAutomationLibraryId;
+        if (!$libraryId) {
+            $this->closeReminderModal();
+            return;
+        }
+
+        try {
+            app(ReminderRuleService::class)->validate($this->editingRules);
+        } catch (Exception $e) {
+            $this->addError('editingRules', $e->getMessage());
+            return;
+        }
+
+        // Persist the edited config back into the automationConfigs state array
+        if (isset($this->automationConfigs[$libraryId])) {
+            $this->automationConfigs[$libraryId]['rules']                = $this->editingRules;
+            $this->automationConfigs[$libraryId]['custom_message_title'] = $this->editingMessageTitle;
+            $this->automationConfigs[$libraryId]['custom_message_body']  = $this->editingMessageBody;
+        }
+
+        $this->closeReminderModal();
+    }
+
+    public function toggleAutomation(int $libraryId): void
+    {
+        if (isset($this->automationConfigs[$libraryId])) {
+            $this->automationConfigs[$libraryId]['is_enabled'] =
+                !$this->automationConfigs[$libraryId]['is_enabled'];
+        }
+    }
+
+    public function resetMessageToDefault(int $libraryId): void
+    {
+        $suggestion = collect($this->automationSuggestions)
+            ->firstWhere('library_id', $libraryId);
+
+        if ($suggestion && isset($this->automationConfigs[$libraryId])) {
+            $this->automationConfigs[$libraryId]['custom_message_title'] = $suggestion['message_title'];
+            $this->automationConfigs[$libraryId]['custom_message_body']  = $suggestion['message_body'];
+            // Also sync editing fields if modal is open
+            $this->editingMessageTitle = $suggestion['message_title'];
+            $this->editingMessageBody  = $suggestion['message_body'];
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function render()
     {
         return view('ca::livewire.client-onboarding-wizard')->layout('layouts.panel');
+    }
+
+    private function persistRecurrenceSchedules(): void
+    {
+        if (empty($this->draft_client_id)) return;
+        
+        $client = CAClient::findOrFail($this->draft_client_id);
+        if (!empty($this->recurrenceConfigs)) {
+            $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+            foreach ($this->recurrenceConfigs as $reqId => $data) {
+                if (!empty($data['frequency']) && !empty($data['next_due_date'])) {
+                    $requirements = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function ($q) use ($client) {
+                        $q->where('ca_client_id', $client->id);
+                    })->where('ca_compliance_requirement_id', $reqId)->get();
+
+                    foreach ($requirements as $requirement) {
+                        if ($requirement->is_recurring) {
+                            $requirement->update([
+                                'recurrence_frequency' => $data['frequency'],
+                                'recurrence_config' => $data['config'] ?? null,
+                                'next_due_date' => $data['next_due_date'],
+                            ]);
+                            $deadlineService->generateRecurringDeadlines($requirement);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function cloneAttachedAutomations(CAClient $client): void
+    {
+        $actor = Auth::user();
+        
+        // Delete existing client automations to avoid duplicates
+        $existingAutomations = CAClientAutomation::where('client_id', $client->id)->get();
+        foreach ($existingAutomations as $ea) {
+            $ea->rules()->delete();
+            $ea->documentMappings()->delete();
+            $ea->delete();
+        }
+
+        // Load all client compliance requirements
+        $clientRequirements = \Modules\CA\Models\CAClientComplianceRequirement::whereHas('clientCompliance', function ($q) use ($client) {
+            $q->where('ca_client_id', $client->id);
+        })->get();
+
+        foreach ($this->recurrenceConfigs as $reqId => $data) {
+            // Check if automation is enabled for this document (default is true)
+            if (!($this->automationsEnabledByDoc[$reqId] ?? true)) {
+                continue;
+            }
+
+            $schedules = $data['config']['schedules'] ?? [];
+            foreach ($schedules as $sched) {
+                $automationId = $sched['automation_id'] ?? null;
+                if (!$automationId) continue;
+
+                // Find company template automation
+                $companyAutomation = CAClientAutomation::where('company_id', $client->company_id)
+                    ->whereNull('client_id')
+                    ->find($automationId);
+
+                if (!$companyAutomation) continue;
+
+                // Link requirement ID
+                $req = $clientRequirements->firstWhere('ca_compliance_requirement_id', $reqId);
+                if (!$req) continue;
+
+                // Create client-specific automation
+                $clientAutomation = CAClientAutomation::create([
+                    'company_id'            => $client->company_id,
+                    'client_id'             => $client->id,
+                    'automation_library_id' => $companyAutomation->automation_library_id,
+                    'whatsapp_template_id'  => $companyAutomation->whatsapp_template_id,
+                    'frequency'             => $companyAutomation->frequency,
+                    'status'                => 'active',
+                    'is_enabled'            => true,
+                    'created_by'            => $actor->id,
+                    'metadata_json'         => $companyAutomation->metadata_json,
+                ]);
+
+                // Copy rules
+                foreach ($companyAutomation->rules as $rule) {
+                    CAClientAutomationRule::create([
+                        'client_automation_id' => $clientAutomation->id,
+                        'trigger_type'         => $rule->trigger_type,
+                        'offset_days'          => $rule->offset_days,
+                        'send_time'            => $rule->send_time,
+                        'is_enabled'           => $rule->is_enabled,
+                    ]);
+                }
+
+                // Create document mapping link
+                \Modules\CA\Models\CAClientAutomationDocument::create([
+                    'client_automation_id'               => $clientAutomation->id,
+                    'ca_client_compliance_requirement_id' => $req->id,
+                ]);
+            }
+        }
+    }
+
+    private function generateMissingRecurringRequirements(CAClient $client): void
+    {
+        $selectedCompliances = $client->clientCompliances()->with('compliance')->get();
+        if ($selectedCompliances->isEmpty()) {
+            return;
+        }
+
+        $generated = false;
+        try {
+            $aiManager = app(\Modules\CA\Services\AI\Managers\AIManager::class);
+            $provider = $aiManager->provider();
+            $systemPrompt = "You are an expert Indian Chartered Accountant.";
+            $complianceNames = $selectedCompliances->pluck('compliance.name')->implode(', ');
+            $userPrompt = "Identify and list the recurring document/filing compliance requirements that are periodically due (e.g. monthly, quarterly, yearly) for these Indian compliances: {$complianceNames}.
+            Return the response STRICTLY as a JSON object with the following structure:
+            {
+                \"requirements\": [
+                    {
+                        \"compliance_slug\": \"slug-of-the-compliance\",
+                        \"name\": \"GSTR-1 Return data\",
+                        \"description\": \"Monthly sales data for GSTR-1 filing\",
+                        \"requirement_type\": \"document\",
+                        \"input_type\": \"file\",
+                        \"is_required\": true,
+                        \"is_recurring\": true,
+                        \"required_stage\": \"post_onboarding\"
+                    }
+                ]
+            }
+            Ensure each requirement's compliance_slug matches one of these slugs: " . $selectedCompliances->pluck('compliance.slug')->implode(', ') . ".
+            Do not include any markdown formatting, only raw valid JSON.";
+
+            $json = $provider->generateStructuredResponse($systemPrompt, $userPrompt);
+
+            if (isset($json['requirements']) && is_array($json['requirements'])) {
+                foreach ($json['requirements'] as $reqData) {
+                    $slug = $reqData['compliance_slug'] ?? '';
+                    $compliance = \Modules\CA\Models\CACompliance::where('slug', $slug)->first();
+                    if (!$compliance) {
+                        $compliance = $selectedCompliances->first()->compliance;
+                    }
+
+                    if ($compliance) {
+                        $masterReq = \Modules\CA\Models\CAComplianceRequirement::updateOrCreate(
+                            [
+                                'ca_compliance_id' => $compliance->id,
+                                'slug' => \Illuminate\Support\Str::slug($reqData['name']),
+                            ],
+                            [
+                                'name' => $reqData['name'],
+                                'description' => $reqData['description'] ?? null,
+                                'requirement_type' => $reqData['requirement_type'] ?? 'document',
+                                'input_type' => $reqData['input_type'] ?? 'file',
+                                'is_required' => $reqData['is_required'] ?? true,
+                                'is_recurring' => true,
+                                'required_stage' => 'post_onboarding',
+                            ]
+                        );
+
+                        $clientComp = $selectedCompliances->where('ca_compliance_id', $compliance->id)->first();
+                        if ($clientComp) {
+                            \Modules\CA\Models\CAClientComplianceRequirement::firstOrCreate(
+                                [
+                                    'ca_client_compliance_id' => $clientComp->id,
+                                    'ca_compliance_requirement_id' => $masterReq->id,
+                                ],
+                                [
+                                    'name' => $masterReq->name,
+                                    'requirement_type' => $masterReq->requirement_type,
+                                    'input_type' => $masterReq->input_type,
+                                    'is_required' => $masterReq->is_required,
+                                    'is_recurring' => true,
+                                    'status' => 'pending',
+                                ]
+                            );
+                            $generated = true;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("AI generation failed for recurring requirements: " . $e->getMessage() . ". Falling back to local dictionary.");
+        }
+
+        if (!$generated) {
+            foreach ($selectedCompliances as $sc) {
+                $comp = $sc->compliance;
+                $name = $comp->name;
+
+                $fallbackReqs = [];
+                if (stripos($name, 'gst') !== false) {
+                    $fallbackReqs[] = [
+                        'name' => 'GST GSTR-1 Sales data',
+                        'desc' => 'Monthly/Quarterly sales register for GST GSTR-1 return filing.',
+                    ];
+                    $fallbackReqs[] = [
+                        'name' => 'GST GSTR-3B purchase register',
+                        'desc' => 'Monthly purchase register/ITC ledger for GSTR-3B filing.',
+                    ];
+                } elseif (stripos($name, 'tds') !== false || stripos($name, 'tax deduction') !== false) {
+                    $fallbackReqs[] = [
+                        'name' => 'TDS quarterly statement details',
+                        'desc' => 'Challans and salary/non-salary deduction statements for quarterly TDS return.',
+                    ];
+                } elseif (stripos($name, 'income tax') !== false || stripos($name, 'itr') !== false) {
+                    $fallbackReqs[] = [
+                        'name' => 'Income tax annual ledger',
+                        'desc' => 'Audited balance sheet, profit & loss, and form 26AS for annual ITR filing.',
+                    ];
+                } else {
+                    $fallbackReqs[] = [
+                        'name' => $name . ' Monthly Report',
+                        'desc' => 'Required monthly documents for ' . $name,
+                    ];
+                }
+
+                foreach ($fallbackReqs as $f) {
+                    $masterReq = \Modules\CA\Models\CAComplianceRequirement::updateOrCreate(
+                        [
+                            'ca_compliance_id' => $comp->id,
+                            'slug' => \Illuminate\Support\Str::slug($f['name']),
+                        ],
+                        [
+                            'name' => $f['name'],
+                            'description' => $f['desc'],
+                            'requirement_type' => 'document',
+                            'input_type' => 'file',
+                            'is_required' => true,
+                            'is_recurring' => true,
+                            'required_stage' => 'post_onboarding',
+                        ]
+                    );
+
+                    \Modules\CA\Models\CAClientComplianceRequirement::firstOrCreate(
+                        [
+                            'ca_client_compliance_id' => $sc->id,
+                            'ca_compliance_requirement_id' => $masterReq->id,
+                        ],
+                        [
+                            'name' => $masterReq->name,
+                            'requirement_type' => $masterReq->requirement_type,
+                            'input_type' => $masterReq->input_type,
+                            'is_required' => $masterReq->is_required,
+                            'is_recurring' => true,
+                            'status' => 'pending',
+                        ]
+                    );
+                }
+            }
+        }
     }
 }

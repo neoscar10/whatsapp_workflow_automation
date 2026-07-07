@@ -27,11 +27,30 @@ class ReviewService
         if ($document->ca_client_compliance_requirement_id) {
             $requirement = CAClientComplianceRequirement::find($document->ca_client_compliance_requirement_id);
             if ($requirement) {
-                $requirement->update([
-                    'status' => 'approved',
-                    'is_completed' => true,
-                    'approved_at' => now(),
-                ]);
+                if ($requirement->is_recurring) {
+                    $deadlineService = app(\Modules\CA\Services\DeadlineService::class);
+                    $from = $requirement->next_due_date ? \Carbon\Carbon::parse($requirement->next_due_date)->addDay() : now()->addDay();
+                    $nextDate = $deadlineService->calculateNextDueDateForRequirement(
+                        $requirement->recurrence_frequency,
+                        $requirement->recurrence_config ?? [],
+                        $from
+                    );
+
+                    $requirement->update([
+                        'status' => 'pending',
+                        'is_completed' => false,
+                        'next_due_date' => $nextDate ? $nextDate->toDateString() : null,
+                        'approved_at' => now(),
+                    ]);
+
+                    $deadlineService->generateRecurringDeadlines($requirement);
+                } else {
+                    $requirement->update([
+                        'status' => 'approved',
+                        'is_completed' => true,
+                        'approved_at' => now(),
+                    ]);
+                }
             }
         }
     }
@@ -45,17 +64,23 @@ class ReviewService
             throw new Exception("Unauthorized to reject this document.");
         }
 
+        $existingMeta = $document->metadata_json ?? [];
+        $existingMeta['rejection_reason'] = $reason;
+        $existingMeta['rejected_by_name'] = $actor->name;
+        $existingMeta['rejected_at'] = now()->toDateTimeString();
+
         $document->update([
-            'status' => 'rejected',
+            'status'        => 'rejected',
+            'metadata_json' => $existingMeta,
         ]);
 
         if ($document->ca_client_compliance_requirement_id) {
             $requirement = CAClientComplianceRequirement::find($document->ca_client_compliance_requirement_id);
             if ($requirement) {
                 $requirement->update([
-                    'status' => 'rejected',
+                    'status'       => 'rejected',
                     'is_completed' => false,
-                    'remarks' => $reason,
+                    'remarks'      => $reason,
                 ]);
             }
         }

@@ -10,7 +10,7 @@ use Exception;
 
 class GeminiProvider implements AIProviderInterface
 {
-    protected string $apiKey;
+    protected ?string $apiKey = null;
     protected string $model;
     protected int $lastTokenUsage = 0;
 
@@ -24,17 +24,32 @@ class GeminiProvider implements AIProviderInterface
         }
     }
 
-    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = []): array
+    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = [], ?string $filePath = null): array
     {
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $parts = [
+            ['text' => $systemPrompt . "\n\n" . $userPrompt]
+        ];
+
+        if ($filePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($filePath)) {
+            $mimeType = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($filePath) ?: 'application/octet-stream';
+            $fileContents = \Illuminate\Support\Facades\Storage::disk('public')->get($filePath);
+            $base64 = base64_encode($fileContents);
+
+            $parts[] = [
+                'inlineData' => [
+                    'mimeType' => $mimeType,
+                    'data' => $base64
+                ]
+            ];
+        }
 
         $payload = [
             'contents' => [
                 [
                     'role' => 'user',
-                    'parts' => [
-                        ['text' => $systemPrompt . "\n\n" . $userPrompt]
-                    ]
+                    'parts' => $parts
                 ]
             ],
             'generationConfig' => [

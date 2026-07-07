@@ -26,14 +26,32 @@ class OpenAIProvider implements AIProviderInterface
         $this->client = OpenAI::client($apiKey);
     }
 
-    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = []): array
+    public function generateStructuredResponse(string $systemPrompt, string $userPrompt, array $schema = [], ?string $filePath = null): array
     {
+        $content = [
+            ['type' => 'text', 'text' => $userPrompt]
+        ];
+
+        if ($filePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($filePath)) {
+            $mimeType = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($filePath) ?: 'application/octet-stream';
+            if (str_starts_with($mimeType, 'image/')) {
+                $fileContents = \Illuminate\Support\Facades\Storage::disk('public')->get($filePath);
+                $base64 = base64_encode($fileContents);
+                $content[] = [
+                    'type' => 'image_url',
+                    'image_url' => [
+                        'url' => "data:{$mimeType};base64,{$base64}"
+                    ]
+                ];
+            }
+        }
+
         try {
             $response = $this->client->chat()->create([
                 'model' => $this->model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => $userPrompt],
+                    ['role' => 'user', 'content' => $content],
                 ],
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.1,

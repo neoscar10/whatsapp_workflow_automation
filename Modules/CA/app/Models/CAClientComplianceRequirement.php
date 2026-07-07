@@ -54,4 +54,14 @@ class CAClientComplianceRequirement extends Model
     {
         return $this->belongsTo(CAComplianceRequirement::class, 'ca_compliance_requirement_id');
     }
+
+    public function automationDocuments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CAClientAutomationDocument::class, 'ca_client_compliance_requirement_id');
+    }
+
+    public function documents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CADocument::class, 'ca_client_compliance_requirement_id');
+    }
 }

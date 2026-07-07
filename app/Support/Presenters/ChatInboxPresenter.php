@@ -55,7 +55,7 @@ class ChatInboxPresenter
                 'id' => $m->id,
                 'direction' => $m->direction,
                 'message_type' => $m->message_type,
-                'body' => $m->body,
+                'body' => $m->message_type === 'template' ? ($m->rendered_body ?? $m->body) : $m->body,
                 'media_url' => $m->media_url,
                 'resolved_media_url' => $m->resolved_media_url,
                 'status' => $m->status,
