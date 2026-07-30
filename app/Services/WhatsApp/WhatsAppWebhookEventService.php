@@ -117,9 +117,18 @@ class WhatsAppWebhookEventService
                     }
                 }
 
-                $this->resolverService->resolveAndProcessInboundMessage($localNumber, $message, $contact ?? []);
+                $savedMessage = $this->resolverService->resolveAndProcessInboundMessage($localNumber, $message, $contact ?? []);
 
-                if ($account->company) {
+                if ($account->company && $savedMessage) {
+                    // Dispatch mobile push notification job
+                    \App\Jobs\Notifications\SendMobilePushNotificationJob::dispatch(
+                        $account->company->id,
+                        $savedMessage->conversation_id,
+                        $savedMessage->id,
+                        $savedMessage->conversation?->contact_name ?? $from ?? 'Contact',
+                        $savedMessage->body ?? 'New media message'
+                    );
+
                     $this->webhookDispatcher->dispatch($account->company, 'message.received', [
                         'message' => $message,
                         'contact' => $contact ?? [],

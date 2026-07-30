@@ -24,6 +24,16 @@
     </div>
 
     <div class="flex items-center justify-end gap-3 shrink-0">
+        {{-- Desktop Notification Permission Toggle --}}
+        <button 
+            onclick="window.requestNotificationPermission ? window.requestNotificationPermission() : null" 
+            type="button"
+            class="flex items-center justify-center size-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary transition-all dark:bg-slate-800"
+            title="Enable Desktop Push Notifications"
+        >
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+        </button>
+
         @if(auth()->user()?->role !== 'super_admin')
             <livewire:web.panel.topbar-wallet-balance />
         @endif

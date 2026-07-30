@@ -103,5 +103,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(PaymentTransaction::class);
     }
+
+    public function deviceTokens(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserDeviceToken::class);
+    }
 }
 

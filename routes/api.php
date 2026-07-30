@@ -36,6 +36,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+        // Device Tokens (Mobile Push Notifications)
+        Route::prefix('devices')->name('devices.')->group(function () {
+            Route::post('/token', [\App\Http\Controllers\Api\V1\Device\DeviceTokenController::class, 'store'])->name('token.store');
+            Route::delete('/token', [\App\Http\Controllers\Api\V1\Device\DeviceTokenController::class, 'destroy'])->name('token.destroy');
+        });
+
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Api\V1\Dashboard\DashboardController::class, 'index'])->name('dashboard.index');
 

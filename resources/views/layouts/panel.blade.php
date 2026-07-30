@@ -62,6 +62,7 @@
     </div>
 
     @livewireScripts
+    @include('partials.panel.web-notifications')
     @stack('scripts')
 </body>
 </html>
