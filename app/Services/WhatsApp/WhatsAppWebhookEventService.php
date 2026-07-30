@@ -8,10 +8,13 @@ use App\Services\Chat\ChatConversationResolverService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use App\Services\Webhooks\CompanyWebhookDispatcherService;
+
 class WhatsAppWebhookEventService
 {
     public function __construct(
-        protected ChatConversationResolverService $resolverService
+        protected ChatConversationResolverService $resolverService,
+        protected CompanyWebhookDispatcherService $webhookDispatcher
     ) {}
     /**
      * Process the incoming POST webhook payload from Meta.
@@ -115,6 +118,14 @@ class WhatsAppWebhookEventService
                 }
 
                 $this->resolverService->resolveAndProcessInboundMessage($localNumber, $message, $contact ?? []);
+
+                if ($account->company) {
+                    $this->webhookDispatcher->dispatch($account->company, 'message.received', [
+                        'message' => $message,
+                        'contact' => $contact ?? [],
+                        'phone_number_id' => $phoneNumberId,
+                    ]);
+                }
             }
         }
 
@@ -202,12 +213,25 @@ class WhatsAppWebhookEventService
             // Broadcast events to update UI
             broadcast(new \App\Events\Chat\ChatMessageReceived($message));
             broadcast(new \App\Events\Chat\ChatConversationUpdated($conversation));
+
+            if ($account->company) {
+                $this->webhookDispatcher->dispatch($account->company, 'message.status_update', [
+                    'message_id' => $message->id,
+                    'external_message_id' => $externalId,
+                    'status' => $newStatus,
+                    'timestamp' => $timestamp,
+                ]);
+            }
         }
     }
 
     protected function processTemplateStatusEvent(WhatsAppAccount $account, array $value): void
     {
         Log::info('Received WhatsApp template status update', ['account_id' => $account->id]);
+
+        if ($account->company) {
+            $this->webhookDispatcher->dispatch($account->company, 'template.status_update', $value);
+        }
     }
 
     protected function logUnhandledEvent(WhatsAppAccount $account, ?string $field, array $value): void

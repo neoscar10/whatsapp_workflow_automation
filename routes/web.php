@@ -63,6 +63,9 @@ Route::middleware('auth')->group(function () {
     // Secure Verification Document serving route
     Route::get('/company/verification/document-file/{versionId}', [\App\Http\Controllers\Company\VerificationFileController::class, 'show'])->name('company.verification.file');
 
+    // Outbound Webhooks
+    Route::get('/webhooks', \App\Livewire\Web\Webhooks\CompanyWebhooksPage::class)->name('webhooks.index');
+
     // Wallet Dashboard
     Route::get('/wallet', \App\Livewire\Wallet\WalletDashboard::class)->name('wallet.index');
 

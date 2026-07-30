@@ -117,4 +117,9 @@ class Company extends Model
     {
         return $this->hasMany(\Modules\CA\Models\CAClient::class);
     }
+
+    public function companyWebhooks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Webhooks\CompanyWebhook::class);
+    }
 }

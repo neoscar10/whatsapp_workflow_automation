@@ -98,6 +98,14 @@ class AppServiceProvider extends ServiceProvider
             'order' => 90,
         ]);
         \App\Support\Sidebar\SidebarRegistry::register([
+            'title' => 'Webhooks',
+            'route' => 'webhooks.index',
+            'icon' => 'webhook',
+            'activePattern' => 'webhooks.*',
+            'group' => 'core',
+            'order' => 95,
+        ]);
+        \App\Support\Sidebar\SidebarRegistry::register([
             'title' => 'My Wallet',
             'route' => 'wallet.index',
             'icon' => 'account_balance_wallet',
