@@ -54,6 +54,37 @@ class ChatInboxService
      */
     public function getConversationListForUser(User $user, array $filters = []): Collection
     {
+        // Failsafe Alignment: Ensure any conversations associated with user's company contacts or phone numbers match $user->company_id
+        try {
+            $userAccountIds = \App\Models\WhatsApp\WhatsAppAccount::where('company_id', $user->company_id)->pluck('id');
+            if ($userAccountIds->isNotEmpty()) {
+                $phoneIds = \App\Models\WhatsApp\WhatsAppPhoneNumber::whereIn('whatsapp_account_id', $userAccountIds)->pluck('id');
+                if ($phoneIds->isNotEmpty()) {
+                    Conversation::whereIn('whatsapp_phone_number_id', $phoneIds)
+                        ->where('company_id', '!=', $user->company_id)
+                        ->update(['company_id' => $user->company_id]);
+                }
+            }
+
+            $userContactPhones = \App\Models\Contact\Contact::where('company_id', $user->company_id)->pluck('phone')->filter()->toArray();
+            if (!empty($userContactPhones)) {
+                $cleanContactPhones = array_map(fn($p) => preg_replace('/[^0-9]/', '', $p), $userContactPhones);
+                $last10Phones = array_map(fn($p) => strlen($p) >= 10 ? substr($p, -10) : $p, $cleanContactPhones);
+
+                Conversation::where(function ($q) use ($userContactPhones, $last10Phones) {
+                    $q->whereIn('contact_phone', $userContactPhones);
+                    foreach ($last10Phones as $last10) {
+                        if (strlen($last10) >= 7) {
+                            $q->orWhere('contact_phone', 'like', '%' . $last10);
+                        }
+                    }
+                })->where('company_id', '!=', $user->company_id)
+                  ->update(['company_id' => $user->company_id]);
+            }
+        } catch (\Exception $e) {
+            // Ignore alignment exceptions
+        }
+
         $query = Conversation::where('company_id', $user->company_id)
             ->orderByRaw('COALESCE(last_message_at, updated_at) DESC');
 
