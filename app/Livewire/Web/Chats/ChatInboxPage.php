@@ -73,9 +73,7 @@ class ChatInboxPage extends Component
 
         $user = auth()->user();
         $channels = app(\App\Services\Chat\ChatChannelAvailabilityService::class)->getAvailableWhatsAppNumbersForUser($user);
-        if ($channels->isNotEmpty() && !$this->selectedPhoneNumberId) {
-            $this->selectedPhoneNumberId = $channels->first()->id;
-        }
+        // Leave selectedPhoneNumberId null by default so it shows all company numbers in the inbox
 
         if ($this->initiateContactId) {
             $conversation = \App\Models\Chat\Conversation::where('contact_id', $this->initiateContactId)
