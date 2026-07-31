@@ -109,7 +109,27 @@ class WhatsAppWebhookEventService
             return;
         }
 
-        $localNumber = WhatsAppPhoneNumber::with('account')->where('phone_number_id', $phoneNumberId)->first();
+        // 1. Try to find local number for this specific account first
+        $localNumber = WhatsAppPhoneNumber::with('account')
+            ->where('whatsapp_account_id', $account->id)
+            ->where('phone_number_id', $phoneNumberId)
+            ->first();
+
+        // 2. Fallback: find by company_id and phone_number_id
+        if (!$localNumber) {
+            $localNumber = WhatsAppPhoneNumber::with('account')
+                ->where('company_id', $account->company_id)
+                ->where('phone_number_id', $phoneNumberId)
+                ->first();
+        }
+
+        // 3. Last fallback: global search by phone_number_id
+        if (!$localNumber) {
+            $localNumber = WhatsAppPhoneNumber::with('account')
+                ->where('phone_number_id', $phoneNumberId)
+                ->first();
+        }
+
         if (!$localNumber) {
             Log::error("WhatsApp Webhook: Local number not found in DB", [
                 'phone_number_id' => $phoneNumberId,
@@ -120,9 +140,13 @@ class WhatsAppWebhookEventService
 
         // Failsafe: Ensure local number's company_id is synchronized with its parent WhatsAppAccount's company_id
         if ($account && $localNumber->company_id !== $account->company_id) {
-            Log::info("WEBHOOK_AUTO_REPAIR: Updating local number {$localNumber->id} company_id from {$localNumber->company_id} to {$account->company_id}");
-            $localNumber->update(['company_id' => $account->company_id]);
-            $localNumber->refresh();
+            try {
+                Log::info("WEBHOOK_AUTO_REPAIR: Updating local number {$localNumber->id} company_id from {$localNumber->company_id} to {$account->company_id}");
+                $localNumber->update(['company_id' => $account->company_id]);
+                $localNumber->refresh();
+            } catch (\Exception $e) {
+                Log::warning("WEBHOOK_AUTO_REPAIR: Could not update company_id due to existing record", ['error' => $e->getMessage()]);
+            }
         }
 
         Log::info('WEBHOOK_STAGE_4: Local number matched successfully', [
