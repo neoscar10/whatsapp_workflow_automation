@@ -29,22 +29,50 @@ class ChatConversationResolverService
     {
         $fromPhone = $messageData['from']; // Customer's phone number
         $messageId = $messageData['id'];
+        $cleanPhone = preg_replace('/[^0-9]/', '', $fromPhone);
 
-        // 1. Find or create the conversation
-        $conversation = Conversation::firstOrCreate(
-            [
-                'whatsapp_phone_number_id' => $localNumber->id,
-                'contact_phone' => $fromPhone,
-            ],
-            [
+        // 1. Find existing conversation by phone (matching with or without '+' prefix)
+        $conversation = Conversation::where('company_id', $localNumber->company_id)
+            ->where(function ($q) use ($fromPhone, $cleanPhone) {
+                $q->where('contact_phone', $fromPhone)
+                  ->orWhere('contact_phone', '+' . $cleanPhone)
+                  ->orWhere('contact_phone', $cleanPhone);
+            })
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
                 'company_id' => $localNumber->company_id,
-                'contact_name' => $contactData['profile']['name'] ?? $fromPhone,
+                'whatsapp_phone_number_id' => $localNumber->id,
+                'contact_phone' => '+' . $cleanPhone,
+                'contact_name' => $contactData['profile']['name'] ?? ('+' . $cleanPhone),
                 'assignment_status' => 'unassigned',
-            ]
-        );
+            ]);
+        } else {
+            // Update whatsapp_phone_number_id and ensure phone format is standardized
+            $conversation->update([
+                'whatsapp_phone_number_id' => $localNumber->id,
+                'contact_phone' => '+' . $cleanPhone,
+            ]);
 
-        if ($conversation->company_id !== $localNumber->company_id) {
-            $conversation->update(['company_id' => $localNumber->company_id]);
+            // Consolidate any duplicate conversations for this exact same phone number
+            $duplicateConvIds = Conversation::where('company_id', $localNumber->company_id)
+                ->where('id', '!=', $conversation->id)
+                ->where(function ($q) use ($fromPhone, $cleanPhone) {
+                    $q->where('contact_phone', $fromPhone)
+                      ->orWhere('contact_phone', '+' . $cleanPhone)
+                      ->orWhere('contact_phone', $cleanPhone);
+                })
+                ->pluck('id');
+
+            if ($duplicateConvIds->isNotEmpty()) {
+                ConversationMessage::whereIn('conversation_id', $duplicateConvIds)
+                    ->update(['conversation_id' => $conversation->id]);
+
+                Conversation::whereIn('id', $duplicateConvIds)->delete();
+                Log::info("CONVERSATION_CONSOLIDATION: Merged duplicate conversations " . implode(',', $duplicateConvIds->toArray()) . " into conversation {$conversation->id}");
+            }
         }
 
         // 2. Prepare message body based on type
