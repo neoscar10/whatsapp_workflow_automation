@@ -695,6 +695,9 @@ class ChatInboxPage extends Component
         ]);
 
         $this->channelAvailability = $data['channel_availability'];
+        if ($data['activeConversation']) {
+            $this->selectedConversationId = $data['activeConversation']->id;
+        }
 
         return view('livewire.web.chats.chat-inbox-page', [
             'conversationList' => $presenter->formatConversations($data['conversations']),

@@ -89,9 +89,19 @@ class ChatInboxService
             return null;
         }
 
-        return Conversation::where('company_id', $user->company_id)
+        $conversation = Conversation::where('company_id', $user->company_id)
             ->where('id', $conversationId)
             ->first();
+
+        // Fallback: If requested conversation ID no longer exists (e.g. merged or invalid URL query param),
+        // fallback to the most recent active conversation for the user's company so inbox is never stuck on dead ID
+        if (!$conversation) {
+            $conversation = Conversation::where('company_id', $user->company_id)
+                ->orderByRaw('COALESCE(last_message_at, updated_at) DESC')
+                ->first();
+        }
+
+        return $conversation;
     }
 
     /**
