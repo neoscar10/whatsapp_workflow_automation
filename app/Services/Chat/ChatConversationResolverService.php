@@ -53,6 +53,27 @@ class ChatConversationResolverService
 
         $resolvedName = $matchedContact?->name ?? $contactData['profile']['name'] ?? ('+' . $cleanPhone);
 
+        // Failsafe: Align company_id on all existing conversations for this customer to $localNumber->company_id
+        try {
+            Conversation::where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact, $resolvedName) {
+                $q->where('contact_phone', $fromPhone)
+                  ->orWhere('contact_phone', '+' . $cleanPhone)
+                  ->orWhere('contact_phone', $cleanPhone)
+                  ->orWhere('contact_phone', 'like', '%' . $last10);
+
+                if ($matchedContact) {
+                    $q->orWhere('contact_id', $matchedContact->id)
+                      ->orWhere('contact_name', 'like', '%' . $matchedContact->name . '%');
+                }
+
+                if (!empty($resolvedName) && strlen($resolvedName) > 2) {
+                    $q->orWhere('contact_name', $resolvedName);
+                }
+            })->update(['company_id' => $localNumber->company_id]);
+        } catch (\Exception $e) {
+            Log::warning('CONVERSATION_COMPANY_ALIGNMENT_FAILED', ['error' => $e->getMessage()]);
+        }
+
         // 1. Find existing conversation by phone, last 10 digits, contact_id, contact_name, or linked Contact phone
         $conversation = Conversation::where('company_id', $localNumber->company_id)
             ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact, $resolvedName) {
