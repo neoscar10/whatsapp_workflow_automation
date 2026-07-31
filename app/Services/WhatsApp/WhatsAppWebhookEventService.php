@@ -118,10 +118,17 @@ class WhatsAppWebhookEventService
             return;
         }
 
+        // Failsafe: Ensure local number's company_id is synchronized with its parent WhatsAppAccount's company_id
+        if ($account && $localNumber->company_id !== $account->company_id) {
+            Log::info("WEBHOOK_AUTO_REPAIR: Updating local number {$localNumber->id} company_id from {$localNumber->company_id} to {$account->company_id}");
+            $localNumber->update(['company_id' => $account->company_id]);
+            $localNumber->refresh();
+        }
+
         Log::info('WEBHOOK_STAGE_4: Local number matched successfully', [
             'phone_number_id' => $phoneNumberId,
             'local_number_id' => $localNumber->id,
-            'company_id' => $account->company_id,
+            'company_id' => $localNumber->company_id,
             'messages_count' => count($value['messages'] ?? []),
         ]);
 

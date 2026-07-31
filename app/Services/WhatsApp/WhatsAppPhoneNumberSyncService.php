@@ -120,6 +120,7 @@ class WhatsAppPhoneNumberSyncService
     protected function updateLocalNumber(WhatsAppPhoneNumber $number, array $metaData): void
     {
         $updateData = [
+            'company_id' => $number->account?->company_id ?? $number->company_id,
             'phone_number_id' => $metaData['id'], // Ensure ID is correct
             'display_name' => $metaData['verified_name'] ?? $number->display_name,
             'verified_name' => $metaData['verified_name'] ?? null,

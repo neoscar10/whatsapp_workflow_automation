@@ -33,15 +33,19 @@ class ChatConversationResolverService
         // 1. Find or create the conversation
         $conversation = Conversation::firstOrCreate(
             [
-                'company_id' => $localNumber->company_id,
                 'whatsapp_phone_number_id' => $localNumber->id,
                 'contact_phone' => $fromPhone,
             ],
             [
+                'company_id' => $localNumber->company_id,
                 'contact_name' => $contactData['profile']['name'] ?? $fromPhone,
                 'assignment_status' => 'unassigned',
             ]
         );
+
+        if ($conversation->company_id !== $localNumber->company_id) {
+            $conversation->update(['company_id' => $localNumber->company_id]);
+        }
 
         // 2. Prepare message body based on type
         $type = $messageData['type'] ?? 'text';
