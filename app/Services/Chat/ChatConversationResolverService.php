@@ -30,15 +30,17 @@ class ChatConversationResolverService
         $fromPhone = $messageData['from']; // Customer's phone number
         $messageId = $messageData['id'];
         $cleanPhone = preg_replace('/[^0-9]/', '', $fromPhone);
+        $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
 
-        // 1. Find existing conversation by phone (matching with or without '+' prefix)
+        // 1. Find existing conversation by matching exact phone or last 10 digits
         $conversation = Conversation::where('company_id', $localNumber->company_id)
-            ->where(function ($q) use ($fromPhone, $cleanPhone) {
+            ->where(function ($q) use ($fromPhone, $cleanPhone, $last10) {
                 $q->where('contact_phone', $fromPhone)
                   ->orWhere('contact_phone', '+' . $cleanPhone)
-                  ->orWhere('contact_phone', $cleanPhone);
+                  ->orWhere('contact_phone', $cleanPhone)
+                  ->orWhere('contact_phone', 'like', '%' . $last10);
             })
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'asc') // Pick earliest primary conversation (e.g. ID 14)
             ->first();
 
         if (!$conversation) {
@@ -59,10 +61,11 @@ class ChatConversationResolverService
             // Consolidate any duplicate conversations for this exact same phone number
             $duplicateConvIds = Conversation::where('company_id', $localNumber->company_id)
                 ->where('id', '!=', $conversation->id)
-                ->where(function ($q) use ($fromPhone, $cleanPhone) {
+                ->where(function ($q) use ($fromPhone, $cleanPhone, $last10) {
                     $q->where('contact_phone', $fromPhone)
                       ->orWhere('contact_phone', '+' . $cleanPhone)
-                      ->orWhere('contact_phone', $cleanPhone);
+                      ->orWhere('contact_phone', $cleanPhone)
+                      ->orWhere('contact_phone', 'like', '%' . $last10);
                 })
                 ->pluck('id');
 
@@ -71,7 +74,7 @@ class ChatConversationResolverService
                     ->update(['conversation_id' => $conversation->id]);
 
                 Conversation::whereIn('id', $duplicateConvIds)->delete();
-                Log::info("CONVERSATION_CONSOLIDATION: Merged duplicate conversations " . implode(',', $duplicateConvIds->toArray()) . " into conversation {$conversation->id}");
+                Log::info("CONVERSATION_CONSOLIDATION: Merged duplicate conversations [" . implode(',', $duplicateConvIds->toArray()) . "] into conversation {$conversation->id}");
             }
         }
 
