@@ -55,7 +55,7 @@ class ChatInboxService
     public function getConversationListForUser(User $user, array $filters = []): Collection
     {
         $query = Conversation::where('company_id', $user->company_id)
-            ->orderBy('last_message_at', 'desc');
+            ->orderByRaw('COALESCE(last_message_at, updated_at) DESC');
 
         if (!empty($filters['whatsapp_phone_number_id'])) {
             $query->where('whatsapp_phone_number_id', $filters['whatsapp_phone_number_id']);
