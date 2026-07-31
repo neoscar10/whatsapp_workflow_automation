@@ -4,6 +4,7 @@ namespace App\Services\Chat;
 
 use App\Models\Chat\Conversation;
 use App\Models\Chat\ConversationMessage;
+use App\Models\Contact\Contact;
 use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Events\Chat\ChatMessageReceived;
 use App\Events\Chat\ChatConversationUpdated;
@@ -41,7 +42,7 @@ class ChatConversationResolverService
         ]);
 
         // Look up associated Contact record in company by phone number
-        $matchedContact = \App\Models\Contact::where('company_id', $localNumber->company_id)
+        $matchedContact = Contact::where('company_id', $localNumber->company_id)
             ->where(function ($q) use ($fromPhone, $cleanPhone, $last10) {
                 $q->where('phone', $fromPhone)
                   ->orWhere('phone', '+' . $cleanPhone)
