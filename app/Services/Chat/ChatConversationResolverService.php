@@ -51,9 +51,11 @@ class ChatConversationResolverService
             })
             ->first();
 
-        // 1. Find existing conversation by phone, last 10 digits, contact_id, or linked Contact phone
+        $resolvedName = $matchedContact?->name ?? $contactData['profile']['name'] ?? ('+' . $cleanPhone);
+
+        // 1. Find existing conversation by phone, last 10 digits, contact_id, contact_name, or linked Contact phone
         $conversation = Conversation::where('company_id', $localNumber->company_id)
-            ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact) {
+            ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact, $resolvedName) {
                 $q->where('contact_phone', $fromPhone)
                   ->orWhere('contact_phone', '+' . $cleanPhone)
                   ->orWhere('contact_phone', $cleanPhone)
@@ -63,13 +65,16 @@ class ChatConversationResolverService
                   });
 
                 if ($matchedContact) {
-                    $q->orWhere('contact_id', $matchedContact->id);
+                    $q->orWhere('contact_id', $matchedContact->id)
+                      ->orWhere('contact_name', 'like', '%' . $matchedContact->name . '%');
+                }
+
+                if (!empty($resolvedName) && strlen($resolvedName) > 2) {
+                    $q->orWhere('contact_name', $resolvedName);
                 }
             })
             ->orderBy('id', 'asc') // Pick earliest primary conversation (e.g. ID 14)
             ->first();
-
-        $resolvedName = $matchedContact?->name ?? $contactData['profile']['name'] ?? ('+' . $cleanPhone);
 
         if (!$conversation) {
             $conversation = Conversation::create([
@@ -97,7 +102,7 @@ class ChatConversationResolverService
             // Consolidate any duplicate conversations for this exact same phone number or contact
             $duplicateConvIds = Conversation::where('company_id', $localNumber->company_id)
                 ->where('id', '!=', $conversation->id)
-                ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact) {
+                ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $matchedContact, $resolvedName) {
                     $q->where('contact_phone', $fromPhone)
                       ->orWhere('contact_phone', '+' . $cleanPhone)
                       ->orWhere('contact_phone', $cleanPhone)
@@ -107,7 +112,12 @@ class ChatConversationResolverService
                       });
 
                     if ($matchedContact) {
-                        $q->orWhere('contact_id', $matchedContact->id);
+                        $q->orWhere('contact_id', $matchedContact->id)
+                          ->orWhere('contact_name', 'like', '%' . $matchedContact->name . '%');
+                    }
+
+                    if (!empty($resolvedName) && strlen($resolvedName) > 2) {
+                        $q->orWhere('contact_name', $resolvedName);
                     }
                 })
                 ->pluck('id');
