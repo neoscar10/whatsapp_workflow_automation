@@ -32,13 +32,16 @@ class ChatConversationResolverService
         $cleanPhone = preg_replace('/[^0-9]/', '', $fromPhone);
         $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
 
-        // 1. Find existing conversation by matching exact phone or last 10 digits
+        // 1. Find existing conversation by matching exact phone, last 10 digits, or linked Contact phone
         $conversation = Conversation::where('company_id', $localNumber->company_id)
             ->where(function ($q) use ($fromPhone, $cleanPhone, $last10) {
                 $q->where('contact_phone', $fromPhone)
                   ->orWhere('contact_phone', '+' . $cleanPhone)
                   ->orWhere('contact_phone', $cleanPhone)
-                  ->orWhere('contact_phone', 'like', '%' . $last10);
+                  ->orWhere('contact_phone', 'like', '%' . $last10)
+                  ->orWhereHas('contact', function ($cq) use ($last10) {
+                      $cq->where('phone', 'like', '%' . $last10);
+                  });
             })
             ->orderBy('id', 'asc') // Pick earliest primary conversation (e.g. ID 14)
             ->first();
@@ -65,7 +68,10 @@ class ChatConversationResolverService
                     $q->where('contact_phone', $fromPhone)
                       ->orWhere('contact_phone', '+' . $cleanPhone)
                       ->orWhere('contact_phone', $cleanPhone)
-                      ->orWhere('contact_phone', 'like', '%' . $last10);
+                      ->orWhere('contact_phone', 'like', '%' . $last10)
+                      ->orWhereHas('contact', function ($cq) use ($last10) {
+                          $cq->where('phone', 'like', '%' . $last10);
+                      });
                 })
                 ->pluck('id');
 
