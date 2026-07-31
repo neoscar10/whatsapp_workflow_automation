@@ -166,7 +166,7 @@ class ChatConversationResolverService
 
         // 3. Prevent duplicate message processing if already existing
         if (ConversationMessage::where('external_message_id', $messageId)->exists()) {
-            return;
+            return null;
         }
 
         // 4. Create the message
