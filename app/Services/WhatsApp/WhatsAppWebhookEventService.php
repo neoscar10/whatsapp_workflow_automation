@@ -138,6 +138,25 @@ class WhatsAppWebhookEventService
             return;
         }
 
+        // Consolidation: If duplicate records exist for this phone_number_id in company, merge them into $localNumber
+        try {
+            $otherNumberIds = WhatsAppPhoneNumber::where('company_id', $account->company_id)
+                ->where('phone_number_id', $phoneNumberId)
+                ->where('id', '!=', $localNumber->id)
+                ->pluck('id');
+
+            if ($otherNumberIds->isNotEmpty()) {
+                \App\Models\Chat\Conversation::whereIn('whatsapp_phone_number_id', $otherNumberIds)
+                    ->update(['whatsapp_phone_number_id' => $localNumber->id]);
+
+                WhatsAppPhoneNumber::whereIn('id', $otherNumberIds)->delete();
+                
+                Log::info("WEBHOOK_CONSOLIDATION: Merged duplicate phone numbers " . implode(',', $otherNumberIds->toArray()) . " into active number {$localNumber->id}");
+            }
+        } catch (\Exception $e) {
+            Log::warning("WEBHOOK_CONSOLIDATION: Exception during consolidation", ['error' => $e->getMessage()]);
+        }
+
         // Failsafe: Ensure local number's company_id is synchronized with its parent WhatsAppAccount's company_id
         if ($account && $localNumber->company_id !== $account->company_id) {
             try {
