@@ -30,6 +30,11 @@ class WhatsAppWebhookController extends Controller
     {
         $payload = $request->all();
         
+        \Illuminate\Support\Facades\Log::info('WEBHOOK_STAGE_1: Inbound Meta POST payload received', [
+            'payload' => $payload,
+            'ip' => $request->ip(),
+        ]);
+
         // Pass payload to event service for async or fast processing.
         $eventService->handle($payload);
 

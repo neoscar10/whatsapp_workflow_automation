@@ -31,6 +31,8 @@ class WhatsAppWebhookEventService
             // Entry structure according to Meta docs
             $entries = $payload['entry'] ?? [];
 
+            Log::info('WEBHOOK_STAGE_2: Parsing entries in EventService', ['entries_count' => count($entries)]);
+
             foreach ($entries as $entry) {
                 // Meta sends the waba_id at the entry level sometimes, and id
                 $wabaId = $entry['id'] ?? null;
@@ -40,10 +42,16 @@ class WhatsAppWebhookEventService
                     $field = $change['field'] ?? null;
                     $value = $change['value'] ?? [];
 
+                    Log::info('WEBHOOK_STAGE_3: Processing change field', ['field' => $field, 'waba_id' => $wabaId, 'phone_number_id' => $value['metadata']['phone_number_id'] ?? null]);
+
                     // Identify account
                     $account = $this->identifyAccountFromPayload($wabaId, $value);
                     
                     if (!$account) {
+                        Log::warning('WEBHOOK_STAGE_3_FAIL: Could not identify local WhatsAppAccount from payload', [
+                            'waba_id' => $wabaId,
+                            'phone_number_id' => $value['metadata']['phone_number_id'] ?? null,
+                        ]);
                         return;
                     }
 
@@ -82,7 +90,15 @@ class WhatsAppWebhookEventService
             $query->where('waba_id', $wabaId);
         }
 
-        return $query->first();
+        $account = $query->first();
+        
+        Log::info('WEBHOOK_ACCOUNT_LOOKUP', [
+            'phone_number_id' => $phoneNumberId,
+            'waba_id' => $wabaId,
+            'found_account_id' => $account?->id,
+        ]);
+
+        return $account;
     }
 
     protected function processMessagesEvent(WhatsAppAccount $account, array $value): void
@@ -95,12 +111,19 @@ class WhatsAppWebhookEventService
 
         $localNumber = WhatsAppPhoneNumber::with('account')->where('phone_number_id', $phoneNumberId)->first();
         if (!$localNumber) {
-            Log::error("WhatsApp Webhook: Local number not found", [
+            Log::error("WhatsApp Webhook: Local number not found in DB", [
                 'phone_number_id' => $phoneNumberId,
                 'account_id' => $account->id
             ]);
             return;
         }
+
+        Log::info('WEBHOOK_STAGE_4: Local number matched successfully', [
+            'phone_number_id' => $phoneNumberId,
+            'local_number_id' => $localNumber->id,
+            'company_id' => $account->company_id,
+            'messages_count' => count($value['messages'] ?? []),
+        ]);
 
         // Handle incoming messages
         if (!empty($value['messages'])) {
