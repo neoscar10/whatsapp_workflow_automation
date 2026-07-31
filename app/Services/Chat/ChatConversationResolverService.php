@@ -25,7 +25,7 @@ class ChatConversationResolverService
      * @param array $contactData (The 'contact' object if available)
      * @return void
      */
-    public function resolveAndProcessInboundMessage(WhatsAppPhoneNumber $localNumber, array $messageData, array $contactData = []): void
+    public function resolveAndProcessInboundMessage(WhatsAppPhoneNumber $localNumber, array $messageData, array $contactData = []): ?ConversationMessage
     {
         $fromPhone = $messageData['from']; // Customer's phone number
         $messageId = $messageData['id'];
@@ -229,5 +229,7 @@ class ChatConversationResolverService
         ));
 
         Log::debug('Realtime: Broadcast call finished');
+
+        return $msg;
     }
 }
