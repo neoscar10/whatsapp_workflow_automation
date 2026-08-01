@@ -90,7 +90,7 @@ class WhatsAppWebhookEventService
             $query->where('waba_id', $wabaId);
         }
 
-        $account = $query->first();
+        $account = $query->orderBy('id', 'desc')->first();
         
         Log::info('WEBHOOK_ACCOUNT_LOOKUP', [
             'phone_number_id' => $phoneNumberId,
