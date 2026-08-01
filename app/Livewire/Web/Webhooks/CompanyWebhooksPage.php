@@ -19,6 +19,7 @@ class CompanyWebhooksPage extends Component
     public bool $showLogsModal = false;
     public bool $showPingModal = false;
 
+    public ?int $confirmingWebhookDeletionId = null;
     public ?int $editingWebhookId = null;
     public ?int $viewingLogsWebhookId = null;
 
@@ -143,13 +144,21 @@ class CompanyWebhooksPage extends Component
         session()->flash('success', 'Webhook status updated.');
     }
 
-    public function deleteWebhook(int $id): void
+    public function confirmDeleteWebhook(int $id): void
     {
-        $company = Auth::user()?->company;
-        $webhook = CompanyWebhook::where('company_id', $company->id)->findOrFail($id);
-        $webhook->delete();
+        $this->confirmingWebhookDeletionId = $id;
+    }
 
-        session()->flash('success', 'Webhook deleted successfully.');
+    public function deleteWebhook(): void
+    {
+        if ($this->confirmingWebhookDeletionId) {
+            $company = Auth::user()?->company;
+            $webhook = CompanyWebhook::where('company_id', $company->id)->findOrFail($this->confirmingWebhookDeletionId);
+            $webhook->delete();
+
+            $this->confirmingWebhookDeletionId = null;
+            session()->flash('success', 'Webhook deleted successfully.');
+        }
     }
 
     public function sendTestPing(int $id): void
@@ -217,5 +226,6 @@ class CompanyWebhooksPage extends Component
         $this->showLogsModal = false;
         $this->showPingModal = false;
         $this->pingResult = null;
+        $this->confirmingWebhookDeletionId = null;
     }
 }

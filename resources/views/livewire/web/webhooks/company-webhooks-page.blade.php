@@ -134,8 +134,7 @@
 
                                         {{-- Delete Button --}}
                                         <button 
-                                            wire:click="deleteWebhook({{ $webhook->id }})"
-                                            wire:confirm="Are you sure you want to delete this webhook endpoint?"
+                                            wire:click="confirmDeleteWebhook({{ $webhook->id }})"
                                             title="Delete Webhook"
                                             class="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-all"
                                         >
@@ -349,6 +348,35 @@
                     </div>
                     <button wire:click="closeModal" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
                         Close
+                    </button>
+                </div>
+        </div>
+    @endif
+
+    {{-- Custom Delete Confirmation Modal --}}
+    @if($confirmingWebhookDeletionId)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div class="relative transform border border-slate-200 bg-white shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900 w-full max-w-md rounded-2xl overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-500 dark:bg-rose-900/30">
+                            <span class="material-symbols-outlined text-rose-600">warning</span>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Delete Webhook Endpoint</h3>
+                            <p class="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                                Are you sure you want to delete this webhook endpoint? This action will permanently remove it and all associated HTTP delivery logs. This cannot be undone.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col-reverse gap-3 bg-slate-50 p-6 dark:bg-slate-800/50 sm:flex-row sm:justify-end">
+                    <button wire:click="closeModal" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        Cancel
+                    </button>
+                    <button wire:click="deleteWebhook" class="rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-500 active:scale-95">
+                        <span wire:loading wire:target="deleteWebhook" class="mr-1.5 inline-block h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                        Delete Permanently
                     </button>
                 </div>
             </div>
