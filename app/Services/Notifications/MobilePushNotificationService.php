@@ -100,13 +100,23 @@ class MobilePushNotificationService
                             'notification' => [
                                 'sound' => 'default',
                                 'channel_id' => 'whatsapp_messages',
+                                'default_sound' => true,
+                                'notification_priority' => 'PRIORITY_HIGH',
                             ],
                         ],
                         'apns' => [
+                            'headers' => [
+                                'apns-priority' => '10',
+                            ],
                             'payload' => [
                                 'aps' => [
+                                    'alert' => [
+                                        'title' => $title,
+                                        'body' => $body,
+                                    ],
                                     'sound' => 'default',
                                     'badge' => 1,
+                                    'content-available' => 1,
                                 ],
                             ],
                         ],
