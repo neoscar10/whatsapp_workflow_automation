@@ -187,6 +187,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/fund/initialize', [\App\Http\Controllers\Api\V1\Wallet\WalletFundingController::class, 'initialize'])->name('fund.initialize');
         Route::post('/fund/{transactionId}/verify', [\App\Http\Controllers\Api\V1\Wallet\WalletFundingController::class, 'verify'])->name('fund.verify');
     });
+
+    // Webhook Management
+    Route::prefix('webhooks')->name('webhooks.')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'show'])->name('show');
+        Route::patch('/{id}', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{id}/ping', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'ping'])->name('ping');
+        Route::get('/{id}/logs', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'logs'])->name('logs');
+    });
 });
 
 
