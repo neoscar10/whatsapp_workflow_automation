@@ -224,16 +224,36 @@ class ChatConversationResolverService
                     }
                 } else {
                     $accessToken = $localNumber->account->access_token ?? null;
+                    Log::info("INBOUND_MEDIA_DEBUG_START", [
+                        'media_id' => $mediaId,
+                        'has_access_token' => !empty($accessToken),
+                        'access_token_length' => strlen($accessToken ?? ''),
+                    ]);
                     if ($accessToken) {
                         try {
                             $graphClient = app(\App\Services\WhatsApp\WhatsAppGraphClient::class);
 
                             // Step 1: Get the direct download URL from Meta
+                            Log::info("INBOUND_MEDIA_DEBUG_STEP1: Getting media URL from Meta", ['media_id' => $mediaId]);
                             $mediaInfo = $graphClient->getMedia($mediaId, $accessToken);
+                            
+                            Log::info("INBOUND_MEDIA_DEBUG_GET_MEDIA_RESULT", [
+                                'media_id' => $mediaId,
+                                'success' => $mediaInfo['success'] ?? false,
+                                'has_url' => !empty($mediaInfo['url']),
+                                'mime_type' => $mediaInfo['mime_type'] ?? 'N/A',
+                                'error' => $mediaInfo['error'] ?? null,
+                            ]);
 
                             if ($mediaInfo['success'] && !empty($mediaInfo['url'])) {
                                 // Step 2: Download binary content
+                                Log::info("INBOUND_MEDIA_DEBUG_STEP2: Downloading binary content from Meta CDN", ['url' => $mediaInfo['url']]);
                                 $fileContents = $graphClient->downloadMediaFile($mediaInfo['url'], $accessToken);
+                                
+                                Log::info("INBOUND_MEDIA_DEBUG_DOWNLOAD_RESULT", [
+                                    'has_contents' => !empty($fileContents),
+                                    'bytes' => strlen($fileContents ?? ''),
+                                ]);
 
                                 if ($fileContents) {
                                     // Step 3: Determine file extension from MIME type
@@ -250,7 +270,16 @@ class ChatConversationResolverService
                                     if (!$disk->exists('chat_media')) {
                                         $disk->makeDirectory('chat_media');
                                     }
-                                    if ($disk->put($localPath, $fileContents)) {
+                                    
+                                    Log::info("INBOUND_MEDIA_DEBUG_STEP3: Writing file to public disk", ['path' => $localPath]);
+                                    $putSuccess = $disk->put($localPath, $fileContents);
+                                    
+                                    Log::info("INBOUND_MEDIA_DEBUG_SAVE_RESULT", [
+                                        'put_success' => $putSuccess,
+                                        'path' => $localPath,
+                                    ]);
+
+                                    if ($putSuccess) {
                                         $mediaUrl = $localPath;
                                         $mediaMeta['local_path'] = $localPath;
                                         $mediaMeta['size'] = $mediaInfo['file_size'] ?? null;
@@ -271,6 +300,8 @@ class ChatConversationResolverService
                             Log::error("INBOUND_MEDIA: Exception downloading media: " . $e->getMessage(), [
                                 'media_id' => $mediaId,
                                 'type' => $type,
+                                'file' => $e->getFile(),
+                                'line' => $e->getLine(),
                             ]);
                         }
                     } else {

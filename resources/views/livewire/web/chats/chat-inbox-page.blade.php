@@ -19,16 +19,17 @@
                 })
                 .listen('.chat.inbound.received', (e) => {
                     console.log('Realtime INBOUND message received:', e);
-                    $wire.dispatch('refresh-chat-data', e);
+                    $wire.$refresh();
                 })
                 .listen('.conversation.updated', (e) => {
                     console.log('Realtime CONVERSATION update received:', e);
-                    $wire.dispatch('refresh-chat-data', e);
+                    $wire.$refresh();
                 });
         } else {
             console.error('Laravel Echo is NOT initialized on this page!');
         }
     "
+    wire:poll.keep-alive.5s
     class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
 >
     <div class="flex min-w-0 flex-1 flex-col">

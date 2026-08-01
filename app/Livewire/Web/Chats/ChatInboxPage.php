@@ -697,6 +697,18 @@ class ChatInboxPage extends Component
         $this->channelAvailability = $data['channel_availability'];
         if ($data['activeConversation']) {
             $this->selectedConversationId = $data['activeConversation']->id;
+            
+            // Mark conversation as read and clear unread count in-memory
+            if ($data['activeConversation']->unread_count > 0) {
+                $data['activeConversation']->update(['unread_count' => 0]);
+                $data['activeConversation']->unread_count = 0;
+                $data['conversations'] = $data['conversations']->map(function($c) {
+                    if ($c->id === $this->selectedConversationId) {
+                        $c->unread_count = 0;
+                    }
+                    return $c;
+                });
+            }
         }
 
         return view('livewire.web.chats.chat-inbox-page', [
