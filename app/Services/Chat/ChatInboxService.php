@@ -91,6 +91,29 @@ class ChatInboxService
             // Ignore alignment exceptions
         }
 
+        // Failsafe Alignment: If any conversation for this company points to a WhatsApp phone number that does not belong to the company,
+        // or if it's null, align it to the company's default WhatsApp phone number.
+        try {
+            $defaultPhone = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
+            if ($defaultPhone) {
+                $mismatchedIds = Conversation::where('company_id', $user->company_id)
+                    ->where(function($q) use ($user) {
+                        $q->whereNull('whatsapp_phone_number_id')
+                          ->orWhereHas('whatsappPhoneNumber', function($sub) use ($user) {
+                              $sub->where('company_id', '!=', $user->company_id);
+                          });
+                    })
+                    ->pluck('id');
+
+                if ($mismatchedIds->isNotEmpty()) {
+                    Conversation::whereIn('id', $mismatchedIds)
+                        ->update(['whatsapp_phone_number_id' => $defaultPhone->id]);
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
         $query = Conversation::where('company_id', $user->company_id)
             ->orderByRaw('COALESCE(last_message_at, updated_at) DESC');
 
@@ -136,6 +159,27 @@ class ChatInboxService
             $conversation = Conversation::where('company_id', $user->company_id)
                 ->orderByRaw('COALESCE(last_message_at, updated_at) DESC')
                 ->first();
+        }
+
+        // Failsafe: Ensure conversation's whatsapp_phone_number_id belongs to the company
+        if ($conversation) {
+            $hasMismatch = false;
+            if (!$conversation->whatsapp_phone_number_id) {
+                $hasMismatch = true;
+            } else {
+                $phone = $conversation->whatsappPhoneNumber;
+                if (!$phone || $phone->company_id !== $user->company_id) {
+                    $hasMismatch = true;
+                }
+            }
+
+            if ($hasMismatch) {
+                $defaultPhone = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
+                if ($defaultPhone) {
+                    $conversation->update(['whatsapp_phone_number_id' => $defaultPhone->id]);
+                    $conversation->load('whatsappPhoneNumber'); // Reload the relationship
+                }
+            }
         }
 
         return $conversation;
