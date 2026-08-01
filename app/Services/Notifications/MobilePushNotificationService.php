@@ -101,7 +101,7 @@ class MobilePushNotificationService
                                 'sound' => 'default',
                                 'channel_id' => 'whatsapp_messages',
                                 'default_sound' => true,
-                                'notification_priority' => 'PRIORITY_HIGH',
+                                'notification_priority' => 'PRIORITY_MAX',
                             ],
                         ],
                         'apns' => [
@@ -168,6 +168,7 @@ class MobilePushNotificationService
                         'body' => $body,
                         'sound' => 'default',
                         'badge' => 1,
+                        'android_channel_id' => 'whatsapp_messages',
                     ],
                     'data' => array_map('strval', array_merge([
                         'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
