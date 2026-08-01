@@ -71,6 +71,12 @@ class ChatInboxService
                 $cleanContactPhones = array_map(fn($p) => preg_replace('/[^0-9]/', '', $p), $userContactPhones);
                 $last10Phones = array_map(fn($p) => strlen($p) >= 10 ? substr($p, -10) : $p, $cleanContactPhones);
 
+                $defaultPhone = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
+                $alignmentPayload = ['company_id' => $user->company_id];
+                if ($defaultPhone) {
+                    $alignmentPayload['whatsapp_phone_number_id'] = $defaultPhone->id;
+                }
+
                 Conversation::where(function ($q) use ($userContactPhones, $last10Phones) {
                     $q->whereIn('contact_phone', $userContactPhones);
                     foreach ($last10Phones as $last10) {
@@ -79,7 +85,7 @@ class ChatInboxService
                         }
                     }
                 })->where('company_id', '!=', $user->company_id)
-                  ->update(['company_id' => $user->company_id]);
+                  ->update($alignmentPayload);
             }
         } catch (\Exception $e) {
             // Ignore alignment exceptions

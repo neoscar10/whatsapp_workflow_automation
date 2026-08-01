@@ -24,6 +24,15 @@ class WhatsAppOutboundMessageService
         
         try {
             $conversation = $message->conversation;
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_START: Checking conversation details", [
+                'message_id' => $message->id,
+                'conversation_id' => $message->conversation_id,
+                'has_conversation' => !empty($conversation),
+                'conversation_company_id' => $conversation?->company_id ?? 'N/A',
+                'conversation_contact_phone' => $conversation?->contact_phone ?? 'N/A',
+                'conversation_whatsapp_phone_number_id' => $conversation?->whatsapp_phone_number_id ?? 'N/A',
+            ]);
+
             if (!$conversation) {
                 Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Message has no conversation", [
                     'message_id' => $message->id,
@@ -35,6 +44,14 @@ class WhatsAppOutboundMessageService
             }
 
             $localNumber = $conversation->whatsappPhoneNumber;
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_NUMBER: Checking local WhatsApp phone number", [
+                'has_local_number' => !empty($localNumber),
+                'number_db_id' => $localNumber?->id,
+                'phone_number_id' => $localNumber?->phone_number_id,
+                'phone_number' => $localNumber?->phone_number,
+                'number_company_id' => $localNumber?->company_id,
+            ]);
+
             if (!$localNumber) {
                 Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Conversation has no associated WhatsApp number", [
                     'conversation_id' => $conversation->id,
@@ -46,6 +63,14 @@ class WhatsAppOutboundMessageService
             }
 
             $account = $localNumber->account;
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_ACCOUNT: Checking WhatsApp account details", [
+                'has_account' => !empty($account),
+                'account_db_id' => $account?->id,
+                'account_company_id' => $account?->company_id,
+                'has_access_token' => !empty($account?->access_token),
+                'access_token_length' => strlen($account?->access_token ?? ''),
+            ]);
+
             if (!$account || !$account->access_token) {
                 Log::error("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: WhatsApp account or access token missing", [
                     'number_id' => $localNumber->id,
@@ -91,7 +116,14 @@ class WhatsAppOutboundMessageService
                 }
             }
 
-            if (!$this->billingService->canAffordActivity($conversation->company, $billingType)) {
+            $canAfford = $this->billingService->canAffordActivity($conversation->company, $billingType);
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_BILLING: Pre-flight billing check", [
+                'billingType' => $billingType,
+                'can_afford' => $canAfford,
+                'company_id' => $conversation->company_id,
+            ]);
+
+            if (!$canAfford) {
                 Log::warning("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_FAILURE: Insufficient balance", [
                     'message_id' => $message->id,
                     'billingType' => $billingType
@@ -105,6 +137,13 @@ class WhatsAppOutboundMessageService
 
             $isSimulated = config('services.whatsapp.simulator.enabled') && ($phoneNumberId === config('services.whatsapp.simulator.fake_phone_number_id', 'LOCAL_PHONE_NUMBER_ID'));
 
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_SIMULATOR: Simulation settings", [
+                'isSimulated' => $isSimulated,
+                'simulator_enabled_config' => config('services.whatsapp.simulator.enabled'),
+                'fake_phone_number_id_config' => config('services.whatsapp.simulator.fake_phone_number_id'),
+                'phone_number_id' => $phoneNumberId,
+            ]);
+
             if ($isSimulated) {
                 $result = [
                     'success' => true,
@@ -116,8 +155,19 @@ class WhatsAppOutboundMessageService
                     ]
                 ];
             } else {
+                Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_DISPATCH: Dispatching to Meta API", [
+                    'message_id' => $message->id,
+                    'to' => $to,
+                    'message_type' => $message->message_type,
+                ]);
                 $result = $this->dispatchToMeta($message, $phoneNumberId, $accessToken, $to, $correlationId);
             }
+
+            Log::info("[{$correlationId}] WHATSAPP_OUTBOUND_DEBUG_RESULT: Send response result", [
+                'success' => $result['success'] ?? false,
+                'result_keys' => array_keys($result),
+                'error' => $result['error'] ?? null,
+            ]);
 
             if ($result['success']) {
                 Log::info("[{$correlationId}] WHATSAPP_TEMPLATE_SEND_SUCCESS: Message acknowledged by provider", [

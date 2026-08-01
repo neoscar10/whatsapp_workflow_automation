@@ -69,7 +69,10 @@ class ChatConversationResolverService
                 if (!empty($resolvedName) && strlen($resolvedName) > 2) {
                     $q->orWhere('contact_name', $resolvedName);
                 }
-            })->update(['company_id' => $localNumber->company_id]);
+            })->update([
+                'company_id' => $localNumber->company_id,
+                'whatsapp_phone_number_id' => $localNumber->id,
+            ]);
         } catch (\Exception $e) {
             Log::warning('CONVERSATION_COMPANY_ALIGNMENT_FAILED', ['error' => $e->getMessage()]);
         }
