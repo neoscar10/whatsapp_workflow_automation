@@ -42,6 +42,12 @@ class PayUCallbackController extends Controller
                 return redirect()->route('wallet.index')->with('error', 'Payment transaction not found.');
             }
 
+            // Restore user session if browser withheld SameSite=Lax cookie during cross-site POST
+            if (!auth()->check() && $transaction->user) {
+                auth()->login($transaction->user);
+                $request->session()->regenerate();
+            }
+
             if ($transaction->status === \App\Enums\PaymentTransactionStatus::SUCCESSFUL) {
                 return redirect()->route('wallet.index')->with('success', 'Payment successful! Your wallet has been credited.');
             }
