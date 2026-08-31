@@ -47,6 +47,14 @@ class PaymentService extends Manager
     }
 
     /**
+     * Create PayU driver.
+     */
+    public function createPayuDriver(): PaymentGatewayInterface
+    {
+        return new \App\Services\Payment\Gateways\PayUGatewayService();
+    }
+
+    /**
      * Resolve a gateway driver, supporting PaymentGateway enum or string.
      *
      * @param string|PaymentGateway|null $gateway
@@ -196,6 +204,9 @@ class PaymentService extends Manager
             } elseif ($paymentTransaction->gateway === PaymentGateway::CASHFREE) {
                 $gatewayPaymentId = $paymentTransaction->gateway_payment_id ?? $verificationParams['cf_payment_id'] ?? '';
                 $gatewaySignature = $paymentTransaction->gateway_signature ?? $verificationParams['cf_signature'] ?? 'api_verified';
+            } elseif ($paymentTransaction->gateway === PaymentGateway::PAYU) {
+                $gatewayPaymentId = $paymentTransaction->gateway_payment_id ?? $verificationParams['mihpayid'] ?? $verificationParams['payuMoneyId'] ?? $verificationParams['txnid'] ?? '';
+                $gatewaySignature = $paymentTransaction->gateway_signature ?? $verificationParams['hash'] ?? 'api_verified';
             }
 
             return $this->finalizeSuccessfulFunding(

@@ -65,6 +65,11 @@ class PendingPaymentReconciliationService
                     if (app()->environment('testing') || empty(config('payment.gateways.razorpay.key_id')) || str_starts_with(config('payment.gateways.razorpay.key_id'), 'rzp_test_mock')) {
                         $verified = true;
                     }
+                } elseif ($transaction->gateway === \App\Enums\PaymentGateway::PAYU) {
+                    $verified = $driver->verifyPayment($transaction, [
+                        'txnid' => $transaction->id,
+                        'mihpayid' => $transaction->gateway_payment_id ?? '',
+                    ]);
                 }
 
                 if ($verified) {

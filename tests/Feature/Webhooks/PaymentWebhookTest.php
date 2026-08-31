@@ -7,6 +7,7 @@ use App\Enums\PaymentTransactionStatus;
 use App\Enums\WalletTransactionCategory;
 use App\Jobs\ProcessCashfreeWebhookJob;
 use App\Jobs\ProcessRazorpayWebhookJob;
+use App\Jobs\ProcessPayUWebhookJob;
 use App\Models\PaymentTransaction;
 use App\Models\User;
 use App\Services\Payment\PaymentService;
@@ -212,5 +213,107 @@ class PaymentWebhookTest extends TestCase
         $wallet = $this->walletService->getOrCreateWallet($this->user);
         $wallet->refresh();
         $this->assertEquals('200.0000', $wallet->balance);
+    }
+
+    /**
+     * Test PayU Webhook signature verification failure.
+     */
+    public function test_payu_webhook_fails_with_invalid_signature(): void
+    {
+        Bus::fake();
+
+        $response = $this->postJson(route('api.v1.webhooks.payu'), [
+            'status' => 'success',
+            'txnid' => 'tx_mock_123',
+            'hash' => 'invalid_hash',
+        ]);
+
+        $response->assertStatus(400);
+        Bus::assertNotDispatched(ProcessPayUWebhookJob::class);
+    }
+
+    /**
+     * Test PayU Webhook signature verification success.
+     */
+    public function test_payu_webhook_dispatches_job_with_valid_signature(): void
+    {
+        Bus::fake();
+
+        $response = $this->postJson(route('api.v1.webhooks.payu'), [
+            'status' => 'success',
+            'txnid' => 'tx_mock_123',
+            'amount' => '500.00',
+            'productinfo' => 'Wallet Funding',
+            'firstname' => 'Test',
+            'email' => 'test@example.com',
+            'hash' => 'valid_mock_webhook_signature',
+        ]);
+
+        $response->assertStatus(200);
+        Bus::assertDispatched(ProcessPayUWebhookJob::class);
+    }
+
+    /**
+     * Test ProcessPayUWebhookJob processes payment success correctly.
+     */
+    public function test_process_payu_webhook_job_finalizes_success(): void
+    {
+        $initData = $this->paymentService->initializeWalletFunding($this->user, 500.00, PaymentGateway::PAYU);
+        $transactionId = $initData['transaction_id'];
+
+        $payload = [
+            'status' => 'success',
+            'txnid' => $transactionId,
+            'mihpayid' => 'payu_pay_987654',
+            'amount' => 500.00,
+            'currency' => 'INR',
+            'hash' => 'valid_mock_webhook_signature',
+        ];
+
+        $job = new ProcessPayUWebhookJob($payload);
+        $job->handle($this->paymentService);
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'id' => $transactionId,
+            'status' => 'successful',
+            'gateway_payment_id' => 'payu_pay_987654'
+        ]);
+
+        $wallet = $this->walletService->getOrCreateWallet($this->user);
+        $wallet->refresh();
+        $this->assertEquals('500.0000', $wallet->balance);
+
+        $this->assertDatabaseHas('wallet_transactions', [
+            'wallet_id' => $wallet->id,
+            'amount' => '500.0000',
+            'status' => 'successful',
+            'category' => 'funding'
+        ]);
+    }
+
+    /**
+     * Test PayU webhook processing is idempotent.
+     */
+    public function test_process_payu_webhook_is_idempotent(): void
+    {
+        $initData = $this->paymentService->initializeWalletFunding($this->user, 350.00, PaymentGateway::PAYU);
+        $transactionId = $initData['transaction_id'];
+
+        $payload = [
+            'status' => 'success',
+            'txnid' => $transactionId,
+            'mihpayid' => 'payu_pay_987654',
+            'amount' => 350.00,
+            'currency' => 'INR',
+            'hash' => 'valid_mock_webhook_signature',
+        ];
+
+        $job = new ProcessPayUWebhookJob($payload);
+        $job->handle($this->paymentService);
+        $job->handle($this->paymentService);
+
+        $wallet = $this->walletService->getOrCreateWallet($this->user);
+        $wallet->refresh();
+        $this->assertEquals('350.0000', $wallet->balance);
     }
 }

@@ -53,6 +53,17 @@ return [
             'timeout' => (int) env('CASHFREE_TIMEOUT', 30),
         ],
 
+        'payu' => [
+            'enabled' => env('PAYU_ENABLED', true),
+            'key' => env('PAYU_KEY', 'iXlXRj'),
+            'salt' => env('PAYU_SALT', 'BBjqi1WE5JutJvmAdkxMQomMowCW4OAP'),
+            'client_id' => env('PAYU_CLIENT_ID', '0da6323d60b0aa8ddea5a18fe79b7374c5de4a756828d4bf0faeb22036421c78'),
+            'client_secret' => env('PAYU_CLIENT_SECRET', '0fe032a4c3b14fa7d142597abaf53beaf96135c59f633dafaa8f9f1e09fa05aa'),
+            'environment' => env('PAYU_ENV', 'test'), // test or production
+            'webhook_secret' => env('PAYU_WEBHOOK_SECRET', ''),
+            'timeout' => (int) env('PAYU_TIMEOUT', 30),
+        ],
+
     ],
 
     /*

@@ -23,7 +23,7 @@ class FundWalletRequest extends FormRequest
     {
         return [
             'amount' => 'required|numeric|min:10',
-            'gateway' => 'nullable|string|in:razorpay,cashfree',
+            'gateway' => 'nullable|string|in:razorpay,cashfree,payu',
         ];
     }
 }

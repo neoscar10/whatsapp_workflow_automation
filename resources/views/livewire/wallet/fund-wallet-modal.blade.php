@@ -70,7 +70,7 @@
                 <!-- Payment Method Selection (Velzon-compatible card deck layout) -->
                 <div class="space-y-3">
                     <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Choose Secure Payment Method</label>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <!-- Razorpay Card -->
                         <div 
                             class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md active:scale-[0.99] select-none {{ $gateway === 'razorpay' ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800' }}"
@@ -103,6 +103,23 @@
                                 @endif
                             </div>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">Pay using credit/debit cards, robust UPI, fast netbanking, and pay-later operations.</p>
+                        </div>
+
+                        <!-- PayU.in Card -->
+                        <div 
+                            class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md active:scale-[0.99] select-none {{ $gateway === 'payu' ? 'border-primary bg-primary/5 dark:bg-primary/10 ring-1 ring-primary' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800' }}"
+                            wire:click="$set('gateway', 'payu')"
+                        >
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">PayU.in</span>
+                                </div>
+                                @if($gateway === 'payu')
+                                    <span class="material-symbols-outlined text-[16px] text-primary" data-icon="check_circle">check_circle</span>
+                                @endif
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">Pay via PayU hosted portal with Cards, UPI, NetBanking, and Instant Wallets.</p>
                         </div>
                     </div>
                 </div>
@@ -211,6 +228,33 @@
                     console.error("Cashfree checkout error:", err);
                     alert("Failed to launch Cashfree checkout: " + (err.message || JSON.stringify(err)));
                 });
+            });
+
+            // PayU Listener
+            Livewire.on('launch-payu', (event) => {
+                const data = event[0];
+                const checkoutData = data.checkout_data;
+                const actionUrl = checkoutData.action_url;
+                const params = checkoutData.params;
+
+                console.log('Launching PayU checkout to URL:', actionUrl, 'params:', params);
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = actionUrl;
+
+                for (const key in params) {
+                    if (Object.prototype.hasOwnProperty.call(params, key)) {
+                        const hiddenField = document.createElement('input');
+                        hiddenField.type = 'hidden';
+                        hiddenField.name = key;
+                        hiddenField.value = params[key];
+                        form.appendChild(hiddenField);
+                    }
+                }
+
+                document.body.appendChild(form);
+                form.submit();
             });
         });
     </script>

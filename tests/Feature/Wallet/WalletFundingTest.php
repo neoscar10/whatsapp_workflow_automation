@@ -236,4 +236,119 @@ class WalletFundingTest extends TestCase
         $wallet->refresh();
         $this->assertEquals('150.0000', $wallet->balance);
     }
+
+    public function test_user_can_initialize_funding_with_payu(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $response = $this->postJson(route('api.v1.wallet.fund.initialize'), [
+            'amount' => 500.00,
+            'gateway' => 'payu'
+        ]);
+
+        $response->assertStatus(201);
+        $response->assertJsonStructure([
+            'success',
+            'message',
+            'data' => [
+                'transaction_id',
+                'gateway',
+                'gateway_order_id',
+                'amount',
+                'currency',
+                'checkout_data' => [
+                    'action_url',
+                    'params' => [
+                        'key',
+                        'txnid',
+                        'amount',
+                        'productinfo',
+                        'firstname',
+                        'email',
+                        'phone',
+                        'surl',
+                        'furl',
+                        'hash',
+                    ]
+                ]
+            ]
+        ]);
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'user_id' => $this->user->id,
+            'amount' => '500.0000',
+            'status' => 'pending',
+            'gateway' => 'payu'
+        ]);
+    }
+
+    public function test_user_can_verify_funding_with_payu_and_receive_credit(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        // Initialize first
+        $initData = $this->paymentService->initializeWalletFunding($this->user, 500.00, PaymentGateway::PAYU);
+        $transactionId = $initData['transaction_id'];
+
+        $response = $this->postJson(route('api.v1.wallet.fund.verify', ['transactionId' => $transactionId]), [
+            'mihpayid' => 'payu_pay_mock123456',
+            'hash' => 'valid_mock_signature',
+            'status' => 'success',
+            'txnid' => $transactionId
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Payment verified and wallet credited successfully.'
+        ]);
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'id' => $transactionId,
+            'status' => 'successful',
+            'gateway_payment_id' => 'payu_pay_mock123456'
+        ]);
+
+        $wallet = $this->walletService->getOrCreateWallet($this->user);
+        $wallet->refresh();
+        $this->assertEquals('500.0000', $wallet->balance);
+
+        $this->assertDatabaseHas('wallet_transactions', [
+            'wallet_id' => $wallet->id,
+            'amount' => '500.0000',
+            'status' => 'successful',
+            'category' => 'funding'
+        ]);
+    }
+
+    public function test_payu_funding_verification_is_idempotent(): void
+    {
+        Sanctum::actingAs($this->user);
+
+        $initData = $this->paymentService->initializeWalletFunding($this->user, 250.00, PaymentGateway::PAYU);
+        $transactionId = $initData['transaction_id'];
+
+        // Verify first time
+        $response1 = $this->postJson(route('api.v1.wallet.fund.verify', ['transactionId' => $transactionId]), [
+            'mihpayid' => 'payu_pay_mock123456',
+            'hash' => 'valid_mock_signature',
+            'status' => 'success',
+            'txnid' => $transactionId
+        ]);
+        $response1->assertStatus(200);
+
+        // Verify second time
+        $response2 = $this->postJson(route('api.v1.wallet.fund.verify', ['transactionId' => $transactionId]), [
+            'mihpayid' => 'payu_pay_mock123456',
+            'hash' => 'valid_mock_signature',
+            'status' => 'success',
+            'txnid' => $transactionId
+        ]);
+        $response2->assertStatus(200);
+
+        // Check balance is only credited once
+        $wallet = $this->walletService->getOrCreateWallet($this->user);
+        $wallet->refresh();
+        $this->assertEquals('250.0000', $wallet->balance);
+    }
 }

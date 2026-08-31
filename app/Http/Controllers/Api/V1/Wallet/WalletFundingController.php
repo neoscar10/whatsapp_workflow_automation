@@ -71,7 +71,16 @@ class WalletFundingController extends Controller
                 'razorpay_order_id', 
                 'razorpay_signature',
                 'cf_payment_id',
-                'cf_signature'
+                'cf_signature',
+                'mihpayid',
+                'hash',
+                'status',
+                'txnid',
+                'payuMoneyId',
+                'email',
+                'firstname',
+                'productinfo',
+                'amount',
             ]);
             
             $transaction = $this->paymentService->verifyWalletFunding($transactionId, $params);

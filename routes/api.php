@@ -22,6 +22,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // Cashfree Webhook
     Route::post('/webhooks/cashfree', [\App\Http\Controllers\Api\V1\Payment\CashfreeWebhookController::class, 'handle'])->name('webhooks.cashfree');
 
+    // PayU Webhook
+    Route::post('/webhooks/payu', [\App\Http\Controllers\Api\V1\Payment\PayUWebhookController::class, 'handle'])->name('webhooks.payu');
+
     // Mobile Broadcasting Auth
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 

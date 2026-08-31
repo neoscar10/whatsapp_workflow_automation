@@ -120,6 +120,25 @@ class FundWalletModal extends Component
                  'transaction_id' => $this->transactionId,
                  'checkout_data' => $this->checkoutData,
              ]);
+         } elseif ($this->gateway === 'payu') {
+             try {
+                 $paymentService = app(PaymentService::class);
+                 $driver = $paymentService->resolve(\App\Enums\PaymentGateway::PAYU);
+                 $initResponse = $driver->initializePayment($transaction);
+
+                 $this->checkoutData = $initResponse['checkout_data'];
+                 $this->show = true;
+
+                 $this->dispatch('launch-payu', [
+                     'transaction_id' => $this->transactionId,
+                     'checkout_data' => $this->checkoutData,
+                 ]);
+             } catch (\Exception $e) {
+                 $this->dispatch('notify', [
+                     'type' => 'error',
+                     'message' => 'Failed to initialize PayU payment: ' . $e->getMessage(),
+                 ]);
+             }
          }
      }
 
@@ -129,7 +148,7 @@ class FundWalletModal extends Component
         $activePackages = \App\Models\FundingPackage::where('is_active', true)->get();
 
         $rules = [
-            'gateway' => 'required|string|in:razorpay,cashfree',
+            'gateway' => 'required|string|in:razorpay,cashfree,payu',
         ];
 
         if ($activePackages->isNotEmpty()) {
@@ -170,6 +189,11 @@ class FundWalletModal extends Component
                 ]);
             } elseif ($this->gateway === 'cashfree') {
                 $this->dispatch('launch-cashfree', [
+                    'transaction_id' => $this->transactionId,
+                    'checkout_data' => $this->checkoutData,
+                ]);
+            } elseif ($this->gateway === 'payu') {
+                $this->dispatch('launch-payu', [
                     'transaction_id' => $this->transactionId,
                     'checkout_data' => $this->checkoutData,
                 ]);

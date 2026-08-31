@@ -6,4 +6,5 @@ enum PaymentGateway: string
 {
     case RAZORPAY = 'razorpay';
     case CASHFREE = 'cashfree';
+    case PAYU = 'payu';
 }

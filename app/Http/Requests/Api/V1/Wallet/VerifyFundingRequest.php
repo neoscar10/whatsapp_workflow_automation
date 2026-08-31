@@ -31,6 +31,15 @@ class VerifyFundingRequest extends FormRequest
             ];
         }
 
+        if ($transaction && $transaction->gateway === \App\Enums\PaymentGateway::PAYU) {
+            return [
+                'mihpayid' => 'nullable|string',
+                'hash' => 'nullable|string',
+                'status' => 'nullable|string',
+                'txnid' => 'nullable|string',
+            ];
+        }
+
         return [
             'razorpay_payment_id' => 'required|string',
             'razorpay_order_id' => 'required|string',
