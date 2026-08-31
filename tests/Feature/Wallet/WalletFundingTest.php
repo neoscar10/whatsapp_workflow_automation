@@ -351,4 +351,31 @@ class WalletFundingTest extends TestCase
         $wallet->refresh();
         $this->assertEquals('250.0000', $wallet->balance);
     }
+
+    public function test_payu_browser_post_callback_verifies_and_redirects(): void
+    {
+        $initData = $this->paymentService->initializeWalletFunding($this->user, 500.00, PaymentGateway::PAYU);
+        $transactionId = $initData['transaction_id'];
+
+        $response = $this->post(route('payment.payu.callback'), [
+            'status' => 'success',
+            'txnid' => $transactionId,
+            'mihpayid' => '403993715535311234',
+            'amount' => '500.00',
+            'hash' => 'valid_mock_signature',
+        ]);
+
+        $response->assertRedirect(route('wallet.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'id' => $transactionId,
+            'status' => 'successful',
+            'gateway_payment_id' => '403993715535311234'
+        ]);
+
+        $wallet = $this->walletService->getOrCreateWallet($this->user);
+        $wallet->refresh();
+        $this->assertEquals('500.0000', $wallet->balance);
+    }
 }

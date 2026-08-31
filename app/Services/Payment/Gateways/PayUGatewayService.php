@@ -53,8 +53,8 @@ class PayUGatewayService implements PaymentGatewayInterface
                         'firstname' => $transaction->user->name ?? 'User',
                         'email' => $transaction->user->email ?? 'user@example.com',
                         'phone' => '9999999999',
-                        'surl' => route('wallet.index'),
-                        'furl' => route('wallet.index'),
+                        'surl' => route('payment.payu.callback'),
+                        'furl' => route('payment.payu.callback'),
                         'hash' => $mockHash,
                     ]
                 ],
@@ -72,8 +72,8 @@ class PayUGatewayService implements PaymentGatewayInterface
                 $phone = '9999999999';
             }
 
-            $surl = route('wallet.index') . '?status=success&txnid=' . $transaction->id;
-            $furl = route('wallet.index') . '?status=failure&txnid=' . $transaction->id;
+            $surl = route('payment.payu.callback');
+            $furl = route('payment.payu.callback');
 
             $hash = $this->generateRequestHash(
                 $key,

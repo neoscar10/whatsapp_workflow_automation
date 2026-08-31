@@ -21,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/v1/wallet/fund/*/verify',  // Secured by Razorpay HMAC signature instead
             'api/v1/webhooks/razorpay',
             'api/v1/webhooks/cashfree',
+            'api/v1/webhooks/payu',
+            'payu/callback',
         ]);
 
         $middleware->web(append: [
