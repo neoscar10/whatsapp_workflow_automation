@@ -27,9 +27,10 @@ class ChatMessageResource extends JsonResource
             'resolved_media_url' => $this->resolved_media_url,
             'media_meta' => $this->media_meta,
             'status' => $this->status,
-            'time_label' => $this->sent_at?->format('H:i') ?? now()->format('H:i'),
+            'time_label' => ($this->sent_at ?? $this->created_at)?->toIso8601String(),
             'sent_at' => $this->sent_at?->toIso8601String(),
-            'created_at' => $this->created_at?->toDateTimeString(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
             'sender_name' => $this->direction === 'inbound' 
                 ? $this->conversation->contact_name 
                 : ($this->sender->name ?? 'System'),
