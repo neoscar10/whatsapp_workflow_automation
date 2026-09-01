@@ -153,6 +153,14 @@ class CampaignWizardPage extends Component
         }
     }
 
+    public function downloadSampleCsv()
+    {
+        return response()->streamDownload(
+            app(\App\Services\Contact\ContactExportService::class)->getImportTemplate(),
+            'campaign-recipients-sample.csv'
+        );
+    }
+
     protected function validateStep3()
     {
         if ($this->type === 'template') {

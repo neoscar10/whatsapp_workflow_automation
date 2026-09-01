@@ -287,6 +287,11 @@
                                         <span class="text-sm font-black text-slate-700 dark:text-slate-300">Click to upload CSV</span>
                                         <span class="mt-1 text-xs text-slate-400">Max size 10MB</span>
                                     </label>
+
+                                    <button type="button" wire:click="downloadSampleCsv" class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+                                        <span class="material-symbols-outlined text-sm">download</span>
+                                        Download Sample CSV Template
+                                    </button>
                                     @error('csv_file') <p class="mt-2 text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
 
                                     @if($csv_file)

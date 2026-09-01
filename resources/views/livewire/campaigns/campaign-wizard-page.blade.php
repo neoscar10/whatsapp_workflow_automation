@@ -157,6 +157,11 @@
                                 <label for="csv_upload" class="cursor-pointer rounded-xl border-2 border-dashed border-primary/30 px-8 py-4 transition-all hover:bg-primary/5">
                                     <span class="text-sm font-bold text-primary">Select CSV File</span>
                                 </label>
+
+                                <button type="button" wire:click="downloadSampleCsv" class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+                                    <span class="material-symbols-outlined text-sm">download</span>
+                                    Download Sample CSV Template
+                                </button>
                                 @error('csv_file') <p class="mt-2 text-xs text-rose-500">{{ $message }}</p> @enderror
 
                                 @if($csv_file)
