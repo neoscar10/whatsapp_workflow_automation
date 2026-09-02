@@ -272,16 +272,56 @@ class CampaignAudienceService
         $total = $recipients->count();
         $passed = 0;
         $failed = 0;
+        $textSessionExcludedCount = 0;
 
-        $detailedRows = $recipients->map(function ($r) use (&$passed, &$failed) {
+        // Active 24-hour customer service window lookups for this company
+        $activeContactIds = \App\Models\Chat\Conversation::where('company_id', $actor->company_id)
+            ->whereNotNull('contact_id')
+            ->where('last_customer_message_at', '>=', now()->subHours(24))
+            ->pluck('contact_id')
+            ->toArray();
+
+        $activePhones = \App\Models\Chat\Conversation::where('company_id', $actor->company_id)
+            ->where('last_customer_message_at', '>=', now()->subHours(24))
+            ->pluck('contact_phone')
+            ->map(fn($p) => PhoneNumberNormalizer::normalize($p))
+            ->filter()
+            ->toArray();
+
+        $isTextCampaign = ($campaign->type === 'text');
+
+        $detailedRows = $recipients->map(function ($r) use ($isTextCampaign, $activeContactIds, $activePhones, &$passed, &$failed, &$textSessionExcludedCount) {
             $isValidPhone = PhoneNumberNormalizer::isValid($r->phone);
             $isSkipped = $r->status === 'skipped';
-            $isPassed = $isValidPhone && !$isSkipped;
+
+            $hasActiveSession = false;
+            if ($r->contact_id && in_array($r->contact_id, $activeContactIds)) {
+                $hasActiveSession = true;
+            } elseif ($r->normalized_phone && in_array($r->normalized_phone, $activePhones)) {
+                $hasActiveSession = true;
+            } elseif ($isValidPhone && in_array(PhoneNumberNormalizer::normalize($r->phone), $activePhones)) {
+                $hasActiveSession = true;
+            }
+
+            $textSessionFailed = $isTextCampaign && !$hasActiveSession;
+
+            if ($textSessionFailed) {
+                $textSessionExcludedCount++;
+            }
+
+            $isPassed = $isValidPhone && !$isSkipped && !$textSessionFailed;
 
             if ($isPassed) {
                 $passed++;
             } else {
                 $failed++;
+            }
+
+            $errorReason = $r->skip_reason;
+            if (!$isValidPhone) {
+                $errorReason = 'Invalid phone number format';
+            } elseif ($textSessionFailed) {
+                $errorReason = 'No active 24h session. Text campaigns require customer interaction in the last 24h.';
             }
 
             return [
@@ -290,17 +330,20 @@ class CampaignAudienceService
                 'normalized_phone' => $r->normalized_phone,
                 'name' => $r->name,
                 'status' => $r->status,
+                'is_session_active' => $hasActiveSession,
                 'is_valid' => $isPassed,
                 'validation_status' => $isPassed ? 'passed' : 'failed',
-                'error_reason' => $r->skip_reason ?: (!$isValidPhone ? 'Invalid phone number format' : 'Validation issue'),
+                'error_reason' => $errorReason ?: ($isPassed ? null : 'Validation issue'),
                 'personalization_data' => $r->personalization_data,
             ];
         });
 
         return [
+            'campaign_type' => $campaign->type,
             'total' => $total,
             'passed_count' => $passed,
             'failed_count' => $failed,
+            'text_session_excluded_count' => $textSessionExcludedCount,
             'rows' => $detailedRows,
         ];
     }

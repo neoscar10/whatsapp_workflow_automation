@@ -374,6 +374,25 @@
                                     </div>
                                 </div>
 
+                                {{-- Text Campaign 24h Rule Notice --}}
+                                @if($type === 'text' && !empty($validationPreviewData['text_session_excluded_count']) && $validationPreviewData['text_session_excluded_count'] > 0)
+                                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
+                                        <div class="flex-1 text-xs">
+                                            <p class="font-bold text-sm text-amber-900 dark:text-amber-200">WhatsApp 24-Hour Customer Window Rule</p>
+                                            <p class="mt-1">
+                                                Freeform text campaigns require contacts to have messaged your business in the last 24 hours. 
+                                                <strong class="font-bold text-amber-950 dark:text-amber-100">{{ $validationPreviewData['text_session_excluded_count'] }} contact(s)</strong> do not have an active 24h session and will be excluded.
+                                            </p>
+                                            <div class="mt-3 flex items-center gap-2">
+                                                <button type="button" wire:click="switchCampaignType('template')" class="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-sm">
+                                                    Switch to Template Campaign (Reach All Contacts)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 {{-- Validation Summary Stat Cards --}}
                                 <div class="grid grid-cols-3 gap-4">
                                     <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
@@ -410,6 +429,7 @@
                                                 <tr>
                                                     <th class="p-3 text-[10px] font-black uppercase text-slate-400">Phone</th>
                                                     <th class="p-3 text-[10px] font-black uppercase text-slate-400">Name</th>
+                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">24h Session</th>
                                                     <th class="p-3 text-[10px] font-black uppercase text-slate-400">Validation Status</th>
                                                     <th class="p-3 text-[10px] font-black uppercase text-slate-400 text-right">Actions</th>
                                                 </tr>
@@ -419,7 +439,7 @@
                                                     @if($validationFilter === 'all' || ($validationFilter === 'passed' && $r['is_valid']) || ($validationFilter === 'failed' && !$r['is_valid']))
                                                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                                             @if($editingRecipientId === $r['id'])
-                                                                <td class="p-2" colspan="2">
+                                                                <td class="p-2" colspan="3">
                                                                     <div class="flex gap-2">
                                                                         <input type="text" wire:model="editingPhone" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
                                                                         <input type="text" wire:model="editingName" placeholder="Name" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
@@ -441,6 +461,17 @@
                                                             @else
                                                                 <td class="p-3 font-mono font-bold">{{ $r['phone'] }}</td>
                                                                 <td class="p-3 font-semibold">{{ $r['name'] ?: 'N/A' }}</td>
+                                                                <td class="p-3">
+                                                                    @if(!empty($r['is_session_active']))
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                                            <span class="size-1.5 rounded-full bg-emerald-500"></span> Active 24h
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                                            No 24h Session
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
                                                                 <td class="p-3">
                                                                     @if($r['is_valid'])
                                                                         <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">

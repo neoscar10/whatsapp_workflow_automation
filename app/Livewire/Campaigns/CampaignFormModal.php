@@ -88,8 +88,22 @@ class CampaignFormModal extends Component
 
         $campaign = Campaign::find($this->campaignId);
         if ($campaign) {
+            $campaign->update(['type' => $this->type]);
             $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewRecipients(Auth::user(), $campaign);
         }
+    }
+
+    public function switchCampaignType($newType)
+    {
+        $this->type = $newType;
+        if ($this->campaignId) {
+            $campaign = Campaign::find($this->campaignId);
+            if ($campaign) {
+                $campaign->update(['type' => $newType]);
+            }
+        }
+        $this->loadValidationPreview();
+        $this->dispatch('notify', ['type' => 'success', 'message' => "Switched campaign type to " . ucfirst($newType) . "."]);
     }
 
     public function editRecipientRow($id, $phone, $name)
