@@ -391,122 +391,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                @endif
-
-                                {{-- Validation Summary Stat Cards --}}
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
-                                        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Contacts</p>
-                                        <p class="text-xl font-black text-slate-900 dark:text-white">{{ $validationPreviewData['total'] }}</p>
-                                    </div>
-                                    <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
-                                        <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Passed (Valid)</p>
-                                        <p class="text-xl font-black text-emerald-700 dark:text-emerald-300">{{ $validationPreviewData['passed_count'] }}</p>
-                                    </div>
-                                    <div class="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800 text-center">
-                                        <p class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Failed (Needs Fix)</p>
-                                        <p class="text-xl font-black text-rose-700 dark:text-rose-300">{{ $validationPreviewData['failed_count'] }}</p>
-                                    </div>
-                                </div>
-
-                                {{-- Validation Filter Tabs & Table --}}
-                                <div class="space-y-3">
-                                    <div class="flex gap-2">
-                                        <button type="button" wire:click="$set('validationFilter', 'all')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'all' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                            All ({{ $validationPreviewData['total'] }})
-                                        </button>
-                                        <button type="button" wire:click="$set('validationFilter', 'passed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'passed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                            Passed ({{ $validationPreviewData['passed_count'] }})
-                                        </button>
-                                        <button type="button" wire:click="$set('validationFilter', 'failed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'failed' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                            Failed ({{ $validationPreviewData['failed_count'] }})
-                                        </button>
-                                    </div>
-
-                                    <div class="max-h-60 overflow-y-auto rounded-2xl border border-slate-100 dark:border-slate-800">
-                                        <table class="w-full text-left text-xs">
-                                            <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                                                <tr>
-                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Phone</th>
-                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Name</th>
-                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">24h Session</th>
-                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Validation Status</th>
-                                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400 text-right">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                                @foreach($validationPreviewData['rows'] as $r)
-                                                    @if($validationFilter === 'all' || ($validationFilter === 'passed' && $r['is_valid']) || ($validationFilter === 'failed' && !$r['is_valid']))
-                                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                                            @if($editingRecipientId === $r['id'])
-                                                                <td class="p-2" colspan="3">
-                                                                    <div class="flex gap-2">
-                                                                        <input type="text" wire:model="editingPhone" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
-                                                                        <input type="text" wire:model="editingName" placeholder="Name" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
-                                                                    </div>
-                                                                </td>
-                                                                <td class="p-2">
-                                                                    <span class="text-[10px] text-amber-600 font-bold">Editing...</span>
-                                                                </td>
-                                                                <td class="p-2 text-right">
-                                                                    <div class="flex items-center justify-end gap-1">
-                                                                        <button type="button" wire:click="saveRecipientRow({{ $r['id'] }})" class="px-2 py-1 bg-emerald-600 text-white font-bold rounded-md text-[10px]">
-                                                                            Save &amp; Validate
-                                                                        </button>
-                                                                        <button type="button" wire:click="cancelEditRecipientRow" class="px-2 py-1 bg-slate-200 text-slate-700 font-bold rounded-md text-[10px]">
-                                                                            Cancel
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            @else
-                                                                <td class="p-3 font-mono font-bold">{{ $r['phone'] }}</td>
-                                                                <td class="p-3 font-semibold">{{ $r['name'] ?: 'N/A' }}</td>
-                                                                <td class="p-3">
-                                                                    @if(!empty($r['is_session_active']))
-                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                                                            <span class="size-1.5 rounded-full bg-emerald-500"></span> Active 24h
-                                                                        </span>
-                                                                    @else
-                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                                                                            No 24h Session
-                                                                        </span>
-                                                                    @endif
-                                                                </td>
-                                                                <td class="p-3">
-                                                                    @if($r['is_valid'])
-                                                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                                                            Passed
-                                                                        </span>
-                                                                    @else
-                                                                        <div class="flex flex-col">
-                                                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 w-fit">
-                                                                                Failed
-                                                                            </span>
-                                                                            <span class="text-[9px] text-rose-500 mt-0.5">{{ $r['error_reason'] }}</span>
-                                                                        </div>
-                                                                    @endif
-                                                                </td>
-                                                                <td class="p-3 text-right">
-                                                                    <div class="flex items-center justify-end gap-1.5">
-                                                                        <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2.5 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors flex items-center gap-1">
-                                                                            <span class="material-symbols-outlined text-[13px]">edit</span>
-                                                                            Edit &amp; Fix
-                                                                        </button>
-                                                                        <button type="button" wire:click="removeRecipientRow({{ $r['id'] }})" wire:confirm="Are you sure you want to remove this recipient from the campaign?" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
-                                                                            <span class="material-symbols-outlined text-[13px]">delete</span>
-                                                                            Remove
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            @endif
-                                                        </tr>
-                                                    @endif
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
                         @endif
                     </div>
                 @endif
@@ -641,9 +525,16 @@
                                                             @endif
                                                         </td>
                                                         <td class="p-3 text-right">
-                                                            <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
-                                                                Edit &amp; Fix
-                                                            </button>
+                                                            <div class="flex items-center justify-end gap-1.5">
+                                                                <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2.5 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors flex items-center gap-1">
+                                                                    <span class="material-symbols-outlined text-[13px]">edit</span>
+                                                                    Edit &amp; Fix
+                                                                </button>
+                                                                <button type="button" wire:click="removeRecipientRow({{ $r['id'] }})" wire:confirm="Are you sure you want to remove this recipient from the campaign?" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
+                                                                    <span class="material-symbols-outlined text-[13px]">delete</span>
+                                                                    Remove
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     @endif
                                                 </tr>
