@@ -12,7 +12,7 @@
                     <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
                         {{ $campaignId ? 'Edit Campaign' : 'Create New Campaign' }}
                     </h2>
-                    <p class="text-xs font-medium text-slate-500">Step {{ $step }} of 4: {{ ['Details', 'Audience', 'Content', 'Review'][$step - 1] }}</p>
+                    <p class="text-xs font-medium text-slate-500">Step {{ $step }} of 5: {{ ['Details', 'Audience', 'Validation', 'Content', 'Review'][$step - 1] }}</p>
                 </div>
                 <button @click="show = false" class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700">
                     <span class="material-symbols-outlined">close</span>
@@ -22,9 +22,9 @@
             {{-- Stepper --}}
             <div class="bg-white px-8 py-6 dark:bg-slate-900">
                 <div class="relative flex items-center justify-between">
-                    @foreach(['Details', 'Audience', 'Content', 'Review'] as $index => $label)
+                    @foreach(['Details', 'Audience', 'Validation', 'Content', 'Review'] as $index => $label)
                         @php $currentStep = $index + 1; @endphp
-                        <div class="flex flex-col items-center gap-2 relative z-10">
+                        <div class="flex flex-col items-center gap-2 relative z-10 cursor-pointer" wire:click="goToStep({{ $currentStep }})">
                             <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all {{ $step >= $currentStep ? 'border-primary bg-primary text-white shadow-lg shadow-primary/30' : 'border-slate-200 bg-white text-slate-400 dark:border-slate-800 dark:bg-slate-900' }}">
                                 @if($step > $currentStep)
                                     <span class="material-symbols-outlined text-xl">check</span>
@@ -37,7 +37,7 @@
                     @endforeach
                     {{-- Progress Line --}}
                     <div class="absolute left-0 top-5 h-[2px] w-full bg-slate-100 dark:bg-slate-800">
-                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 3) * 100 }}%"></div>
+                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 4) * 100 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -496,214 +496,11 @@
                                                     @endif
                                                 @endforeach
                                             </tbody>
-                    </div>
-                    <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-                        {{ $campaignId ? 'Edit Campaign' : 'Create New Campaign' }}
-                    </h2>
-                    <p class="text-xs font-medium text-slate-500">Step {{ $step }} of 5: {{ ['Details', 'Audience', 'Validation', 'Content', 'Review'][$step - 1] }}</p>
-                </div>
-                <button @click="show = false" class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            {{-- Stepper --}}
-            <div class="bg-white px-8 py-6 dark:bg-slate-900">
-                <div class="relative flex items-center justify-between">
-                    @foreach(['Details', 'Audience', 'Validation', 'Content', 'Review'] as $index => $label)
-                        @php $currentStep = $index + 1; @endphp
-                        <div class="flex flex-col items-center gap-2 relative z-10 cursor-pointer" wire:click="goToStep({{ $currentStep }})">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all {{ $step >= $currentStep ? 'border-primary bg-primary text-white shadow-lg shadow-primary/30' : 'border-slate-200 bg-white text-slate-400 dark:border-slate-800 dark:bg-slate-900' }}">
-                                @if($step > $currentStep)
-                                    <span class="material-symbols-outlined text-xl">check</span>
-                                @else
-                                    <span class="text-sm font-bold">{{ $currentStep }}</span>
-                                @endif
-                            </div>
-                            <span class="text-[10px] font-black uppercase tracking-widest {{ $step >= $currentStep ? 'text-primary' : 'text-slate-400' }}">{{ $label }}</span>
-                        </div>
-                    @endforeach
-                    {{-- Progress Line --}}
-                    <div class="absolute left-0 top-5 h-[2px] w-full bg-slate-100 dark:bg-slate-800">
-                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 4) * 100 }}%"></div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Body Content --}}
-            <div class="max-h-[60vh] overflow-y-auto px-8 py-4">
-                
-                {{-- Step 1: Details --}}
-                @if($step === 1)
-                    <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div class="space-y-2">
-                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Campaign Name <span class="text-rose-500">*</span></label>
-                                <input type="text" wire:model="name" placeholder="e.g., Summer Sale 2024" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
-                                @error('name') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">WhatsApp Number <span class="text-rose-500">*</span></label>
-                                <select wire:model="whatsapp_phone_number_id" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
-                                    @foreach($phoneNumbers as $number)
-                                        <option value="{{ $number->id }}">{{ $number->display_phone_number }} ({{ $number->verified_name }})</option>
-                                    @endforeach
-                                </select>
-                                @error('whatsapp_phone_number_id') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div class="md:col-span-2 space-y-2">
-                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Description</label>
-                                <textarea wire:model="description" rows="3" placeholder="What is this campaign about?" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white"></textarea>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Campaign Type</label>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <button type="button" wire:click="$set('type', 'template')" class="flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all {{ $type === 'template' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
-                                        <span class="material-symbols-outlined text-3xl">article</span>
-                                        <span class="text-[10px] font-black uppercase tracking-wider">Template</span>
-                                    </button>
-                                    <button type="button" wire:click="$set('type', 'text')" class="flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all {{ $type === 'text' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
-                                        <span class="material-symbols-outlined text-3xl">notes</span>
-                                        <span class="text-[10px] font-black uppercase tracking-wider">Text</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Sending Mode</label>
-                                <select wire:model.live="send_mode" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
-                                    <option value="draft">Save as Draft</option>
-                                    <option value="now">Send Now</option>
-                                    <option value="schedule">Schedule for Later</option>
-                                </select>
-                            </div>
-
-                            @if($send_mode === 'schedule')
-                                <div class="space-y-2 animate-in fade-in slide-in-from-top-2">
-                                    <label class="text-xs font-black uppercase tracking-wider text-slate-500">Scheduled Date &amp; Time</label>
-                                    <input type="datetime-local" wire:model="scheduled_at" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
-                                    @error('scheduled_at') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                {{-- Step 2: Select Audience --}}
-                @if($step === 2)
-                    <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div class="flex flex-wrap gap-3">
-                            @foreach([
-                                ['key' => 'selected_contacts', 'label' => 'Select Contacts', 'icon' => 'person'],
-                                ['key' => 'groups', 'label' => 'By Groups', 'icon' => 'group'],
-                                ['key' => 'filters', 'label' => 'By Filters', 'icon' => 'filter_alt'],
-                                ['key' => 'csv', 'label' => 'Import CSV', 'icon' => 'upload_file'],
-                                ['key' => 'manual', 'label' => 'Manual Entry', 'icon' => 'edit_note'],
-                            ] as $opt)
-                                <button type="button" wire:click="$set('audience_type', '{{ $opt['key'] }}')" class="flex flex-1 min-w-[120px] flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all {{ $audience_type === $opt['key'] ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
-                                    <span class="material-symbols-outlined text-xl">{{ $opt['icon'] }}</span>
-                                    <span class="text-[9px] font-black uppercase tracking-wider">{{ $opt['label'] }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-
-                        <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-800/30">
-                            @if($audience_type === 'manual')
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Manual Recipient Entry</h4>
-                                            <p class="text-xs text-slate-500">Add custom rows and enter target phone numbers manually.</p>
-                                        </div>
-                                        <button type="button" wire:click="addManualRow" class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary/90 transition-all shadow-sm">
-                                            <span class="material-symbols-outlined text-[16px]">add</span>
-                                            Add Row
-                                        </button>
-                                    </div>
-
-                                    <div class="space-y-3">
-                                        @foreach($manual_rows as $idx => $row)
-                                            <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                                                <span class="text-xs font-bold text-slate-400 w-6 text-center">#{{ $idx + 1 }}</span>
-                                                <input type="text" wire:model.live="manual_rows.{{ $idx }}.phone" placeholder="Phone (e.g. +919876543210)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                                <input type="text" wire:model.live="manual_rows.{{ $idx }}.name" placeholder="Full Name (Optional)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                                @if(count($manual_rows) > 1)
-                                                    <button type="button" wire:click="removeManualRow({{ $idx }})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                                                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        @endforeach
+                                        </table>
                                     </div>
                                 </div>
-                            @elseif($audience_type === 'selected_contacts')
-                                <div class="space-y-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="relative flex-1">
-                                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                                            <input type="text" wire:model.live.debounce.300ms="contact_search" placeholder="Search contacts..." class="w-full rounded-xl border-none bg-white py-2 pl-9 pr-4 text-xs dark:bg-slate-800 dark:text-white shadow-sm">
-                                        </div>
-                                    </div>
-                                    <div class="max-h-48 overflow-y-auto space-y-1 pr-1">
-                                        @forelse($search_results as $c)
-                                            <label class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 cursor-pointer">
-                                                <div class="flex items-center gap-2">
-                                                    <input type="checkbox" wire:model.live="selected_contact_ids" value="{{ $c['id'] }}" class="rounded text-primary focus:ring-primary">
-                                                    <span class="text-xs font-bold text-slate-800 dark:text-white">{{ $c['name'] }}</span>
-                                                </div>
-                                                <span class="text-[10px] font-mono text-slate-400">{{ $c['phone'] }}</span>
-                                            </label>
-                                        @empty
-                                            <p class="text-xs text-slate-400 text-center py-3">No contacts found.</p>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            @elseif($audience_type === 'groups')
-                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                    @foreach($groups as $group)
-                                        <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 cursor-pointer transition-all hover:border-primary dark:border-slate-700 dark:bg-slate-800">
-                                            <input type="checkbox" wire:model.live="selected_group_ids" value="{{ $group->id }}" class="rounded text-primary focus:ring-primary">
-                                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $group->name }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            @elseif($audience_type === 'filters')
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div class="space-y-1">
-                                        <label class="text-xs font-bold text-slate-500 uppercase">Contact Source</label>
-                                        <select wire:model.live="audience_filters.source" class="w-full rounded-xl border-slate-200 text-xs">
-                                            <option value="">All Sources</option>
-                                            <option value="manual">Manual</option>
-                                            <option value="imported">Imported</option>
-                                            <option value="webhook">Webhook</option>
-                                        </select>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
-                                        <select wire:model.live="audience_filters.status" class="w-full rounded-xl border-slate-200 text-xs">
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
-                                            <option value="lead">Lead</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            @elseif($audience_type === 'csv')
-                                <div class="flex flex-col items-center justify-center p-4 text-center">
-                                    <span class="material-symbols-outlined text-3xl text-primary mb-2">upload_file</span>
-                                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">Import CSV Recipients</h4>
-                                    <input type="file" wire:model="csv_file" class="hidden" id="modal_csv_upload">
-                                    <label for="modal_csv_upload" class="mt-2 cursor-pointer rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Choose CSV</label>
-                                    @if($csv_file)
-                                        <p class="mt-2 text-xs font-bold text-emerald-600">{{ $csv_file->getClientOriginalName() }}</p>
-                                        <button type="button" wire:click="importCsv" class="mt-2 rounded-xl bg-primary px-4 py-1.5 text-xs font-bold text-white shadow-md">Import</button>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
@@ -936,33 +733,6 @@
                                                         @endforeach
                                                     </div>
                                                 @endif
-
-                                                {{-- Buttons Section --}}
-                                                @if(!empty($templateVars['button']))
-                                                    <div class="space-y-3">
-                                                        <label class="text-[10px] font-bold uppercase text-slate-400">Dynamic Buttons</label>
-                                                        @foreach($templateVars['button'] as $btnIdx => $vars)
-                                                            @foreach($vars as $varIdx => $var)
-                                                                <div class="flex flex-col gap-2 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/50">
-                                                                    <div class="flex items-center gap-2">
-                                                                        <span class="material-symbols-outlined text-[14px] text-primary">link</span>
-                                                                        <span class="text-[10px] font-black text-slate-700 dark:text-slate-300">{{ $var['button_text'] }}</span>
-                                                                    </div>
-                                                                    <div class="flex items-center gap-3">
-                                                                        <select wire:model.live="template_variable_mapping.button.{{ $btnIdx }}.{{ $varIdx }}.source" class="flex-1 rounded-xl border-none bg-white py-2 px-3 text-xs dark:bg-slate-800 ring-1 ring-slate-100 dark:ring-slate-700">
-                                                                            @foreach($personalizationFields as $field)
-                                                                                <option value="{{ $field['key'] }}">{{ $field['label'] }}</option>
-                                                                            @endforeach
-                                                                        </select>
-                                                                        @if(($template_variable_mapping['button'][$btnIdx][$varIdx]['source'] ?? 'static') === 'static')
-                                                                            <input type="text" wire:model="template_variable_mapping.button.{{ $btnIdx }}.{{ $varIdx }}.value" placeholder="URL Parameter" class="flex-1 rounded-xl border-none bg-white py-2 px-3 text-xs ring-1 ring-slate-100 dark:bg-slate-800 dark:ring-slate-700">
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        @endforeach
-                                                    </div>
-                                                @endif
                                             </div>
                                         </div>
 
@@ -983,19 +753,6 @@
                                                 <div class="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{{ $selectedTemplate?->body_text }}</div>
                                                 @if($selectedTemplate && $selectedTemplate->footer_text)
                                                     <p class="mt-2 text-[10px] text-slate-400 font-medium">{{ $selectedTemplate->footer_text }}</p>
-                                                @endif
-
-                                                @if($selectedTemplate->buttons->count() > 0)
-                                                    <div class="mt-4 space-y-2 border-t border-slate-50 pt-3 dark:border-slate-800">
-                                                        @foreach($selectedTemplate->buttons as $button)
-                                                            <div class="flex items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-xs font-black text-primary dark:bg-slate-800">
-                                                                <span class="material-symbols-outlined text-sm">
-                                                                    {{ $button->type === 'PHONE_NUMBER' ? 'call' : ($button->type === 'URL' ? 'open_in_new' : 'reply') }}
-                                                                </span>
-                                                                {{ $button->text }}
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
                                                 @endif
                                             </div>
                                         </div>
