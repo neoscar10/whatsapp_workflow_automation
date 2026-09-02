@@ -496,11 +496,6 @@
                                                     @endif
                                                 @endforeach
                                             </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
                     </div>
                     <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
                         {{ $campaignId ? 'Edit Campaign' : 'Create New Campaign' }}
