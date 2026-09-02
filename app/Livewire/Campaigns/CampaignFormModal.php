@@ -140,6 +140,22 @@ class CampaignFormModal extends Component
         }
     }
 
+    public function removeRecipientRow($id)
+    {
+        if (!$this->campaignId) return;
+
+        $campaign = Campaign::find($this->campaignId);
+        if ($campaign) {
+            try {
+                app(CampaignAudienceService::class)->removeRecipientRow(Auth::user(), $campaign, $id);
+                $this->loadValidationPreview();
+                $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient removed from campaign.']);
+            } catch (\Exception $e) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+            }
+        }
+    }
+
     #[On('open-campaign-modal')]
     public function open($id = null)
     {

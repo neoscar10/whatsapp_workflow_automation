@@ -398,4 +398,14 @@ class CampaignAudienceService
             'error_reason' => $skipReason,
         ];
     }
+
+    /**
+     * Remove an individual recipient row from a campaign.
+     */
+    public function removeRecipientRow(User $actor, Campaign $campaign, int $recipientId): bool
+    {
+        $deleted = $campaign->recipients()->where('id', $recipientId)->delete();
+        app(CampaignService::class)->recalculateStats($campaign);
+        return (bool) $deleted;
+    }
 }

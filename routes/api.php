@@ -141,6 +141,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/{id}/audience/validation-preview', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'validationPreview'])->name('audience.validation-preview');
             Route::post('/{id}/recipients/import', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'import'])->name('recipients.import');
             Route::patch('/{id}/recipients/{recipientId}', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'updateRecipient'])->name('recipients.update');
+            Route::delete('/{id}/recipients/{recipientId}', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'deleteRecipient'])->name('recipients.delete');
 
             // Recipients
             Route::get('/{id}/recipients', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'index'])->name('recipients.index');

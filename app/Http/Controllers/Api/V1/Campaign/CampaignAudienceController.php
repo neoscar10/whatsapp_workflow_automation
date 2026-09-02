@@ -112,4 +112,19 @@ class CampaignAudienceController extends Controller
             return $this->errorResponse($e->getMessage());
         }
     }
+
+    /**
+     * Remove a campaign recipient row.
+     */
+    public function deleteRecipient(Request $request, int $id, int $recipientId): JsonResponse
+    {
+        try {
+            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $this->audienceService->removeRecipientRow($request->user(), $campaign, $recipientId);
+
+            return $this->successResponse([], 'Recipient removed successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
 }

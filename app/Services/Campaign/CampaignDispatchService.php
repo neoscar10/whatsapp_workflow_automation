@@ -26,6 +26,9 @@ class CampaignDispatchService
             return;
         }
 
+        // Enforce that only recipients who pass validation are kept as pending
+        $this->applyPreDispatchValidationFilter($campaign);
+
         $campaign->update([
             'status' => 'sending',
             'started_at' => $campaign->started_at ?? now(),
@@ -40,6 +43,28 @@ class CampaignDispatchService
                     SendCampaignRecipientJob::dispatch($recipient->id);
                 }
             });
+    }
+
+    /**
+     * Pre-dispatch validation sweep to skip any invalid or 24h-excluded recipients.
+     */
+    protected function applyPreDispatchValidationFilter(Campaign $campaign): void
+    {
+        $user = $campaign->company?->users()?->first() ?? auth()->user();
+        if (!$user) return;
+
+        $preview = app(CampaignAudienceService::class)->validateAndPreviewRecipients($user, $campaign);
+        foreach (($preview['rows'] ?? []) as $row) {
+            if (empty($row['is_valid'])) {
+                CampaignRecipient::where('id', $row['id'])
+                    ->where('status', 'pending')
+                    ->update([
+                        'status' => 'skipped',
+                        'skip_reason' => $row['error_reason'] ?? 'Failed pre-dispatch validation',
+                    ]);
+            }
+        }
+        app(CampaignService::class)->recalculateStats($campaign);
     }
 
     /**

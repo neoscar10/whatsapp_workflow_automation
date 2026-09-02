@@ -357,9 +357,16 @@
                                                     @endif
                                                 </td>
                                                 <td class="p-3 text-right">
-                                                    <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
-                                                        Edit &amp; Fix
-                                                    </button>
+                                                    <div class="flex items-center justify-end gap-1.5">
+                                                        <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2.5 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors flex items-center gap-1">
+                                                            <span class="material-symbols-outlined text-[13px]">edit</span>
+                                                            Edit &amp; Fix
+                                                        </button>
+                                                        <button type="button" wire:click="removeRecipientRow({{ $r['id'] }})" wire:confirm="Are you sure you want to remove this recipient from the campaign?" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
+                                                            <span class="material-symbols-outlined text-[13px]">delete</span>
+                                                            Remove
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             @endif
                                         </tr>
