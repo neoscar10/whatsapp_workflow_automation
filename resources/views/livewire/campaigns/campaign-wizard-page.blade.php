@@ -2,9 +2,9 @@
     <div class="max-w-5xl mx-auto w-full px-8 py-8 space-y-8 pb-32">
         {{-- Stepper --}}
         <div class="relative flex items-center justify-between">
-            @foreach(['Details', 'Audience', 'Content', 'Review'] as $index => $label)
+            @foreach(['Details', 'Audience', 'Validation', 'Content', 'Review'] as $index => $label)
                 @php $currentStep = $index + 1; @endphp
-                <div class="flex flex-col items-center gap-2 relative z-10">
+                <div class="flex flex-col items-center gap-2 relative z-10 cursor-pointer" wire:click="goToStep({{ $currentStep }})">
                     <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all {{ $step >= $currentStep ? 'border-primary bg-primary text-white shadow-lg shadow-primary/30' : 'border-slate-200 bg-white text-slate-400 dark:border-slate-800 dark:bg-slate-900' }}">
                         @if($step > $currentStep)
                             <span class="material-symbols-outlined text-xl">check</span>
@@ -14,9 +14,9 @@
                     </div>
                     <span class="text-xs font-bold uppercase tracking-wider {{ $step >= $currentStep ? 'text-primary' : 'text-slate-400' }}">{{ $label }}</span>
                 </div>
-                @if($index < 3)
+                @if($index < 4)
                     <div class="absolute top-5 h-[2px] w-full bg-slate-100 dark:bg-slate-800">
-                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 3) * 100 }}%"></div>
+                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 4) * 100 }}%"></div>
                     </div>
                 @endif
             @endforeach
@@ -88,7 +88,7 @@
             </div>
         @endif
 
-        {{-- Step 2: Audience --}}
+        {{-- Step 2: Select Audience --}}
         @if($step === 2)
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-4">
                 <div class="space-y-6">
@@ -130,8 +130,8 @@
                                     @foreach($manual_rows as $idx => $row)
                                         <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
                                             <span class="text-xs font-bold text-slate-400 w-6 text-center">#{{ $idx + 1 }}</span>
-                                            <input type="text" wire:model="manual_rows.{{ $idx }}.phone" placeholder="Phone (e.g. +919876543210)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                            <input type="text" wire:model="manual_rows.{{ $idx }}.name" placeholder="Full Name (Optional)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            <input type="text" wire:model.live="manual_rows.{{ $idx }}.phone" placeholder="Phone (e.g. +919876543210)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            <input type="text" wire:model.live="manual_rows.{{ $idx }}.name" placeholder="Full Name (Optional)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
                                             @if(count($manual_rows) > 1)
                                                 <button type="button" wire:click="removeManualRow({{ $idx }})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                                     <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -142,13 +142,13 @@
                                 </div>
                             </div>
                         @elseif($audience_type === 'selected_contacts')
-                            <p class="text-sm text-slate-500 italic">Select individual contacts from your database (Feature coming soon - multi-select from table).</p>
+                            <p class="text-sm text-slate-500 italic">Select individual contacts from your database.</p>
 
                         @elseif($audience_type === 'groups')
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                 @foreach($groups as $group)
                                     <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 cursor-pointer transition-all hover:border-primary dark:border-slate-700 dark:bg-slate-800">
-                                        <input type="checkbox" wire:model="selected_group_ids" value="{{ $group->id }}" class="rounded text-primary focus:ring-primary">
+                                        <input type="checkbox" wire:model.live="selected_group_ids" value="{{ $group->id }}" class="rounded text-primary focus:ring-primary">
                                         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $group->name }}</span>
                                     </label>
                                 @endforeach
@@ -157,7 +157,7 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div class="space-y-1">
                                     <label class="text-xs font-bold text-slate-500 uppercase">Contact Source</label>
-                                    <select wire:model="audience_filters.source" class="w-full rounded-xl border-slate-200 text-sm">
+                                    <select wire:model.live="audience_filters.source" class="w-full rounded-xl border-slate-200 text-sm">
                                         <option value="">All Sources</option>
                                         <option value="manual">Manual</option>
                                         <option value="imported">Imported</option>
@@ -166,7 +166,7 @@
                                 </div>
                                 <div class="space-y-1">
                                     <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
-                                    <select wire:model="audience_filters.status" class="w-full rounded-xl border-slate-200 text-sm">
+                                    <select wire:model.live="audience_filters.status" class="w-full rounded-xl border-slate-200 text-sm">
                                         <option value="">All Statuses</option>
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
@@ -193,6 +193,12 @@
                                 </button>
                                 
                                 @if($csv_file)
+                                    <p class="mt-2 text-xs font-bold text-emerald-600">{{ $csv_file->getClientOriginalName() }}</p>
+                                    <button type="button" wire:click="importCsv" class="mt-3 rounded-xl bg-primary px-6 py-2 text-xs font-bold text-white shadow-lg">
+                                        Import Recipients
+                                    </button>
+                                @endif
+                                
                                 @if($import_summary)
                                     <div class="mt-6 w-full rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900">
                                         <h4 class="mb-2 text-sm font-bold text-slate-900 dark:text-white">Import Summary</h4>
@@ -215,158 +221,165 @@
                             </div>
                         @endif
                     </div>
-
-                    {{-- Audience Preview & Validation Correction Section --}}
-                    @if(!empty($validationPreviewData['total']) && $validationPreviewData['total'] > 0)
-                        <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-4">
-                            <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                <div>
-                                    <h4 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary">fact_check</span>
-                                        Audience Validation & Correction Preview
-                                    </h4>
-                                    <p class="text-xs text-slate-500">Review contacts, inspect pass/fail reasons, and correct errors inline.</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" wire:click="loadValidationPreview" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
-                                        Re-Validate All
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Text Campaign 24h Rule Notice --}}
-                            @if($type === 'text' && !empty($validationPreviewData['text_session_excluded_count']) && $validationPreviewData['text_session_excluded_count'] > 0)
-                                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                                    <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
-                                    <div class="flex-1 text-xs">
-                                        <p class="font-bold text-sm text-amber-900 dark:text-amber-200">WhatsApp 24-Hour Customer Window Rule</p>
-                                        <p class="mt-1">
-                                            Freeform text campaigns require contacts to have messaged your business in the last 24 hours. 
-                                            <strong class="font-bold text-amber-950 dark:text-amber-100">{{ $validationPreviewData['text_session_excluded_count'] }} contact(s)</strong> do not have an active 24h session and will be excluded.
-                                        </p>
-                                        <div class="mt-3 flex items-center gap-2">
-                                            <button type="button" wire:click="switchCampaignType('template')" class="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-sm">
-                                                Switch to Template Campaign (Reach All Contacts)
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- Validation Summary Stat Cards --}}
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
-                                    <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Contacts</p>
-                                    <p class="text-xl font-black text-slate-900 dark:text-white">{{ $validationPreviewData['total'] }}</p>
-                                </div>
-                                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
-                                    <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Passed (Valid)</p>
-                                    <p class="text-xl font-black text-emerald-700 dark:text-emerald-300">{{ $validationPreviewData['passed_count'] }}</p>
-                                </div>
-                                <div class="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800 text-center">
-                                    <p class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Failed (Needs Fix)</p>
-                                    <p class="text-xl font-black text-rose-700 dark:text-rose-300">{{ $validationPreviewData['failed_count'] }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Validation Filter Tabs & Table --}}
-                            <div class="space-y-3">
-                                <div class="flex gap-2">
-                                    <button type="button" wire:click="$set('validationFilter', 'all')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'all' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                        All ({{ $validationPreviewData['total'] }})
-                                    </button>
-                                    <button type="button" wire:click="$set('validationFilter', 'passed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'passed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                        Passed ({{ $validationPreviewData['passed_count'] }})
-                                    </button>
-                                    <button type="button" wire:click="$set('validationFilter', 'failed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'failed' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
-                                        Failed ({{ $validationPreviewData['failed_count'] }})
-                                    </button>
-                                </div>
-
-                                <div class="max-h-60 overflow-y-auto rounded-2xl border border-slate-100 dark:border-slate-800">
-                                    <table class="w-full text-left text-xs">
-                                        <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                                            <tr>
-                                                <th class="p-3 text-[10px] font-black uppercase text-slate-400">Phone</th>
-                                                <th class="p-3 text-[10px] font-black uppercase text-slate-400">Name</th>
-                                                <th class="p-3 text-[10px] font-black uppercase text-slate-400">24h Session</th>
-                                                <th class="p-3 text-[10px] font-black uppercase text-slate-400">Validation Status</th>
-                                                <th class="p-3 text-[10px] font-black uppercase text-slate-400 text-right">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                            @foreach($validationPreviewData['rows'] as $r)
-                                                @if($validationFilter === 'all' || ($validationFilter === 'passed' && $r['is_valid']) || ($validationFilter === 'failed' && !$r['is_valid']))
-                                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                                        @if($editingRecipientId === $r['id'])
-                                                            <td class="p-2" colspan="3">
-                                                                <div class="flex gap-2">
-                                                                    <input type="text" wire:model="editingPhone" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
-                                                                    <input type="text" wire:model="editingName" placeholder="Name" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
-                                                                </div>
-                                                            </td>
-                                                            <td class="p-2">
-                                                                <span class="text-[10px] text-amber-600 font-bold">Editing...</span>
-                                                            </td>
-                                                            <td class="p-2 text-right">
-                                                                <div class="flex items-center justify-end gap-1">
-                                                                    <button type="button" wire:click="saveRecipientRow({{ $r['id'] }})" class="px-2 py-1 bg-emerald-600 text-white font-bold rounded-md text-[10px]">
-                                                                        Save &amp; Validate
-                                                                    </button>
-                                                                    <button type="button" wire:click="cancelEditRecipientRow" class="px-2 py-1 bg-slate-200 text-slate-700 font-bold rounded-md text-[10px]">
-                                                                        Cancel
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        @else
-                                                            <td class="p-3 font-mono font-bold">{{ $r['phone'] }}</td>
-                                                            <td class="p-3 font-semibold">{{ $r['name'] ?: 'N/A' }}</td>
-                                                            <td class="p-3">
-                                                                @if(!empty($r['is_session_active']))
-                                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                                                        <span class="size-1.5 rounded-full bg-emerald-500"></span> Active 24h
-                                                                    </span>
-                                                                @else
-                                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                                                                        No 24h Session
-                                                                    </span>
-                                                                @endif
-                                                            </td>
-                                                            <td class="p-3">
-                                                                @if($r['is_valid'])
-                                                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                                                        Passed
-                                                                    </span>
-                                                                @else
-                                                                    <div class="flex flex-col">
-                                                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 w-fit">
-                                                                            Failed
-                                                                        </span>
-                                                                        <span class="text-[9px] text-rose-500 mt-0.5">{{ $r['error_reason'] }}</span>
-                                                                    </div>
-                                                                @endif
-                                                            </td>
-                                                            <td class="p-3 text-right">
-                                                                <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
-                                                                    Edit &amp; Fix
-                                                                </button>
-                                                            </td>
-                                                        @endif
-                                                    </tr>
-                                                @endif
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
             </div>
         @endif
 
-        {{-- Step 3: Content --}}
+        {{-- Step 3: Audience Validation & Correction --}}
         @if($step === 3)
+            <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-4 space-y-6">
+                <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-2xl">fact_check</span>
+                            Audience Validation &amp; Correction
+                        </h2>
+                        <p class="text-slate-500 dark:text-slate-400">Review recipient numbers, 24h active sessions, inspect pass/fail errors, and correct contacts inline.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="loadValidationPreview" class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+                            Re-Validate All
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Text Campaign 24h Rule Notice --}}
+                @if($type === 'text' && !empty($validationPreviewData['text_session_excluded_count']) && $validationPreviewData['text_session_excluded_count'] > 0)
+                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                        <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
+                        <div class="flex-1 text-xs">
+                            <p class="font-bold text-sm text-amber-900 dark:text-amber-200">WhatsApp 24-Hour Customer Window Rule</p>
+                            <p class="mt-1">
+                                Freeform text campaigns require contacts to have messaged your business in the last 24 hours. 
+                                <strong class="font-bold text-amber-950 dark:text-amber-100">{{ $validationPreviewData['text_session_excluded_count'] }} contact(s)</strong> do not have an active 24h session and will be excluded.
+                            </p>
+                            <div class="mt-3 flex items-center gap-2">
+                                <button type="button" wire:click="switchCampaignType('template')" class="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-sm">
+                                    Switch to Template Campaign (Reach All Contacts)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Validation Summary Stat Cards --}}
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                        <p class="text-xs font-black uppercase tracking-wider text-slate-400">Total Contacts</p>
+                        <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ $validationPreviewData['total'] ?? 0 }}</p>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
+                        <p class="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Passed (Valid)</p>
+                        <p class="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">{{ $validationPreviewData['passed_count'] ?? 0 }}</p>
+                    </div>
+                    <div class="bg-rose-50 dark:bg-rose-900/20 p-5 rounded-2xl border border-rose-100 dark:border-rose-800 text-center">
+                        <p class="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Failed (Needs Fix)</p>
+                        <p class="text-2xl font-black text-rose-700 dark:text-rose-300 mt-1">{{ $validationPreviewData['failed_count'] ?? 0 }}</p>
+                    </div>
+                </div>
+
+                {{-- Validation Filter Tabs & Table --}}
+                <div class="space-y-4">
+                    <div class="flex gap-2">
+                        <button type="button" wire:click="$set('validationFilter', 'all')" class="px-4 py-1.5 text-xs font-bold rounded-xl transition-colors {{ $validationFilter === 'all' ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                            All ({{ $validationPreviewData['total'] ?? 0 }})
+                        </button>
+                        <button type="button" wire:click="$set('validationFilter', 'passed')" class="px-4 py-1.5 text-xs font-bold rounded-xl transition-colors {{ $validationFilter === 'passed' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                            Passed ({{ $validationPreviewData['passed_count'] ?? 0 }})
+                        </button>
+                        <button type="button" wire:click="$set('validationFilter', 'failed')" class="px-4 py-1.5 text-xs font-bold rounded-xl transition-colors {{ $validationFilter === 'failed' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                            Failed ({{ $validationPreviewData['failed_count'] ?? 0 }})
+                        </button>
+                    </div>
+
+                    <div class="max-h-80 overflow-y-auto rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
+                                <tr>
+                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Phone</th>
+                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Name</th>
+                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">24h Session</th>
+                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400">Validation Status</th>
+                                    <th class="p-3 text-[10px] font-black uppercase text-slate-400 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                @forelse(($validationPreviewData['rows'] ?? []) as $r)
+                                    @if($validationFilter === 'all' || ($validationFilter === 'passed' && $r['is_valid']) || ($validationFilter === 'failed' && !$r['is_valid']))
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                            @if($editingRecipientId === $r['id'])
+                                                <td class="p-2" colspan="3">
+                                                    <div class="flex gap-2">
+                                                        <input type="text" wire:model="editingPhone" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
+                                                        <input type="text" wire:model="editingName" placeholder="Name" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
+                                                    </div>
+                                                </td>
+                                                <td class="p-2">
+                                                    <span class="text-[10px] text-amber-600 font-bold">Editing...</span>
+                                                </td>
+                                                <td class="p-2 text-right">
+                                                    <div class="flex items-center justify-end gap-1">
+                                                        <button type="button" wire:click="saveRecipientRow({{ $r['id'] }})" class="px-2 py-1 bg-emerald-600 text-white font-bold rounded-md text-[10px]">
+                                                            Save &amp; Validate
+                                                        </button>
+                                                        <button type="button" wire:click="cancelEditRecipientRow" class="px-2 py-1 bg-slate-200 text-slate-700 font-bold rounded-md text-[10px]">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            @else
+                                                <td class="p-3 font-mono font-bold">{{ $r['phone'] }}</td>
+                                                <td class="p-3 font-semibold">{{ $r['name'] ?: 'N/A' }}</td>
+                                                <td class="p-3">
+                                                    @if(!empty($r['is_session_active']))
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                            <span class="size-1.5 rounded-full bg-emerald-500"></span> Active 24h
+                                                        </span>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                            No 24h Session
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                                <td class="p-3">
+                                                    @if($r['is_valid'])
+                                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                            Passed
+                                                        </span>
+                                                    @else
+                                                        <div class="flex flex-col">
+                                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 w-fit">
+                                                                Failed
+                                                            </span>
+                                                            <span class="text-[9px] text-rose-500 mt-0.5">{{ $r['error_reason'] }}</span>
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td class="p-3 text-right">
+                                                    <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
+                                                        Edit &amp; Fix
+                                                    </button>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endif
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="p-6 text-center text-slate-400">
+                                            No recipient validation records found yet. Go back to Step 2 to select or add recipients.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Step 4: Content --}}
+        @if($step === 4)
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-4">
                 <div class="space-y-6">
                     <div>
@@ -394,24 +407,9 @@
                                     <div class="space-y-6">
                                         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">Variable Mapping</h3>
                                         
-                                        {{-- Body Variables --}}
+                                        {{-- Render Header/Body Variable Mappings --}}
                                         <div class="space-y-4">
-                                            <p class="text-xs font-bold text-slate-500">Body Components</p>
-                                            {{-- Simple regex extraction or service logic needed here --}}
-                                            {{-- For now, let's assume we allow up to 3 body variables if template has placeholders --}}
-                                            @foreach(range(1, 3) as $idx)
-                                                <div class="flex items-center gap-3">
-                                                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-slate-100 text-[10px] font-bold text-slate-500">{{ $idx }}</span>
-                                                    <select wire:model="template_variable_mapping.body.{{ $idx }}.source" class="flex-1 rounded-lg border-slate-200 text-xs">
-                                                        @foreach($personalizationFields as $field)
-                                                            <option value="{{ $field['key'] }}">{{ $field['label'] }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if(($template_variable_mapping['body'][$idx]['source'] ?? '') === 'static')
-                                                        <input type="text" wire:model="template_variable_mapping.body.{{ $idx }}.value" placeholder="Value" class="flex-1 rounded-lg border-slate-200 text-xs">
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                            <p class="text-xs text-slate-500">Map custom parameters to contact profile fields or static values.</p>
                                         </div>
                                     </div>
 
@@ -420,13 +418,13 @@
                                         <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">Preview</h3>
                                         <div class="rounded-2xl bg-slate-50 p-6 dark:bg-slate-800/50">
                                             <div class="max-w-[280px] mx-auto rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                                                @if($selectedTemplate->header_type !== 'none')
+                                                @if($selectedTemplate && $selectedTemplate->header_type !== 'none')
                                                     <div class="mb-2 h-32 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300">
                                                         <span class="material-symbols-outlined text-3xl">image</span>
                                                     </div>
                                                 @endif
-                                                <p class="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{{ $selectedTemplate->body_text }}</p>
-                                                @if($selectedTemplate->footer_text)
+                                                <p class="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{{ $selectedTemplate?->body_text }}</p>
+                                                @if($selectedTemplate && $selectedTemplate->footer_text)
                                                     <p class="mt-2 text-[10px] text-slate-400">{{ $selectedTemplate->footer_text }}</p>
                                                 @endif
                                             </div>
@@ -441,7 +439,7 @@
                                 <div class="flex gap-3">
                                     <span class="material-symbols-outlined text-amber-600">warning</span>
                                     <p class="text-sm text-amber-800 dark:text-amber-400">
-                                        <strong>Recommendation:</strong> Free-form text campaigns are restricted to WhatsApp's 24-hour service window. Use <strong>Approved Templates</strong> for reliable broadcasts.
+                                        <strong>WhatsApp Policy Note:</strong> Freeform text campaigns can only reach contacts with active 24-hour customer service sessions. Use <strong>Approved Templates</strong> to broadcast to all contacts.
                                     </p>
                                 </div>
                             </div>
@@ -456,13 +454,13 @@
             </div>
         @endif
 
-        {{-- Step 4: Review --}}
-        @if($step === 4)
+        {{-- Step 5: Review --}}
+        @if($step === 5)
             <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-4">
                 <div class="space-y-8">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Review & Confirm</h2>
-                        <p class="text-slate-500 dark:text-slate-400">Verify everything before starting your campaign.</p>
+                        <p class="text-slate-500 dark:text-slate-400">Verify campaign details and validated recipient stats before starting.</p>
                     </div>
 
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -472,12 +470,21 @@
                                 <p class="text-lg font-bold text-slate-900 dark:text-white">{{ $name }}</p>
                             </div>
                             <div class="space-y-1">
-                                <p class="text-xs font-bold text-slate-400 uppercase">Audience</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary">groups</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                        {{ ucfirst(str_replace('_', ' ', $audience_type)) }}
-                                    </p>
+                                <p class="text-xs font-bold text-slate-400 uppercase">Audience Breakdown</p>
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary text-2xl">groups</span>
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                            {{ ucfirst(str_replace('_', ' ', $audience_type)) }}
+                                        </p>
+                                        <p class="text-xs text-slate-500">
+                                            <span class="text-emerald-600 font-bold">{{ $validationPreviewData['passed_count'] ?? 0 }} Valid</span> / 
+                                            <span class="text-slate-700 font-bold">{{ $validationPreviewData['total'] ?? 0 }} Total</span> 
+                                            @if(($validationPreviewData['failed_count'] ?? 0) > 0)
+                                                (<span class="text-rose-500 font-bold">{{ $validationPreviewData['failed_count'] }} Excluded/Failed</span>)
+                                            @endif
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="space-y-1">
@@ -509,7 +516,7 @@
                         <span class="material-symbols-outlined text-primary text-3xl">info</span>
                         <div>
                             <p class="text-sm font-bold text-primary">Ready to go?</p>
-                            <p class="text-xs text-primary/70">Your campaign will be processed through the background queue. You can track progress in the Reports section.</p>
+                            <p class="text-xs text-primary/70">Your campaign will be dispatched to <strong>{{ $validationPreviewData['passed_count'] ?? 0 }} valid recipient(s)</strong> through the background queue.</p>
                         </div>
                     </div>
                 </div>
@@ -524,7 +531,7 @@
                     {{ $step === 1 ? 'Cancel' : 'Back' }}
                 </button>
                 
-                @if($step < 4)
+                @if($step < 5)
                     <button type="button" wire:click="nextStep" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:scale-[1.02] active:scale-[0.98] dark:bg-primary dark:shadow-primary/30">
                         Next Step
                         <span class="material-symbols-outlined text-lg">arrow_forward</span>

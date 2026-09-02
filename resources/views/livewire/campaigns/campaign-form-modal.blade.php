@@ -502,10 +502,369 @@
                             </div>
                         @endif
                     </div>
+                    <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                        {{ $campaignId ? 'Edit Campaign' : 'Create New Campaign' }}
+                    </h2>
+                    <p class="text-xs font-medium text-slate-500">Step {{ $step }} of 5: {{ ['Details', 'Audience', 'Validation', 'Content', 'Review'][$step - 1] }}</p>
+                </div>
+                <button @click="show = false" class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            {{-- Stepper --}}
+            <div class="bg-white px-8 py-6 dark:bg-slate-900">
+                <div class="relative flex items-center justify-between">
+                    @foreach(['Details', 'Audience', 'Validation', 'Content', 'Review'] as $index => $label)
+                        @php $currentStep = $index + 1; @endphp
+                        <div class="flex flex-col items-center gap-2 relative z-10 cursor-pointer" wire:click="goToStep({{ $currentStep }})">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all {{ $step >= $currentStep ? 'border-primary bg-primary text-white shadow-lg shadow-primary/30' : 'border-slate-200 bg-white text-slate-400 dark:border-slate-800 dark:bg-slate-900' }}">
+                                @if($step > $currentStep)
+                                    <span class="material-symbols-outlined text-xl">check</span>
+                                @else
+                                    <span class="text-sm font-bold">{{ $currentStep }}</span>
+                                @endif
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest {{ $step >= $currentStep ? 'text-primary' : 'text-slate-400' }}">{{ $label }}</span>
+                        </div>
+                    @endforeach
+                    {{-- Progress Line --}}
+                    <div class="absolute left-0 top-5 h-[2px] w-full bg-slate-100 dark:bg-slate-800">
+                        <div class="h-full bg-primary transition-all duration-500" style="width: {{ (($step - 1) / 4) * 100 }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Body Content --}}
+            <div class="max-h-[60vh] overflow-y-auto px-8 py-4">
+                
+                {{-- Step 1: Details --}}
+                @if($step === 1)
+                    <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Campaign Name <span class="text-rose-500">*</span></label>
+                                <input type="text" wire:model="name" placeholder="e.g., Summer Sale 2024" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
+                                @error('name') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">WhatsApp Number <span class="text-rose-500">*</span></label>
+                                <select wire:model="whatsapp_phone_number_id" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
+                                    @foreach($phoneNumbers as $number)
+                                        <option value="{{ $number->id }}">{{ $number->display_phone_number }} ({{ $number->verified_name }})</option>
+                                    @endforeach
+                                </select>
+                                @error('whatsapp_phone_number_id') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="md:col-span-2 space-y-2">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Description</label>
+                                <textarea wire:model="description" rows="3" placeholder="What is this campaign about?" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white"></textarea>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Campaign Type</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button type="button" wire:click="$set('type', 'template')" class="flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all {{ $type === 'template' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
+                                        <span class="material-symbols-outlined text-3xl">article</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider">Template</span>
+                                    </button>
+                                    <button type="button" wire:click="$set('type', 'text')" class="flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all {{ $type === 'text' ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
+                                        <span class="material-symbols-outlined text-3xl">notes</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider">Text</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-500">Sending Mode</label>
+                                <select wire:model.live="send_mode" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
+                                    <option value="draft">Save as Draft</option>
+                                    <option value="now">Send Now</option>
+                                    <option value="schedule">Schedule for Later</option>
+                                </select>
+                            </div>
+
+                            @if($send_mode === 'schedule')
+                                <div class="space-y-2 animate-in fade-in slide-in-from-top-2">
+                                    <label class="text-xs font-black uppercase tracking-wider text-slate-500">Scheduled Date &amp; Time</label>
+                                    <input type="datetime-local" wire:model="scheduled_at" class="w-full rounded-2xl border-none bg-slate-50 py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 dark:text-white">
+                                    @error('scheduled_at') <p class="text-[10px] font-bold text-rose-500">{{ $message }}</p> @enderror
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 @endif
 
-                {{-- Step 3: Content --}}
+                {{-- Step 2: Select Audience --}}
+                @if($step === 2)
+                    <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div class="flex flex-wrap gap-3">
+                            @foreach([
+                                ['key' => 'selected_contacts', 'label' => 'Select Contacts', 'icon' => 'person'],
+                                ['key' => 'groups', 'label' => 'By Groups', 'icon' => 'group'],
+                                ['key' => 'filters', 'label' => 'By Filters', 'icon' => 'filter_alt'],
+                                ['key' => 'csv', 'label' => 'Import CSV', 'icon' => 'upload_file'],
+                                ['key' => 'manual', 'label' => 'Manual Entry', 'icon' => 'edit_note'],
+                            ] as $opt)
+                                <button type="button" wire:click="$set('audience_type', '{{ $opt['key'] }}')" class="flex flex-1 min-w-[120px] flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all {{ $audience_type === $opt['key'] ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
+                                    <span class="material-symbols-outlined text-xl">{{ $opt['icon'] }}</span>
+                                    <span class="text-[9px] font-black uppercase tracking-wider">{{ $opt['label'] }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-800/30">
+                            @if($audience_type === 'manual')
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Manual Recipient Entry</h4>
+                                            <p class="text-xs text-slate-500">Add custom rows and enter target phone numbers manually.</p>
+                                        </div>
+                                        <button type="button" wire:click="addManualRow" class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary/90 transition-all shadow-sm">
+                                            <span class="material-symbols-outlined text-[16px]">add</span>
+                                            Add Row
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        @foreach($manual_rows as $idx => $row)
+                                            <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                <span class="text-xs font-bold text-slate-400 w-6 text-center">#{{ $idx + 1 }}</span>
+                                                <input type="text" wire:model.live="manual_rows.{{ $idx }}.phone" placeholder="Phone (e.g. +919876543210)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                                <input type="text" wire:model.live="manual_rows.{{ $idx }}.name" placeholder="Full Name (Optional)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                                @if(count($manual_rows) > 1)
+                                                    <button type="button" wire:click="removeManualRow({{ $idx }})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @elseif($audience_type === 'selected_contacts')
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative flex-1">
+                                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                            <input type="text" wire:model.live.debounce.300ms="contact_search" placeholder="Search contacts..." class="w-full rounded-xl border-none bg-white py-2 pl-9 pr-4 text-xs dark:bg-slate-800 dark:text-white shadow-sm">
+                                        </div>
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto space-y-1 pr-1">
+                                        @forelse($search_results as $c)
+                                            <label class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 cursor-pointer">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="checkbox" wire:model.live="selected_contact_ids" value="{{ $c['id'] }}" class="rounded text-primary focus:ring-primary">
+                                                    <span class="text-xs font-bold text-slate-800 dark:text-white">{{ $c['name'] }}</span>
+                                                </div>
+                                                <span class="text-[10px] font-mono text-slate-400">{{ $c['phone'] }}</span>
+                                            </label>
+                                        @empty
+                                            <p class="text-xs text-slate-400 text-center py-3">No contacts found.</p>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            @elseif($audience_type === 'groups')
+                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                    @foreach($groups as $group)
+                                        <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 cursor-pointer transition-all hover:border-primary dark:border-slate-700 dark:bg-slate-800">
+                                            <input type="checkbox" wire:model.live="selected_group_ids" value="{{ $group->id }}" class="rounded text-primary focus:ring-primary">
+                                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $group->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @elseif($audience_type === 'filters')
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-500 uppercase">Contact Source</label>
+                                        <select wire:model.live="audience_filters.source" class="w-full rounded-xl border-slate-200 text-xs">
+                                            <option value="">All Sources</option>
+                                            <option value="manual">Manual</option>
+                                            <option value="imported">Imported</option>
+                                            <option value="webhook">Webhook</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
+                                        <select wire:model.live="audience_filters.status" class="w-full rounded-xl border-slate-200 text-xs">
+                                            <option value="">All Statuses</option>
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                            <option value="lead">Lead</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            @elseif($audience_type === 'csv')
+                                <div class="flex flex-col items-center justify-center p-4 text-center">
+                                    <span class="material-symbols-outlined text-3xl text-primary mb-2">upload_file</span>
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">Import CSV Recipients</h4>
+                                    <input type="file" wire:model="csv_file" class="hidden" id="modal_csv_upload">
+                                    <label for="modal_csv_upload" class="mt-2 cursor-pointer rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Choose CSV</label>
+                                    @if($csv_file)
+                                        <p class="mt-2 text-xs font-bold text-emerald-600">{{ $csv_file->getClientOriginalName() }}</p>
+                                        <button type="button" wire:click="importCsv" class="mt-2 rounded-xl bg-primary px-4 py-1.5 text-xs font-bold text-white shadow-md">Import</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Step 3: Audience Validation & Correction --}}
                 @if($step === 3)
+                    <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary text-xl">fact_check</span>
+                                    Audience Validation &amp; Correction
+                                </h3>
+                                <p class="text-xs text-slate-500">Review recipient numbers, 24h active sessions, inspect pass/fail errors, and correct contacts inline.</p>
+                            </div>
+                            <button type="button" wire:click="loadValidationPreview" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">refresh</span>
+                                Re-Validate All
+                            </button>
+                        </div>
+
+                        {{-- Text Campaign 24h Rule Notice --}}
+                        @if($type === 'text' && !empty($validationPreviewData['text_session_excluded_count']) && $validationPreviewData['text_session_excluded_count'] > 0)
+                            <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                                <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
+                                <div class="flex-1 text-xs">
+                                    <p class="font-bold text-sm text-amber-900 dark:text-amber-200">WhatsApp 24-Hour Customer Window Rule</p>
+                                    <p class="mt-1">
+                                        Freeform text campaigns require contacts to have messaged your business in the last 24 hours. 
+                                        <strong class="font-bold text-amber-950 dark:text-amber-100">{{ $validationPreviewData['text_session_excluded_count'] }} contact(s)</strong> do not have an active 24h session and will be excluded.
+                                    </p>
+                                    <div class="mt-3 flex items-center gap-2">
+                                        <button type="button" wire:click="switchCampaignType('template')" class="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-sm">
+                                            Switch to Template Campaign (Reach All Contacts)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Validation Summary Stat Cards --}}
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Contacts</p>
+                                <p class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ $validationPreviewData['total'] ?? 0 }}</p>
+                            </div>
+                            <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800 text-center">
+                                <p class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Passed (Valid)</p>
+                                <p class="text-xl font-black text-emerald-700 dark:text-emerald-300 mt-1">{{ $validationPreviewData['passed_count'] ?? 0 }}</p>
+                            </div>
+                            <div class="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-2xl border border-rose-100 dark:border-rose-800 text-center">
+                                <p class="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">Failed (Needs Fix)</p>
+                                <p class="text-xl font-black text-rose-700 dark:text-rose-300 mt-1">{{ $validationPreviewData['failed_count'] ?? 0 }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Validation Filter Tabs & Table --}}
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <button type="button" wire:click="$set('validationFilter', 'all')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'all' ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                                    All ({{ $validationPreviewData['total'] ?? 0 }})
+                                </button>
+                                <button type="button" wire:click="$set('validationFilter', 'passed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'passed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                                    Passed ({{ $validationPreviewData['passed_count'] ?? 0 }})
+                                </button>
+                                <button type="button" wire:click="$set('validationFilter', 'failed')" class="px-3 py-1 text-xs font-bold rounded-lg transition-colors {{ $validationFilter === 'failed' ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' }}">
+                                    Failed ({{ $validationPreviewData['failed_count'] ?? 0 }})
+                                </button>
+                            </div>
+
+                            <div class="max-h-60 overflow-y-auto rounded-2xl border border-slate-100 dark:border-slate-800">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
+                                        <tr>
+                                            <th class="p-3 text-[10px] font-black uppercase text-slate-400">Phone</th>
+                                            <th class="p-3 text-[10px] font-black uppercase text-slate-400">Name</th>
+                                            <th class="p-3 text-[10px] font-black uppercase text-slate-400">24h Session</th>
+                                            <th class="p-3 text-[10px] font-black uppercase text-slate-400">Validation Status</th>
+                                            <th class="p-3 text-[10px] font-black uppercase text-slate-400 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                        @forelse(($validationPreviewData['rows'] ?? []) as $r)
+                                            @if($validationFilter === 'all' || ($validationFilter === 'passed' && $r['is_valid']) || ($validationFilter === 'failed' && !$r['is_valid']))
+                                                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                    @if($editingRecipientId === $r['id'])
+                                                        <td class="p-2" colspan="3">
+                                                            <div class="flex gap-2">
+                                                                <input type="text" wire:model="editingPhone" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
+                                                                <input type="text" wire:model="editingName" placeholder="Name" class="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-900 dark:text-white">
+                                                            </div>
+                                                        </td>
+                                                        <td class="p-2">
+                                                            <span class="text-[10px] text-amber-600 font-bold">Editing...</span>
+                                                        </td>
+                                                        <td class="p-2 text-right">
+                                                            <div class="flex items-center justify-end gap-1">
+                                                                <button type="button" wire:click="saveRecipientRow({{ $r['id'] }})" class="px-2 py-1 bg-emerald-600 text-white font-bold rounded-md text-[10px]">
+                                                                    Save &amp; Validate
+                                                                </button>
+                                                                <button type="button" wire:click="cancelEditRecipientRow" class="px-2 py-1 bg-slate-200 text-slate-700 font-bold rounded-md text-[10px]">
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    @else
+                                                        <td class="p-3 font-mono font-bold">{{ $r['phone'] }}</td>
+                                                        <td class="p-3 font-semibold">{{ $r['name'] ?: 'N/A' }}</td>
+                                                        <td class="p-3">
+                                                            @if(!empty($r['is_session_active']))
+                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                                    <span class="size-1.5 rounded-full bg-emerald-500"></span> Active 24h
+                                                                </span>
+                                                            @else
+                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                                    No 24h Session
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="p-3">
+                                                            @if($r['is_valid'])
+                                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                                    Passed
+                                                                </span>
+                                                            @else
+                                                                <div class="flex flex-col">
+                                                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 w-fit">
+                                                                        Failed
+                                                                    </span>
+                                                                    <span class="text-[9px] text-rose-500 mt-0.5">{{ $r['error_reason'] }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </td>
+                                                        <td class="p-3 text-right">
+                                                            <button type="button" wire:click="editRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors">
+                                                                Edit &amp; Fix
+                                                            </button>
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            @endif
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="p-6 text-center text-slate-400">
+                                                    No recipient validation records found yet. Go back to Step 2 to select or add recipients.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Step 4: Content --}}
+                @if($step === 4)
                     <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         @if($type === 'template')
                             <div class="space-y-4">
@@ -533,10 +892,10 @@
 
                                             <div class="space-y-6">
                                                 {{-- Header Section --}}
-                                                @if(!empty($templateVars['header']) || $selectedTemplate->header_type !== 'text' && $selectedTemplate->header_type !== 'none')
+                                                @if(!empty($templateVars['header']) || ($selectedTemplate && $selectedTemplate->header_type !== 'text' && $selectedTemplate->header_type !== 'none'))
                                                     <div class="space-y-3">
-                                                        <label class="text-[10px] font-bold uppercase text-slate-400">Header ({{ $selectedTemplate->header_type }})</label>
-                                                        @if($selectedTemplate->header_type === 'text')
+                                                        <label class="text-[10px] font-bold uppercase text-slate-400">Header ({{ $selectedTemplate?->header_type }})</label>
+                                                        @if($selectedTemplate?->header_type === 'text')
                                                             @foreach($templateVars['header'] as $idx => $var)
                                                                 <div class="flex items-center gap-3">
                                                                     <span class="flex h-8 {{ is_numeric($idx) ? 'w-8' : 'min-w-[2rem] px-2' }} shrink-0 items-center justify-center rounded-xl bg-primary/10 text-[9px] font-black text-primary">
@@ -615,7 +974,7 @@
                                         {{-- Preview --}}
                                         <div class="rounded-3xl bg-slate-50 p-6 dark:bg-slate-800/30">
                                             <div class="mx-auto w-full max-w-[280px] rounded-2xl bg-white p-3 shadow-xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                                                @if($selectedTemplate->header_type !== 'none')
+                                                @if($selectedTemplate && $selectedTemplate->header_type !== 'none')
                                                     <div class="mb-3 h-32 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300 dark:bg-slate-800">
                                                         @if($selectedTemplate->header_type === 'text')
                                                             <span class="text-[10px] font-black uppercase tracking-widest">{{ $selectedTemplate->header_text }}</span>
@@ -626,8 +985,8 @@
                                                         @endif
                                                     </div>
                                                 @endif
-                                                <div class="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{{ $selectedTemplate->body_text }}</div>
-                                                @if($selectedTemplate->footer_text)
+                                                <div class="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{{ $selectedTemplate?->body_text }}</div>
+                                                @if($selectedTemplate && $selectedTemplate->footer_text)
                                                     <p class="mt-2 text-[10px] text-slate-400 font-medium">{{ $selectedTemplate->footer_text }}</p>
                                                 @endif
 
@@ -658,8 +1017,8 @@
                     </div>
                 @endif
 
-                {{-- Step 4: Review --}}
-                @if($step === 4)
+                {{-- Step 5: Review --}}
+                @if($step === 5)
                     <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
                             <div class="space-y-6">
@@ -668,12 +1027,21 @@
                                     <p class="text-lg font-black text-slate-900 dark:text-white">{{ $name }}</p>
                                 </div>
                                 <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50">
-                                    <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Audience Strategy</p>
-                                    <div class="mt-1 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary">groups</span>
-                                        <p class="text-sm font-black text-slate-700 dark:text-slate-300">
-                                            {{ ucfirst(str_replace('_', ' ', $audience_type)) }}
-                                        </p>
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Audience Breakdown</p>
+                                    <div class="mt-1 flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-primary text-2xl">groups</span>
+                                        <div>
+                                            <p class="text-sm font-black text-slate-700 dark:text-slate-300">
+                                                {{ ucfirst(str_replace('_', ' ', $audience_type)) }}
+                                            </p>
+                                            <p class="text-xs text-slate-500">
+                                                <span class="text-emerald-600 font-bold">{{ $validationPreviewData['passed_count'] ?? 0 }} Valid</span> / 
+                                                <span class="text-slate-700 font-bold">{{ $validationPreviewData['total'] ?? 0 }} Total</span> 
+                                                @if(($validationPreviewData['failed_count'] ?? 0) > 0)
+                                                    (<span class="text-rose-500 font-bold">{{ $validationPreviewData['failed_count'] }} Excluded/Failed</span>)
+                                                @endif
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50">
@@ -707,7 +1075,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-black text-primary">Ready to Launch?</p>
-                                <p class="text-xs text-primary/70">By confirming, your campaign will be processed via our background worker. You can monitor performance in the report dashboard.</p>
+                                <p class="text-xs text-primary/70">By confirming, your campaign will be dispatched to <strong>{{ $validationPreviewData['passed_count'] ?? 0 }} valid recipient(s)</strong> through the background queue.</p>
                             </div>
                         </div>
                     </div>
@@ -727,7 +1095,7 @@
                         </button>
                     @endif
 
-                    @if($step < 4)
+                    @if($step < 5)
                         <button type="button" wire:click="nextStep" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-8 py-3 text-xs font-black uppercase tracking-widest text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] dark:bg-primary">
                             Next Step
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>

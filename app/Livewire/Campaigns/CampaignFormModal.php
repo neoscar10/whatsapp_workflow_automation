@@ -297,11 +297,16 @@ class CampaignFormModal extends Component
         if ($this->step === 1) {
             $this->validateStep1();
             $this->saveStep1();
+            $this->saveStep2();
         } elseif ($this->step === 2) {
             $this->saveStep2();
+            $this->loadValidationPreview();
         } elseif ($this->step === 3) {
-            $this->validateStep3();
-            $this->saveStep3();
+            $this->loadValidationPreview();
+        } elseif ($this->step === 4) {
+            $this->validateStep4();
+            $this->saveStep4();
+            $this->loadValidationPreview();
         }
 
         $this->step++;
@@ -309,7 +314,34 @@ class CampaignFormModal extends Component
 
     public function prevStep()
     {
+        if ($this->step >= 2) {
+            $this->loadValidationPreview();
+        }
         $this->step--;
+    }
+
+    public function goToStep($targetStep)
+    {
+        if ($targetStep > $this->step) {
+            if ($this->step === 1) {
+                $this->validateStep1();
+                $this->saveStep1();
+            }
+            if ($this->campaignId) {
+                $this->saveStep2();
+            }
+        }
+        $this->loadValidationPreview();
+        $this->step = $targetStep;
+    }
+
+    public function updated($propertyName)
+    {
+        if (in_array($propertyName, ['audience_type', 'selected_contact_ids', 'selected_group_ids', 'type'])) {
+            if ($this->campaignId) {
+                $this->saveStep2();
+            }
+        }
     }
 
     protected function validateStep1()
@@ -344,6 +376,8 @@ class CampaignFormModal extends Component
 
     protected function saveStep2()
     {
+        if (!$this->campaignId) return;
+
         $service = app(CampaignAudienceService::class);
         $campaign = Campaign::findOrFail($this->campaignId);
         
@@ -361,6 +395,30 @@ class CampaignFormModal extends Component
         }
 
         $this->loadValidationPreview();
+    }
+
+    protected function validateStep4()
+    {
+        if ($this->type === 'template') {
+            $this->validate(['whatsapp_template_id' => 'required|exists:whatsapp_templates,id']);
+        } else {
+            $this->validate(['message_body' => 'required|string']);
+        }
+    }
+
+    protected function saveStep4()
+    {
+        $service = app(CampaignService::class);
+        $campaign = Campaign::findOrFail($this->campaignId);
+
+        $data = [
+            'type' => $this->type,
+            'whatsapp_template_id' => $this->whatsapp_template_id,
+            'template_variable_mapping' => $this->template_variable_mapping,
+            'message_body' => $this->message_body,
+        ];
+
+        $service->updateContent(Auth::user(), $campaign, $data);
     }
 
     public function importCsv()
