@@ -119,19 +119,80 @@ class CampaignWizardPage extends Component
         }
     }
 
+    public function addManualRow()
+    {
+        $this->manual_rows[] = ['phone' => '', 'name' => ''];
+    }
+
+    public function removeManualRow($index)
+    {
+        unset($this->manual_rows[$index]);
+        $this->manual_rows = array_values($this->manual_rows);
+    }
+
+    public function loadValidationPreview()
+    {
+        if (!$this->campaignId) return;
+
+        $campaign = Campaign::find($this->campaignId);
+        if ($campaign) {
+            $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewRecipients(Auth::user(), $campaign);
+        }
+    }
+
+    public function editRecipientRow($id, $phone, $name)
+    {
+        $this->editingRecipientId = $id;
+        $this->editingPhone = $phone;
+        $this->editingName = $name;
+    }
+
+    public function cancelEditRecipientRow()
+    {
+        $this->editingRecipientId = null;
+        $this->editingPhone = '';
+        $this->editingName = '';
+    }
+
+    public function saveRecipientRow($id)
+    {
+        if (!$this->campaignId) return;
+
+        $campaign = Campaign::find($this->campaignId);
+        if ($campaign) {
+            try {
+                app(CampaignAudienceService::class)->correctRecipientRow(Auth::user(), $campaign, $id, [
+                    'phone' => $this->editingPhone,
+                    'name' => $this->editingName,
+                ]);
+                $this->cancelEditRecipientRow();
+                $this->loadValidationPreview();
+                $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient updated & re-validated.']);
+            } catch (\Exception $e) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+            }
+        }
+    }
+
     protected function saveStep2()
     {
         $service = app(CampaignAudienceService::class);
         $campaign = Campaign::findOrFail($this->campaignId);
         
-        $selection = [
-            'type' => $this->audience_type,
-            'contact_ids' => $this->selected_contact_ids,
-            'group_ids' => $this->selected_group_ids,
-            'filters' => $this->audience_filters,
-        ];
+        if ($this->audience_type === 'manual') {
+            $service->addManualRecipients(Auth::user(), $campaign, $this->manual_rows);
+        } else {
+            $selection = [
+                'type' => $this->audience_type,
+                'contact_ids' => $this->selected_contact_ids,
+                'group_ids' => $this->selected_group_ids,
+                'filters' => $this->audience_filters,
+            ];
 
-        $service->syncAudience(Auth::user(), $campaign, $selection);
+            $service->syncAudience(Auth::user(), $campaign, $selection);
+        }
+
+        $this->loadValidationPreview();
     }
 
     public function importCsv()

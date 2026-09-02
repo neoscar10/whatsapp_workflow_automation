@@ -134,6 +134,8 @@ class ChatInboxService
                       ->where('assigned_user_id', $user->id);
             } elseif ($filters['tab'] === 'unassigned') {
                 $query->where('assignment_status', 'unassigned');
+            } elseif ($filters['tab'] === 'active') {
+                $query->where('last_customer_message_at', '>=', now()->subHours(24));
             }
         }
 

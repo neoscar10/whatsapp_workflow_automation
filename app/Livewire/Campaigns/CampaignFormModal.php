@@ -46,6 +46,21 @@ class CampaignFormModal extends Component
     ];
     public $csv_file;
     public $import_summary = null;
+    public array $manual_rows = [
+        ['phone' => '', 'name' => '']
+    ];
+
+    // Validation Preview & Correction State
+    public array $validationPreviewData = [
+        'total' => 0,
+        'passed_count' => 0,
+        'failed_count' => 0,
+        'rows' => []
+    ];
+    public string $validationFilter = 'all';
+    public ?int $editingRecipientId = null;
+    public string $editingPhone = '';
+    public string $editingName = '';
 
     // Step 3: Content
     public $whatsapp_template_id = '';
@@ -55,6 +70,61 @@ class CampaignFormModal extends Component
     // Contact Search
     public $contact_search = '';
     public $search_results = [];
+
+    public function addManualRow()
+    {
+        $this->manual_rows[] = ['phone' => '', 'name' => ''];
+    }
+
+    public function removeManualRow($index)
+    {
+        unset($this->manual_rows[$index]);
+        $this->manual_rows = array_values($this->manual_rows);
+    }
+
+    public function loadValidationPreview()
+    {
+        if (!$this->campaignId) return;
+
+        $campaign = Campaign::find($this->campaignId);
+        if ($campaign) {
+            $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewRecipients(Auth::user(), $campaign);
+        }
+    }
+
+    public function editRecipientRow($id, $phone, $name)
+    {
+        $this->editingRecipientId = $id;
+        $this->editingPhone = $phone;
+        $this->editingName = $name;
+    }
+
+    public function cancelEditRecipientRow()
+    {
+        $this->editingRecipientId = null;
+        $this->editingPhone = '';
+        $this->editingName = '';
+    }
+
+    public function saveRecipientRow($id)
+    {
+        if (!$this->campaignId) return;
+
+        $campaign = Campaign::find($this->campaignId);
+        if ($campaign) {
+            try {
+                app(CampaignAudienceService::class)->correctRecipientRow(Auth::user(), $campaign, $id, [
+                    'phone' => $this->editingPhone,
+                    'name' => $this->editingName,
+                ]);
+                $this->cancelEditRecipientRow();
+                $this->loadValidationPreview();
+                $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient updated & re-validated.']);
+            } catch (\Exception $e) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+            }
+        }
+    }
 
     #[On('open-campaign-modal')]
     public function open($id = null)
@@ -263,14 +333,20 @@ class CampaignFormModal extends Component
         $service = app(CampaignAudienceService::class);
         $campaign = Campaign::findOrFail($this->campaignId);
         
-        $selection = [
-            'type' => $this->audience_type,
-            'contact_ids' => $this->selected_contact_ids,
-            'group_ids' => $this->selected_group_ids,
-            'filters' => $this->audience_filters,
-        ];
+        if ($this->audience_type === 'manual') {
+            $service->addManualRecipients(Auth::user(), $campaign, $this->manual_rows);
+        } else {
+            $selection = [
+                'type' => $this->audience_type,
+                'contact_ids' => $this->selected_contact_ids,
+                'group_ids' => $this->selected_group_ids,
+                'filters' => $this->audience_filters,
+            ];
 
-        $service->syncAudience(Auth::user(), $campaign, $selection);
+            $service->syncAudience(Auth::user(), $campaign, $selection);
+        }
+
+        $this->loadValidationPreview();
     }
 
     public function importCsv()

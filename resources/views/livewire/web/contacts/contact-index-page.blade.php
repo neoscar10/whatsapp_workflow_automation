@@ -167,34 +167,43 @@
                                     </div>
                                 </td>
                                 <td class="p-4 text-right">
-                                    <div x-data="{ open: false }" class="relative inline-block text-left">
-                                        <button @click="open = !open" @click.away="open = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Actions">
-                                            <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                                        </button>
-                                        <div x-show="open" 
-                                             x-transition:enter="transition ease-out duration-100"
-                                             x-transition:enter-start="transform opacity-0 scale-95"
-                                             x-transition:enter-end="transform opacity-100 scale-100"
-                                             x-transition:leave="transition ease-in duration-75"
-                                             x-transition:leave-start="transform opacity-100 scale-100"
-                                             x-transition:leave-end="transform opacity-0 scale-95"
-                                             class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 focus:outline-none" 
-                                             style="display: none;">
-                                            <div class="p-1">
-                                                @if(config('services.whatsapp.simulator.enabled') || app()->environment() === 'local')
-                                                    <button wire:click="openSimulatorModal({{ $contact->id }}); open = false" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all text-left">
-                                                        <span class="material-symbols-outlined text-[18px]">smart_toy</span>
-                                                        Simulate WhatsApp
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{{ route('chats.index', ['contact' => $contact->id]) }}" class="p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all" title="Initiate Chat">
+                                            <span class="material-symbols-outlined text-[20px]">chat</span>
+                                        </a>
+                                        <div x-data="{ open: false }" class="relative inline-block text-left">
+                                            <button @click="open = !open" @click.away="open = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Actions">
+                                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                            </button>
+                                            <div x-show="open" 
+                                                 x-transition:enter="transition ease-out duration-100"
+                                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                                 x-transition:leave="transition ease-in duration-75"
+                                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                                 class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 focus:outline-none" 
+                                                 style="display: none;">
+                                                <div class="p-1">
+                                                    <a href="{{ route('chats.index', ['contact' => $contact->id]) }}" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all text-left">
+                                                        <span class="material-symbols-outlined text-[18px]">chat</span>
+                                                        Initiate Chat
+                                                    </a>
+                                                    @if(config('services.whatsapp.simulator.enabled') || app()->environment() === 'local')
+                                                        <button wire:click="openSimulatorModal({{ $contact->id }}); open = false" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all text-left">
+                                                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                                                            Simulate WhatsApp
+                                                        </button>
+                                                    @endif
+                                                    <button wire:click="openEditModal({{ $contact->id }}); open = false" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all text-left">
+                                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                                        Edit Contact
                                                     </button>
-                                                @endif
-                                                <button wire:click="openEditModal({{ $contact->id }}); open = false" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all text-left">
-                                                    <span class="material-symbols-outlined text-[18px]">edit</span>
-                                                    Edit Contact
-                                                </button>
-                                                <button wire:click="deleteContact({{ $contact->id }})" wire:confirm="Are you sure you want to delete this contact?" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all text-left">
-                                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                                    Delete Contact
-                                                </button>
+                                                    <button wire:click="deleteContact({{ $contact->id }})" wire:confirm="Are you sure you want to delete this contact?" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all text-left">
+                                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                                        Delete Contact
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

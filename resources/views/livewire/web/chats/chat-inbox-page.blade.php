@@ -117,6 +117,13 @@
                     >
                         Unassigned
                     </button>
+                    <button
+                        type="button"
+                        wire:click="$set('tab', 'active')"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'active' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
+                    >
+                        Active (24h)
+                    </button>
                 </div>
 
                 <div class="no-scrollbar flex-1 overflow-y-auto">

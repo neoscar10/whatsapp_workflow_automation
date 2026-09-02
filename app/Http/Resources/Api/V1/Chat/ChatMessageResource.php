@@ -27,6 +27,8 @@ class ChatMessageResource extends JsonResource
             'resolved_media_url' => $this->resolved_media_url,
             'media_meta' => $this->media_meta,
             'status' => $this->status,
+            'is_session_active' => (bool) ($this->conversation->is_session_active ?? false),
+            'can_send_freeform' => (bool) ($this->conversation->is_session_active ?? false),
             'time_label' => ($this->sent_at ?? $this->created_at)?->toIso8601String(),
             'sent_at' => $this->sent_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),

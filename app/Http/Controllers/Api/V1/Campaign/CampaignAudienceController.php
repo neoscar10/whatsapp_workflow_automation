@@ -13,6 +13,9 @@ use App\Services\Campaign\CampaignRecipientImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Api\V1\Campaign\ManualCampaignRecipientsRequest;
+use App\Http\Requests\Api\V1\Campaign\UpdateCampaignRecipientRequest;
+
 class CampaignAudienceController extends Controller
 {
     use RespondsWithApiResponse;
@@ -60,6 +63,51 @@ class CampaignAudienceController extends Controller
             $summary = $this->importService->importFromCsv($request->user(), $campaign, $file->getRealPath());
 
             return $this->successResponse($summary, 'Recipients imported successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Add manual recipients to a campaign.
+     */
+    public function addManual(ManualCampaignRecipientsRequest $request, int $id): JsonResponse
+    {
+        try {
+            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $summary = $this->audienceService->addManualRecipients($request->user(), $campaign, $request->validated()['rows']);
+
+            return $this->successResponse($summary, 'Manual recipients added successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Get detailed validation preview for a campaign's audience.
+     */
+    public function validationPreview(Request $request, int $id): JsonResponse
+    {
+        try {
+            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $preview = $this->audienceService->validateAndPreviewRecipients($request->user(), $campaign);
+
+            return $this->successResponse($preview, 'Audience validation preview retrieved successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Correct and update a campaign recipient row.
+     */
+    public function updateRecipient(UpdateCampaignRecipientRequest $request, int $id, int $recipientId): JsonResponse
+    {
+        try {
+            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $result = $this->audienceService->correctRecipientRow($request->user(), $campaign, $recipientId, $request->validated());
+
+            return $this->successResponse($result, 'Recipient updated and re-validated successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }

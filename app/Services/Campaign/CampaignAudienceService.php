@@ -196,4 +196,163 @@ class CampaignAudienceService
         }
         return 'Unknown reason';
     }
+
+    /**
+     * Add manual recipients to a campaign.
+     */
+    public function addManualRecipients(User $actor, Campaign $campaign, array $rows): array
+    {
+        if (!$campaign->isDraft()) {
+            throw new Exception("Audience can only be modified for draft campaigns.");
+        }
+
+        $addedCount = 0;
+        $recipients = [];
+        $phonesAdded = $campaign->recipients()->pluck('normalized_phone')->toArray();
+
+        foreach ($rows as $row) {
+            $rawPhone = trim($row['phone'] ?? '');
+            if (empty($rawPhone)) {
+                continue;
+            }
+
+            $normalized = PhoneNumberNormalizer::normalize($rawPhone);
+            if (in_array($normalized, $phonesAdded)) {
+                continue;
+            }
+            $phonesAdded[] = $normalized;
+
+            $contact = Contact::where('company_id', $actor->company_id)
+                ->where(function ($q) use ($rawPhone, $normalized) {
+                    $q->where('phone', $rawPhone)->orWhere('phone', $normalized);
+                })->first();
+
+            $isValid = PhoneNumberNormalizer::isValid($rawPhone);
+            $skipReason = null;
+            if (!$isValid) {
+                $skipReason = 'Invalid phone number format';
+            } elseif ($contact && !$contact->isMessageable()) {
+                $skipReason = $this->explainSkipReason($contact);
+            }
+
+            $recipients[] = [
+                'campaign_id' => $campaign->id,
+                'company_id' => $actor->company_id,
+                'contact_id' => $contact?->id,
+                'phone' => $rawPhone,
+                'normalized_phone' => $normalized,
+                'name' => $row['name'] ?? $contact?->name,
+                'personalization_data' => isset($row['variables']) ? json_encode($row['variables']) : null,
+                'status' => $skipReason ? 'skipped' : 'pending',
+                'skip_reason' => $skipReason,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+            $addedCount++;
+        }
+
+        if (!empty($recipients)) {
+            CampaignRecipient::insert($recipients);
+            $campaign->update(['audience_type' => 'manual']);
+            app(CampaignService::class)->recalculateStats($campaign);
+        }
+
+        return [
+            'added_count' => $addedCount,
+            'total_recipients' => $campaign->recipients()->count(),
+        ];
+    }
+
+    /**
+     * Detailed validation & preview of campaign recipients (pass/fail per row).
+     */
+    public function validateAndPreviewRecipients(User $actor, Campaign $campaign): array
+    {
+        $recipients = $campaign->recipients()->get();
+        $total = $recipients->count();
+        $passed = 0;
+        $failed = 0;
+
+        $detailedRows = $recipients->map(function ($r) use (&$passed, &$failed) {
+            $isValidPhone = PhoneNumberNormalizer::isValid($r->phone);
+            $isSkipped = $r->status === 'skipped';
+            $isPassed = $isValidPhone && !$isSkipped;
+
+            if ($isPassed) {
+                $passed++;
+            } else {
+                $failed++;
+            }
+
+            return [
+                'id' => $r->id,
+                'phone' => $r->phone,
+                'normalized_phone' => $r->normalized_phone,
+                'name' => $r->name,
+                'status' => $r->status,
+                'is_valid' => $isPassed,
+                'validation_status' => $isPassed ? 'passed' : 'failed',
+                'error_reason' => $r->skip_reason ?: (!$isValidPhone ? 'Invalid phone number format' : 'Validation issue'),
+                'personalization_data' => $r->personalization_data,
+            ];
+        });
+
+        return [
+            'total' => $total,
+            'passed_count' => $passed,
+            'failed_count' => $failed,
+            'rows' => $detailedRows,
+        ];
+    }
+
+    /**
+     * Correct an individual recipient row.
+     */
+    public function correctRecipientRow(User $actor, Campaign $campaign, int $recipientId, array $data): array
+    {
+        $recipient = $campaign->recipients()->where('id', $recipientId)->firstOrFail();
+
+        $rawPhone = trim($data['phone'] ?? $recipient->phone);
+        $normalized = PhoneNumberNormalizer::normalize($rawPhone);
+        $name = $data['name'] ?? $recipient->name;
+        $variables = $data['variables'] ?? null;
+
+        $isValid = PhoneNumberNormalizer::isValid($rawPhone);
+        
+        $contact = Contact::where('company_id', $actor->company_id)
+            ->where(function ($q) use ($rawPhone, $normalized) {
+                $q->where('phone', $rawPhone)->orWhere('phone', $normalized);
+            })->first();
+
+        $skipReason = null;
+        if (!$isValid) {
+            $skipReason = 'Invalid phone number format';
+        } elseif ($contact && !$contact->isMessageable()) {
+            $skipReason = $this->explainSkipReason($contact);
+        }
+
+        $updateData = [
+            'phone' => $rawPhone,
+            'normalized_phone' => $normalized,
+            'name' => $name,
+            'status' => $skipReason ? 'skipped' : 'pending',
+            'skip_reason' => $skipReason,
+        ];
+
+        if ($variables !== null) {
+            $updateData['personalization_data'] = is_array($variables) ? json_encode($variables) : $variables;
+        }
+
+        $recipient->update($updateData);
+        app(CampaignService::class)->recalculateStats($campaign);
+
+        return [
+            'id' => $recipient->id,
+            'phone' => $recipient->phone,
+            'name' => $recipient->name,
+            'is_valid' => empty($skipReason),
+            'validation_status' => empty($skipReason) ? 'passed' : 'failed',
+            'error_reason' => $skipReason,
+        ];
+    }
 }

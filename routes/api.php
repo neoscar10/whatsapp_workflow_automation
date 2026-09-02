@@ -137,7 +137,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             // Audience
             Route::post('/audience/preview', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'preview'])->name('audience.preview');
             Route::post('/{id}/audience', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'sync'])->name('audience.sync');
+            Route::post('/{id}/audience/manual', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'addManual'])->name('audience.manual');
+            Route::get('/{id}/audience/validation-preview', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'validationPreview'])->name('audience.validation-preview');
             Route::post('/{id}/recipients/import', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'import'])->name('recipients.import');
+            Route::patch('/{id}/recipients/{recipientId}', [\App\Http\Controllers\Api\V1\Campaign\CampaignAudienceController::class, 'updateRecipient'])->name('recipients.update');
 
             // Recipients
             Route::get('/{id}/recipients', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'index'])->name('recipients.index');

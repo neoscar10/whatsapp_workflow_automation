@@ -103,6 +103,7 @@
                             ['key' => 'groups', 'label' => 'By Groups', 'icon' => 'group'],
                             ['key' => 'filters', 'label' => 'By Filters', 'icon' => 'filter_alt'],
                             ['key' => 'csv', 'label' => 'Import CSV', 'icon' => 'upload_file'],
+                            ['key' => 'manual', 'label' => 'Manual Entry', 'icon' => 'edit_note'],
                         ] as $opt)
                             <button type="button" wire:click="$set('audience_type', '{{ $opt['key'] }}')" class="flex flex-1 min-w-[140px] flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all {{ $audience_type === $opt['key'] ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/50' }}">
                                 <span class="material-symbols-outlined text-2xl">{{ $opt['icon'] }}</span>
@@ -112,7 +113,35 @@
                     </div>
 
                     <div class="min-h-[200px] rounded-2xl border border-slate-100 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-800/30">
-                        @if($audience_type === 'selected_contacts')
+                        @if($audience_type === 'manual')
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Manual Contact Entry</h4>
+                                        <p class="text-xs text-slate-500">Enter phone numbers and optional contact names directly.</p>
+                                    </div>
+                                    <button type="button" wire:click="addManualRow" class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary/90 transition-all">
+                                        <span class="material-symbols-outlined text-[16px]">add</span>
+                                        Add Row
+                                    </button>
+                                </div>
+
+                                <div class="space-y-3">
+                                    @foreach($manual_rows as $idx => $row)
+                                        <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                                            <span class="text-xs font-bold text-slate-400 w-6 text-center">#{{ $idx + 1 }}</span>
+                                            <input type="text" wire:model="manual_rows.{{ $idx }}.phone" placeholder="Phone (e.g. +919876543210)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            <input type="text" wire:model="manual_rows.{{ $idx }}.name" placeholder="Full Name (Optional)" class="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                            @if(count($manual_rows) > 1)
+                                                <button type="button" wire:click="removeManualRow({{ $idx }})" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @elseif($audience_type === 'selected_contacts')
                             <p class="text-sm text-slate-500 italic">Select individual contacts from your database (Feature coming soon - multi-select from table).</p>
 
                         @elseif($audience_type === 'groups')
@@ -148,31 +177,22 @@
                         @elseif($audience_type === 'csv')
                             <div class="flex flex-col items-center justify-center p-6 text-center">
                                 <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                    <span class="material-symbols-outlined text-3xl">cloud_upload</span>
+                                    <span class="material-symbols-outlined text-3xl">upload_file</span>
                                 </div>
-                                <h3 class="mb-1 text-base font-bold text-slate-900 dark:text-white">Upload CSV File</h3>
-                                <p class="mb-6 text-sm text-slate-500">Ensure your CSV has a "phone" column. Other columns will be used for personalization.</p>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Upload Recipients CSV</h3>
+                                <p class="text-xs text-slate-500 mb-4">Select a CSV file containing contact numbers and custom fields.</p>
                                 
-                                <input type="file" wire:model="csv_file" class="hidden" id="csv_upload">
-                                <label for="csv_upload" class="cursor-pointer rounded-xl border-2 border-dashed border-primary/30 px-8 py-4 transition-all hover:bg-primary/5">
-                                    <span class="text-sm font-bold text-primary">Select CSV File</span>
+                                <input type="file" wire:model="csv_file" class="hidden" id="wizard_csv_upload">
+                                <label for="wizard_csv_upload" class="cursor-pointer rounded-xl bg-slate-100 px-6 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors">
+                                    Choose CSV File
                                 </label>
 
                                 <button type="button" wire:click="downloadSampleCsv" class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
                                     <span class="material-symbols-outlined text-sm">download</span>
                                     Download Sample CSV Template
                                 </button>
-                                @error('csv_file') <p class="mt-2 text-xs text-rose-500">{{ $message }}</p> @enderror
-
+                                
                                 @if($csv_file)
-                                    <div class="mt-4 flex flex-col items-center">
-                                        <p class="text-xs font-medium text-emerald-600">File selected: {{ $csv_file->getClientOriginalName() }}</p>
-                                        <button type="button" wire:click="importCsv" class="mt-4 rounded-xl bg-slate-900 px-6 py-2 text-sm font-bold text-white transition-all hover:bg-slate-800">
-                                            Process Import
-                                        </button>
-                                    </div>
-                                @endif
-
                                 @if($import_summary)
                                     <div class="mt-6 w-full rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900">
                                         <h4 class="mb-2 text-sm font-bold text-slate-900 dark:text-white">Import Summary</h4>

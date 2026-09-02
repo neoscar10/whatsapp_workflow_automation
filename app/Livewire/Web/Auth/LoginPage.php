@@ -28,7 +28,7 @@ class LoginPage extends Component
             if (Auth::user()->role === 'super_admin') {
                 return redirect()->route('superadmin.dashboard');
             }
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('chats.index'));
         }
     }
 
@@ -55,7 +55,7 @@ class LoginPage extends Component
                 return redirect()->route('superadmin.dashboard');
             }
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('chats.index'));
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->addError('auth', $e->getMessage());
             // Also add to email field for standard display if desired
