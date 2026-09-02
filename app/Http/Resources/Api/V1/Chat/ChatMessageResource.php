@@ -30,6 +30,7 @@ class ChatMessageResource extends JsonResource
             'status_icon' => $this->getStatusIcon($this->status),
             'status_color' => $this->getStatusColor($this->status),
             'failure_message' => $this->failure_message,
+            'is_active' => (bool) ($this->conversation->is_session_active ?? false),
             'is_session_active' => (bool) ($this->conversation->is_session_active ?? false),
             'can_send_freeform' => (bool) ($this->conversation->is_session_active ?? false),
             'time_label' => ($this->sent_at ?? $this->created_at)?->toIso8601String(),
