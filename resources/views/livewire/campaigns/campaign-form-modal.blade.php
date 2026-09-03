@@ -354,44 +354,6 @@
                                     @endif
                                 </div>
                             @endif
-                        </div>
-
-                        {{-- Audience Preview & Validation Correction Section --}}
-                        @if(!empty($validationPreviewData['total']) && $validationPreviewData['total'] > 0)
-                            <div class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 shadow-sm space-y-4">
-                                <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                                    <div>
-                                        <h4 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-primary">fact_check</span>
-                                            Audience Validation & Correction Preview
-                                        </h4>
-                                        <p class="text-xs text-slate-500">Review contacts, inspect pass/fail reasons, and correct errors inline.</p>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <button type="button" wire:click="loadValidationPreview" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
-                                            Re-Validate All
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {{-- Text Campaign 24h Rule Notice --}}
-                                @if($type === 'text' && !empty($validationPreviewData['text_session_excluded_count']) && $validationPreviewData['text_session_excluded_count'] > 0)
-                                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/40 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                                        <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
-                                        <div class="flex-1 text-xs">
-                                            <p class="font-bold text-sm text-amber-900 dark:text-amber-200">WhatsApp 24-Hour Customer Window Rule</p>
-                                            <p class="mt-1">
-                                                Freeform text campaigns require contacts to have messaged your business in the last 24 hours. 
-                                                <strong class="font-bold text-amber-950 dark:text-amber-100">{{ $validationPreviewData['text_session_excluded_count'] }} contact(s)</strong> do not have an active 24h session and will be excluded.
-                                            </p>
-                                            <div class="mt-3 flex items-center gap-2">
-                                                <button type="button" wire:click="switchCampaignType('template')" class="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-xl text-xs hover:bg-amber-700 transition-colors shadow-sm">
-                                                    Switch to Template Campaign (Reach All Contacts)
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                        @endif
                     </div>
                 @endif
 
