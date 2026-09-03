@@ -202,8 +202,6 @@
             </div>
         @endif
     </div>
-    </div>
-    </div>
 
     {{-- Custom Error Details Modal --}}
     @if($selectedErrorDetails)
