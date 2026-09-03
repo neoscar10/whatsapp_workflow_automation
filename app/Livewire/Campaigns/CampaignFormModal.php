@@ -73,7 +73,7 @@ class CampaignFormModal extends Component
 
     public function addManualRow()
     {
-        $this->manual_rows[] = ['phone' => '', 'name' => ''];
+        array_unshift($this->manual_rows, ['phone' => '', 'name' => '']);
     }
 
     public function removeManualRow($index)
