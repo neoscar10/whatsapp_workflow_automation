@@ -112,7 +112,12 @@ class CampaignRecipientImportService
     protected function findIndex(array $header, array $needles): int|bool
     {
         foreach ($header as $index => $column) {
+            $column = (string) $column;
+            // Clean BOM
+            $column = preg_replace('/^[\x{EF}\x{BB}\x{BF}\x{FEFF}]/u', '', $column);
+            $column = preg_replace('/^\xEF\xBB\xBF/', '', $column);
             $column = strtolower(trim($column));
+            
             foreach ($needles as $needle) {
                 if (str_contains($column, $needle)) {
                     return $index;
