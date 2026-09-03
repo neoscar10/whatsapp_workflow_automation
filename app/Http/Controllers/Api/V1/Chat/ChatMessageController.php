@@ -42,6 +42,9 @@ class ChatMessageController extends Controller
             return $this->errorResponse('Conversation not found for your company.', [], 404);
         }
 
+        // Auto mark as read when fetching conversation messages
+        $this->messageService->markConversationRead($user, $conversationId);
+
         $messages = $conversation->messages()
             ->with(['sender'])
             ->orderBy('created_at', 'desc')

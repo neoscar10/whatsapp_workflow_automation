@@ -174,6 +174,7 @@ class ChatMessageService
         $conversation = $this->inboxService->getActiveConversationForUser($user, $conversationId);
         if ($conversation) {
             $conversation->update(['unread_count' => 0]);
+            broadcast(new ChatConversationUpdated($conversation));
         }
     }
 }
