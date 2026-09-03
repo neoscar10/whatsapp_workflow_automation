@@ -38,8 +38,16 @@ class CampaignRecipientImportServiceTest extends TestCase
 
     public function test_csv_recipient_import_persists_audience_type_and_prevents_overwrite()
     {
-        // Create 10 unrelated contacts in DB
-        Contact::factory()->count(10)->create(['company_id' => $this->company->id]);
+        // Create 5 unrelated contacts in DB
+        for ($i = 1; $i <= 5; $i++) {
+            Contact::create([
+                'company_id' => $this->company->id,
+                'name' => "Existing Contact {$i}",
+                'phone' => "+234809999000{$i}",
+                'normalized_phone' => "+234809999000{$i}",
+                'status' => 'active',
+            ]);
+        }
 
         // Create draft campaign
         $campaign = Campaign::create([
