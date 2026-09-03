@@ -40,7 +40,11 @@ class CampaignDispatchService
             ->chunkById(100, function ($recipients) {
                 foreach ($recipients as $recipient) {
                     $recipient->markQueued();
-                    SendCampaignRecipientJob::dispatch($recipient->id);
+                    if (config('queue.default') === 'sync') {
+                        SendCampaignRecipientJob::dispatchSync($recipient->id);
+                    } else {
+                        SendCampaignRecipientJob::dispatch($recipient->id);
+                    }
                 }
             });
     }
