@@ -492,7 +492,7 @@
                                                                     <span class="material-symbols-outlined text-[13px]">edit</span>
                                                                     Edit &amp; Fix
                                                                 </button>
-                                                                <button type="button" wire:click="removeRecipientRow({{ $r['id'] }})" wire:confirm="Are you sure you want to remove this recipient from the campaign?" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
+                                                                <button type="button" wire:click="confirmRemoveRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
                                                                     <span class="material-symbols-outlined text-[13px]">delete</span>
                                                                     Remove
                                                                 </button>
@@ -721,5 +721,41 @@
                 </div>
             </div>
         </div>
-    </div>
+    {{-- Custom Delete Recipient Confirmation Modal --}}
+    @if($confirmingDeleteRecipientId)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 space-y-5">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">
+                        <span class="material-symbols-outlined text-2xl">delete_forever</span>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Remove Recipient</h3>
+                        <p class="text-xs text-slate-500">Are you sure you want to remove this contact from this campaign?</p>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400 font-bold uppercase text-[10px]">Phone Number</span>
+                        <span class="font-mono font-bold text-slate-900 dark:text-white">{{ $confirmingDeleteRecipientPhone }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400 font-bold uppercase text-[10px]">Contact Name</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $confirmingDeleteRecipientName ?: 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" wire:click="cancelRemoveRecipientRow" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" wire:click="removeRecipientRow({{ $confirmingDeleteRecipientId }})" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                        Confirm Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

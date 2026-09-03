@@ -157,9 +157,13 @@
                             </td>
                             <td class="px-6 py-4">
                                 @if($recipient->status === 'failed')
-                                    <div class="max-w-[200px]">
-                                        <p class="text-xs font-bold text-rose-600 truncate">{{ $recipient->meta_error_code }}</p>
-                                        <p class="text-[10px] text-slate-500 truncate" title="{{ $recipient->meta_error_message }}">{{ $recipient->meta_error_message }}</p>
+                                    <div class="max-w-[240px] space-y-1">
+                                        <p class="text-xs font-black text-rose-600 dark:text-rose-400 truncate">{{ $recipient->meta_error_code ?: 'FAILED' }}</p>
+                                        <p class="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-tight" title="{{ $recipient->meta_error_message }}">{{ $recipient->meta_error_message }}</p>
+                                        <button type="button" wire:click="showErrorDetails({{ $recipient->id }})" class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline dark:text-rose-400">
+                                            <span class="material-symbols-outlined text-[13px]">info</span>
+                                            View Full Error
+                                        </button>
                                     </div>
                                 @elseif($recipient->status === 'skipped')
                                     <p class="text-xs text-amber-600 font-medium">{{ $recipient->skip_reason }}</p>
@@ -199,4 +203,71 @@
         @endif
     </div>
     </div>
+    </div>
+
+    {{-- Custom Error Details Modal --}}
+    @if($selectedErrorDetails)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 space-y-6">
+                <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">
+                            <span class="material-symbols-outlined text-2xl">error_med</span>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-slate-900 dark:text-white">Recipient Error Details</h3>
+                            <p class="text-xs text-slate-500">Full dispatch exception trace &amp; Meta API response payload</p>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="closeErrorModal" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                {{-- Contact Snapshot --}}
+                <div class="grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800 text-xs">
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-400">Recipient Name</p>
+                        <p class="font-bold text-slate-900 dark:text-white mt-0.5">{{ $selectedErrorDetails['name'] }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-400">Phone Number</p>
+                        <p class="font-mono font-bold text-slate-900 dark:text-white mt-0.5">{{ $selectedErrorDetails['phone'] }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-400">Attempt Count</p>
+                        <p class="font-bold text-slate-700 dark:text-slate-300 mt-0.5">{{ $selectedErrorDetails['attempts'] }} attempt(s)</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-slate-400">Last Attempted At</p>
+                        <p class="font-bold text-slate-700 dark:text-slate-300 mt-0.5">{{ $selectedErrorDetails['last_attempted_at'] }}</p>
+                    </div>
+                </div>
+
+                {{-- Error Code & Full Message --}}
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-500">Error Code</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-mono">
+                            {{ $selectedErrorDetails['error_code'] }}
+                        </span>
+                    </div>
+                    <div class="rounded-2xl bg-rose-50/50 dark:bg-rose-950/30 p-4 border border-rose-100 dark:border-rose-900/40 max-h-48 overflow-y-auto">
+                        <p class="text-xs font-mono text-rose-900 dark:text-rose-200 leading-relaxed whitespace-pre-wrap select-text">{{ $selectedErrorDetails['error_message'] }}</p>
+                    </div>
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-4">
+                    <button type="button" wire:click="closeErrorModal" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                        Close
+                    </button>
+                    <button type="button" wire:click="retrySingleRecipient({{ $selectedErrorDetails['id'] }})" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">refresh</span>
+                        Retry Recipient
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

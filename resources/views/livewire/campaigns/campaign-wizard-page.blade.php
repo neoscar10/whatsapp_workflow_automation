@@ -362,7 +362,7 @@
                                                             <span class="material-symbols-outlined text-[13px]">edit</span>
                                                             Edit &amp; Fix
                                                         </button>
-                                                        <button type="button" wire:click="removeRecipientRow({{ $r['id'] }})" wire:confirm="Are you sure you want to remove this recipient from the campaign?" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
+                                                        <button type="button" wire:click="confirmRemoveRecipientRow({{ $r['id'] }}, '{{ $r['phone'] }}', '{{ $r['name'] }}')" class="px-2.5 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 rounded-lg transition-colors flex items-center gap-1" title="Remove Recipient">
                                                             <span class="material-symbols-outlined text-[13px]">delete</span>
                                                             Remove
                                                         </button>

@@ -13,6 +13,7 @@ echo "=== REAL PHP LINTING FOR COMPILER VIEWS ===\n";
 $views = [
     'resources/views/livewire/campaigns/campaign-form-modal.blade.php',
     'resources/views/livewire/campaigns/campaign-wizard-page.blade.php',
+    'resources/views/livewire/campaigns/campaign-show-page.blade.php',
 ];
 
 foreach ($views as $v) {

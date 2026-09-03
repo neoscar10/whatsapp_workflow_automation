@@ -62,6 +62,11 @@ class CampaignFormModal extends Component
     public string $editingPhone = '';
     public string $editingName = '';
 
+    // Custom Delete Confirmation Modal State
+    public ?int $confirmingDeleteRecipientId = null;
+    public ?string $confirmingDeleteRecipientPhone = null;
+    public ?string $confirmingDeleteRecipientName = null;
+
     // Step 3: Content
     public $whatsapp_template_id = '';
     public $template_variable_mapping = ['header' => [], 'body' => [], 'button' => []];
@@ -140,6 +145,20 @@ class CampaignFormModal extends Component
         }
     }
 
+    public function confirmRemoveRecipientRow($id, $phone, $name = '')
+    {
+        $this->confirmingDeleteRecipientId = $id;
+        $this->confirmingDeleteRecipientPhone = $phone;
+        $this->confirmingDeleteRecipientName = $name ?: 'N/A';
+    }
+
+    public function cancelRemoveRecipientRow()
+    {
+        $this->confirmingDeleteRecipientId = null;
+        $this->confirmingDeleteRecipientPhone = null;
+        $this->confirmingDeleteRecipientName = null;
+    }
+
     public function removeRecipientRow($id)
     {
         if (!$this->campaignId) return;
@@ -148,6 +167,7 @@ class CampaignFormModal extends Component
         if ($campaign) {
             try {
                 app(CampaignAudienceService::class)->removeRecipientRow(Auth::user(), $campaign, $id);
+                $this->cancelRemoveRecipientRow();
                 $this->loadValidationPreview();
                 $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient removed from campaign.']);
             } catch (\Exception $e) {

@@ -186,12 +186,61 @@ class CampaignDispatchService
      */
     protected function sendText(Campaign $campaign, CampaignRecipient $recipient): array
     {
-        // Similar to template but with 'text' type
-        // Placeholder for text logic
+        $company = $campaign->company;
+
+        // Find or create conversation for recipient
+        $conversation = Conversation::where('company_id', $company->id)
+            ->where('contact_phone', $recipient->phone)
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'company_id' => $company->id,
+                'whatsapp_phone_number_id' => $campaign->whatsapp_phone_number_id,
+                'contact_name' => $recipient->name,
+                'contact_phone' => $recipient->phone,
+                'status' => 'open',
+                'last_message_at' => now(),
+            ]);
+        }
+
+        $body = $campaign->message_body ?: '';
+        if (!empty($recipient->name)) {
+            $body = str_replace('{{name}}', $recipient->name, $body);
+            $body = str_replace('{{ name }}', $recipient->name, $body);
+        }
+
+        $message = $conversation->messages()->create([
+            'direction' => 'outbound',
+            'message_type' => 'text',
+            'body' => $body,
+            'status' => 'pending',
+            'meta_payload' => [
+                'campaign_id' => $campaign->id,
+                'campaign_recipient_id' => $recipient->id,
+            ]
+        ]);
+
+        $recipient->update([
+            'conversation_id' => $conversation->id,
+            'conversation_message_id' => $message->id,
+        ]);
+
+        $success = $this->outboundService->sendConversationMessage($message);
+
+        if ($success) {
+            return [
+                'success' => true,
+                'message_id' => $message->external_message_id
+            ];
+        }
+
+        $errorMsg = $message->meta_payload['error'] ?? 'Text message sending failed via WhatsApp Meta API.';
         return [
             'success' => false,
-            'error_code' => 'TEXT_CAMPAIGN_NOT_IMPLEMENTED',
-            'error_message' => 'Text campaigns are restricted in this phase.'
+            'error_code' => 'TEXT_SEND_FAILED',
+            'error_message' => $errorMsg,
+            'payload' => $message->meta_payload
         ];
     }
 

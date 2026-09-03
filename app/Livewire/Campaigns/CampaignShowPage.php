@@ -46,6 +46,44 @@ class CampaignShowPage extends Component
         }
     }
 
+    public ?array $selectedErrorDetails = null;
+
+    public function showErrorDetails(int $recipientId)
+    {
+        $recipient = \App\Models\Campaign\CampaignRecipient::where('campaign_id', $this->campaignId)
+            ->findOrFail($recipientId);
+
+        $this->selectedErrorDetails = [
+            'id' => $recipient->id,
+            'name' => $recipient->name ?: 'Unknown',
+            'phone' => $recipient->phone,
+            'status' => $recipient->status,
+            'attempts' => $recipient->attempts,
+            'last_attempted_at' => $recipient->last_attempted_at?->format('Y-m-d H:i:s') ?? 'N/A',
+            'error_code' => $recipient->meta_error_code ?: 'N/A',
+            'error_message' => $recipient->meta_error_message ?: 'No explicit error message provided by Meta API.',
+            'skip_reason' => $recipient->skip_reason,
+        ];
+    }
+
+    public function closeErrorModal()
+    {
+        $this->selectedErrorDetails = null;
+    }
+
+    public function retrySingleRecipient(int $recipientId, CampaignDispatchService $dispatchService)
+    {
+        try {
+            $recipient = \App\Models\Campaign\CampaignRecipient::where('campaign_id', $this->campaignId)
+                ->findOrFail($recipientId);
+            $dispatchService->retryRecipient($recipient);
+            $this->closeErrorModal();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient queued for retry.']);
+        } catch (\Exception $e) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
     public function exportReport(CampaignReportService $reportService)
     {
         return $reportService->exportRecipientsCsv(Auth::user(), $this->campaign, [
