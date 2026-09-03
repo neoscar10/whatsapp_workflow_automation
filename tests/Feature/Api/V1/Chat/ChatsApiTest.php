@@ -150,4 +150,43 @@ class ChatsApiTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['message']);
     }
+
+    public function test_user_can_filter_chats_by_active_and_inactive_tab()
+    {
+        // Active 24h conversation
+        Conversation::create([
+            'company_id' => $this->company->id,
+            'contact_name' => 'Active Customer',
+            'contact_phone' => '+1111111111',
+            'status' => 'open',
+            'last_message_at' => now(),
+            'last_customer_message_at' => now()->subHours(2),
+        ]);
+
+        // Inactive conversation
+        Conversation::create([
+            'company_id' => $this->company->id,
+            'contact_name' => 'Inactive Customer',
+            'contact_phone' => '+2222222222',
+            'status' => 'open',
+            'last_message_at' => now()->subDays(5),
+            'last_customer_message_at' => now()->subDays(5),
+        ]);
+
+        // Test active tab
+        $activeResponse = $this->actingAs($this->user, 'sanctum')
+            ->getJson(route('api.v1.chats.index', ['tab' => 'active']));
+
+        $activeResponse->assertStatus(200)
+            ->assertJsonCount(1, 'data.data')
+            ->assertJsonPath('data.data.0.contact_name', 'Active Customer');
+
+        // Test inactive tab
+        $inactiveResponse = $this->actingAs($this->user, 'sanctum')
+            ->getJson(route('api.v1.chats.index', ['tab' => 'inactive']));
+
+        $inactiveResponse->assertStatus(200)
+            ->assertJsonCount(1, 'data.data')
+            ->assertJsonPath('data.data.0.contact_name', 'Inactive Customer');
+    }
 }

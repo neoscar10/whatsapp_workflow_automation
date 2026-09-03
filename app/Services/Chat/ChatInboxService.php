@@ -136,6 +136,11 @@ class ChatInboxService
                 $query->where('assignment_status', 'unassigned');
             } elseif ($filters['tab'] === 'active') {
                 $query->where('last_customer_message_at', '>=', now()->subHours(24));
+            } elseif ($filters['tab'] === 'inactive') {
+                $query->where(function ($q) {
+                    $q->whereNull('last_customer_message_at')
+                      ->orWhere('last_customer_message_at', '<', now()->subHours(24));
+                });
             }
         }
 
