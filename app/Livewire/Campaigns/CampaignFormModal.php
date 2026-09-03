@@ -417,7 +417,9 @@ class CampaignFormModal extends Component
         $service = app(CampaignAudienceService::class);
         $campaign = Campaign::findOrFail($this->campaignId);
         
-        if ($this->audience_type === 'manual') {
+        if ($this->audience_type === 'imported') {
+            $campaign->update(['audience_type' => 'imported']);
+        } elseif ($this->audience_type === 'manual') {
             $service->addManualRecipients(Auth::user(), $campaign, $this->manual_rows);
         } else {
             $selection = [
@@ -468,8 +470,13 @@ class CampaignFormModal extends Component
         $campaign = Campaign::findOrFail($this->campaignId);
 
         try {
+            // Clear prior recipients if re-importing CSV
+            $campaign->recipients()->delete();
+
             $this->import_summary = $service->importFromCsv(Auth::user(), $campaign, storage_path('app/' . $path));
             $this->audience_type = 'imported';
+            $campaign->update(['audience_type' => 'imported']);
+            $this->loadValidationPreview();
             $this->dispatch('notify', ['type' => 'success', 'message' => 'CSV imported successfully.']);
         } catch (\Exception $e) {
             $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);

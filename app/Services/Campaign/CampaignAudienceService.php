@@ -58,6 +58,15 @@ class CampaignAudienceService
             throw new Exception("Audience can only be modified for draft campaigns.");
         }
 
+        $type = $selection['audience_type'] ?? $selection['type'] ?? 'selected_contacts';
+
+        // Do not wipe imported or manual recipients if audience_type is imported or manual
+        if (in_array($type, ['imported', 'manual'])) {
+            $campaign->update(['audience_type' => $type]);
+            app(CampaignService::class)->recalculateStats($campaign);
+            return;
+        }
+
         DB::transaction(function () use ($actor, $campaign, $selection) {
             // Clear existing recipients
             $campaign->recipients()->delete();
@@ -144,9 +153,12 @@ class CampaignAudienceService
             case 'filters':
                 $this->applyFilters($query, $selection['filters'] ?? []);
                 break;
-            default:
-                // Mixed or custom handling if needed
+            case 'all_contacts':
+                // Include all contacts for the company
                 break;
+            default:
+                // Return empty collection for imported, manual, or unsupported types
+                return collect();
         }
 
         return $query->get();

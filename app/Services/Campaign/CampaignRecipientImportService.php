@@ -28,12 +28,17 @@ class CampaignRecipientImportService
             throw new Exception("Invalid CSV file.");
         }
 
-        $phoneIndex = $this->findIndex($header, ['phone', 'whatsapp', 'number']);
+        $phoneIndex = $this->findIndex($header, ['phone', 'whatsapp', 'number', 'mobile', 'contact', 'telephone', 'tel', 'msisdn', 'phone_number']);
         if ($phoneIndex === false) {
-            throw new Exception("CSV must contain a 'phone' column.");
+            // Check if first cell of row 1 is already a phone number (headerless CSV)
+            if (isset($header[0]) && preg_match('/^\+?[0-9]{7,16}$/', preg_replace('/[^\d+]/', '', (string)$header[0]))) {
+                $phoneIndex = 0;
+            } else {
+                throw new Exception("CSV must contain a 'phone' or 'mobile' column.");
+            }
         }
 
-        $nameIndex = $this->findIndex($header, ['name', 'full_name']);
+        $nameIndex = $this->findIndex($header, ['name', 'full_name', 'fullname', 'contact_name', 'first_name']);
 
         $summary = [
             'total' => 0,
@@ -103,7 +108,8 @@ class CampaignRecipientImportService
 
         fclose($file);
 
-        // Update campaign recipient counts
+        // Persist audience_type as imported & recalculate stats
+        $campaign->update(['audience_type' => 'imported']);
         app(CampaignService::class)->recalculateStats($campaign);
 
         return $summary;
