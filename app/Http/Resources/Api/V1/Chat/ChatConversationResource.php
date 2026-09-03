@@ -24,6 +24,7 @@ class ChatConversationResource extends JsonResource
             'assigned_user_id' => $this->assigned_user_id,
             'assigned_user_name' => $this->assignee?->name,
             'unread_count' => $this->unread_count,
+            'is_online' => (bool) $this->is_session_active,
             'is_active' => (bool) $this->is_session_active,
             'is_session_active' => (bool) $this->is_session_active,
             'can_send_freeform' => (bool) $this->is_session_active,
