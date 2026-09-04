@@ -22,7 +22,8 @@ class PreviewCampaignAudienceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'audience_type' => 'required|in:selected_contacts,tags,groups,filters,imported,mixed',
+            'audience_type' => 'nullable|string',
+            'type' => 'nullable|string',
             'contact_ids' => 'nullable|array',
             'contact_ids.*' => 'integer|exists:contacts,id',
             'tag_ids' => 'nullable|array',

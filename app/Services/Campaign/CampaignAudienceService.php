@@ -128,37 +128,85 @@ class CampaignAudienceService
     {
         $query = Contact::forCompany($companyId);
 
-        $type = $selection['audience_type'] ?? $selection['type'] ?? 'selected_contacts';
+        $rawType = $selection['audience_type'] ?? $selection['type'] ?? '';
+        $type = strtolower(trim((string) $rawType));
+
+        // If type is not explicitly provided, try to infer from available payload keys
+        if (empty($type)) {
+            if (!empty($selection['contact_ids'])) {
+                $type = 'selected_contacts';
+            } elseif (!empty($selection['tag_ids'])) {
+                $type = 'tags';
+            } elseif (!empty($selection['group_ids'])) {
+                $type = 'groups';
+            } elseif (!empty($selection['filters']) || !empty($selection['search']) || !empty($selection['status']) || !empty($selection['source'])) {
+                $type = 'filters';
+            } else {
+                $type = 'all_contacts';
+            }
+        }
 
         switch ($type) {
             case 'selected_contacts':
-                $query->whereIn('id', $selection['contact_ids'] ?? []);
+            case 'contacts':
+                $contactIds = $selection['contact_ids'] ?? $selection['ids'] ?? [];
+                if (!empty($contactIds)) {
+                    $query->whereIn('id', (array) $contactIds);
+                }
                 break;
+
+            case 'tags':
+            case 'tag':
+                $tagIds = $selection['tag_ids'] ?? $selection['filters']['tag_ids'] ?? [];
+                if (!empty($tagIds)) {
+                    $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $tagIds));
+                }
+                break;
+
             case 'groups':
-                $groupIds = $selection['group_ids'] ?? [];
-                $groups = \App\Models\Contact\ContactGroup::whereIn('id', $groupIds)->get();
-                
-                $query->where(function ($q) use ($groups, $companyId) {
-                    foreach ($groups as $group) {
-                        if ($group->type === 'dynamic') {
-                            $q->orWhere(function ($sq) use ($group, $companyId) {
-                                app(\App\Services\Contact\ContactSegmentRuleService::class)->applyRulesToQuery($sq, $companyId, $group->rules ?? []);
-                            });
-                        } else {
-                            $q->orWhereHas('groups', fn($gq) => $gq->where('contact_groups.id', $group->id));
+            case 'group':
+                $groupIds = $selection['group_ids'] ?? $selection['filters']['group_ids'] ?? [];
+                if (!empty($groupIds)) {
+                    $groups = \App\Models\Contact\ContactGroup::whereIn('id', (array) $groupIds)->get();
+                    
+                    $query->where(function ($q) use ($groups, $companyId) {
+                        foreach ($groups as $group) {
+                            if ($group->type === 'dynamic') {
+                                $q->orWhere(function ($sq) use ($group, $companyId) {
+                                    app(\App\Services\Contact\ContactSegmentRuleService::class)->applyRulesToQuery($sq, $companyId, $group->rules ?? []);
+                                });
+                            } else {
+                                $q->orWhereHas('groups', fn($gq) => $gq->where('contact_groups.id', $group->id));
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 break;
+
             case 'filters':
-                $this->applyFilters($query, $selection['filters'] ?? []);
+            case 'filter':
+                $mergedFilters = array_merge($selection, $selection['filters'] ?? []);
+                $this->applyFilters($query, $mergedFilters);
                 break;
+
             case 'all_contacts':
+            case 'all':
                 // Include all contacts for the company
                 break;
+
             default:
-                // Return empty collection for imported, manual, or unsupported types
-                return collect();
+                // Fallback: If contact_ids, tag_ids, or group_ids or filters exist in payload
+                if (!empty($selection['contact_ids'])) {
+                    $query->whereIn('id', (array) $selection['contact_ids']);
+                } elseif (!empty($selection['tag_ids'])) {
+                    $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $selection['tag_ids']));
+                } elseif (!empty($selection['group_ids'])) {
+                    $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', (array) $selection['group_ids']));
+                } else {
+                    $mergedFilters = array_merge($selection, $selection['filters'] ?? []);
+                    $this->applyFilters($query, $mergedFilters);
+                }
+                break;
         }
 
         return $query->get();
@@ -175,14 +223,17 @@ class CampaignAudienceService
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-        if (isset($filters['has_opted_in'])) {
-            $query->where('has_opted_in', (bool)$filters['has_opted_in']);
+        if (isset($filters['has_opted_in']) && $filters['has_opted_in'] !== '' && $filters['has_opted_in'] !== null) {
+            $query->where('has_opted_in', (bool) $filters['has_opted_in']);
         }
-        if (isset($filters['do_not_message'])) {
-            $query->where('do_not_message', (bool)$filters['do_not_message']);
+        if (isset($filters['do_not_message']) && $filters['do_not_message'] !== '' && $filters['do_not_message'] !== null) {
+            $query->where('do_not_message', (bool) $filters['do_not_message']);
         }
         if (!empty($filters['group_ids'])) {
-            $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', $filters['group_ids']));
+            $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', (array) $filters['group_ids']));
+        }
+        if (!empty($filters['tag_ids'])) {
+            $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $filters['tag_ids']));
         }
         if (!empty($filters['search'])) {
             $query->search($filters['search']);
