@@ -38,6 +38,7 @@ class ChatBroadcastingTest extends TestCase
             'email' => 'test-' . uniqid() . '@example.com',
             'password' => bcrypt('password'),
             'company_id' => $this->company->id,
+            'is_company_owner' => true,
         ]);
         
         $walletService = app(\App\Services\Wallet\WalletService::class);
