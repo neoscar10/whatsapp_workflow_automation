@@ -30,7 +30,8 @@ class ChatBroadcastingTest extends TestCase
         $this->company = Company::create([
             'name' => 'Test Company',
             'slug' => 'test-company-' . uniqid(),
-            'primary_email' => 'test-company@example.com'
+            'primary_email' => 'test-company@example.com',
+            'wallet_balance' => 100.00,
         ]);
         $this->user = User::create([
             'name' => 'Test User',
