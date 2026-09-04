@@ -32,13 +32,22 @@ class CampaignRecipientController extends Controller
             $recipients = $this->reportService->listRecipients(
                 $request->user(), 
                 $campaign, 
-                $request->validated()
+                $request->all()
             );
 
-            return $this->successResponse(
-                CampaignRecipientResource::collection($recipients)->response()->getData(true),
-                'Recipients retrieved successfully.'
-            );
+            $resourceData = CampaignRecipientResource::collection($recipients)->response()->getData(true);
+            $items = $resourceData['data'] ?? [];
+            $meta = $resourceData['meta'] ?? [];
+            $links = $resourceData['links'] ?? [];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recipients retrieved successfully.',
+                'data' => $items,
+                'recipients' => $items,
+                'meta' => $meta,
+                'links' => $links,
+            ]);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
