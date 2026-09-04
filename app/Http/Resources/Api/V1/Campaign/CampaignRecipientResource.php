@@ -28,6 +28,10 @@ class CampaignRecipientResource extends JsonResource
             'skip_reason' => $this->skip_reason,
             'personalization_data' => $this->personalization_data,
             'provider_message_id' => $this->provider_message_id,
+            'meta_error_code' => $this->meta_error_code,
+            'meta_error_message' => $this->meta_error_message,
+            'error_code' => $this->meta_error_code,
+            'error_message' => $this->meta_error_message ?: $this->skip_reason,
             'error' => $this->status === 'failed' ? [
                 'code' => $this->meta_error_code,
                 'message' => $this->meta_error_message,

@@ -38,7 +38,10 @@ class CampaignReportService
             ->latest();
 
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $status = strtolower(trim($filters['status']));
+            if ($status !== 'all') {
+                $query->where('status', $status);
+            }
         }
 
         if (!empty($filters['search'])) {
