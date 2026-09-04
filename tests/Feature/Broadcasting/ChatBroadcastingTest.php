@@ -42,7 +42,7 @@ class ChatBroadcastingTest extends TestCase
         
         $walletService = app(\App\Services\Wallet\WalletService::class);
         $wallet = $walletService->getOrCreateWallet($this->user);
-        $walletService->credit($wallet, 100.00, \App\Enums\WalletTransactionCategory::TOPUP, 'Test balance');
+        $walletService->credit($wallet, 100.00, \App\Enums\WalletTransactionCategory::FUNDING, 'Test balance');
         
         $phoneNumber = WhatsAppPhoneNumber::create([
             'company_id' => $this->company->id,
