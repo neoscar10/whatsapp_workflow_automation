@@ -22,6 +22,7 @@ class ChatConversationUpdated implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel("company.{$this->conversation->company_id}.chats"),
+            new PrivateChannel("company.{$this->conversation->company_id}.conversation.{$this->conversation->id}"),
         ];
     }
 
@@ -33,6 +34,15 @@ class ChatConversationUpdated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $lastMsg = $this->conversation->latestMessage;
+        $isSessionActive = (bool) $this->conversation->is_session_active;
+
+        $expiresAt = $this->conversation->last_customer_message_at
+            ? $this->conversation->last_customer_message_at->copy()->addHours(24)
+            : null;
+
+        $secondsRemaining = $expiresAt && $isSessionActive
+            ? max(0, (int) now()->diffInSeconds($expiresAt, false))
+            : 0;
 
         return [
             'id' => $this->conversation->id,
@@ -44,8 +54,14 @@ class ChatConversationUpdated implements ShouldBroadcastNow
             'preview' => $this->conversation->last_message_preview,
             'last_message_preview' => $this->conversation->last_message_preview,
             'unread_count' => $this->conversation->unread_count,
-            'is_online' => (bool) $this->conversation->is_session_active,
-            'is_session_active' => (bool) $this->conversation->is_session_active,
+            'is_online' => $isSessionActive,
+            'is_active' => $isSessionActive,
+            'is_session_active' => $isSessionActive,
+            'can_send_freeform' => $isSessionActive,
+            'active_session' => $isSessionActive,
+            'session_expires_at' => $expiresAt?->toIso8601String(),
+            'seconds_remaining' => $secondsRemaining,
+            'last_customer_message_at' => $this->conversation->last_customer_message_at?->toIso8601String(),
             'last_message_status' => $lastMsg?->status,
             'last_message_direction' => $lastMsg?->direction,
             'last_message_type' => $lastMsg?->message_type,

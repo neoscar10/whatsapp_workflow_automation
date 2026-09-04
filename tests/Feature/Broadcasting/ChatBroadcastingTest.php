@@ -68,8 +68,10 @@ class ChatBroadcastingTest extends TestCase
         });
 
         Broadcast::assertDispatched(ChatConversationUpdated::class, function ($event) {
+            $channels = collect($event->broadcastOn())->map(fn($c) => $c->name)->all();
             return $event->conversation->id === $this->conversation->id &&
-                   $event->broadcastOn()[0]->name === "private-company.{$this->company->id}.chats";
+                   in_array("private-company.{$this->company->id}.chats", $channels) &&
+                   in_array("private-company.{$this->company->id}.conversation.{$this->conversation->id}", $channels);
         });
     }
 
