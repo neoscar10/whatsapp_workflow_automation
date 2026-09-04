@@ -83,11 +83,13 @@ class ChatBroadcastingTest extends TestCase
         // Auth success for same company
         $response = $this->actingAs($this->user)->post('/broadcasting/auth', [
             'channel_name' => 'private-company.' . $this->company->id . '.chats',
+            'socket_id' => '1234.5678',
         ]);
         $response->assertStatus(200);
 
         $response = $this->actingAs($this->user)->post('/broadcasting/auth', [
             'channel_name' => 'private-company.' . $this->company->id . '.conversation.' . $this->conversation->id,
+            'socket_id' => '1234.5678',
         ]);
         $response->assertStatus(200);
 
@@ -101,11 +103,13 @@ class ChatBroadcastingTest extends TestCase
 
         $response = $this->actingAs($otherUser)->post('/broadcasting/auth', [
             'channel_name' => 'private-company.' . $this->company->id . '.chats',
+            'socket_id' => '1234.5678',
         ]);
         $response->assertStatus(403);
 
         $response = $this->actingAs($otherUser)->post('/broadcasting/auth', [
             'channel_name' => 'private-company.' . $this->company->id . '.conversation.' . $this->conversation->id,
+            'socket_id' => '1234.5678',
         ]);
         $response->assertStatus(403);
     }
