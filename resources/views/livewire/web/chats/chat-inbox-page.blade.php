@@ -719,4 +719,23 @@
     @include('livewire.web.chats.partials.assign-agent-modal')
     @include('livewire.web.chats.partials.select-template-modal')
     @include('livewire.web.chats.partials.initiate-chat-modal')
+
+    <script>
+        function formatChatLocalTimestamps() {
+            document.querySelectorAll('.local-time[data-iso]').forEach(el => {
+                const iso = el.getAttribute('data-iso');
+                if (iso) {
+                    const date = new Date(iso);
+                    if (!isNaN(date.getTime())) {
+                        el.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                    }
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', formatChatLocalTimestamps);
+        document.addEventListener('livewire:navigated', formatChatLocalTimestamps);
+        if (window.Livewire) {
+            Livewire.hook('morph.updated', formatChatLocalTimestamps);
+        }
+    </script>
 </div>
