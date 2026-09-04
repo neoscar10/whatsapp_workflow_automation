@@ -12,7 +12,7 @@ use App\Models\WhatsApp\WhatsAppPhoneNumber;
 use App\Services\Chat\ChatMessageService;
 use App\Services\Chat\ChatInboxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class ChatBroadcastingTest extends TestCase
@@ -57,17 +57,20 @@ class ChatBroadcastingTest extends TestCase
 
     public function test_outbound_message_dispatches_realtime_events()
     {
-        Broadcast::fake();
+        Event::fake([
+            ChatMessageReceived::class,
+            ChatConversationUpdated::class,
+        ]);
 
         $service = app(ChatMessageService::class);
         $service->sendTextMessage($this->user, $this->conversation->id, 'Hello World');
 
-        Broadcast::assertDispatched(ChatMessageReceived::class, function ($event) {
+        Event::assertDispatched(ChatMessageReceived::class, function ($event) {
             return $event->message->body === 'Hello World' &&
                    $event->broadcastOn()[0]->name === "private-company.{$this->company->id}.conversation.{$this->conversation->id}";
         });
 
-        Broadcast::assertDispatched(ChatConversationUpdated::class, function ($event) {
+        Event::assertDispatched(ChatConversationUpdated::class, function ($event) {
             $channels = collect($event->broadcastOn())->map(fn($c) => $c->name)->all();
             return $event->conversation->id === $this->conversation->id &&
                    in_array("private-company.{$this->company->id}.chats", $channels) &&
@@ -78,13 +81,15 @@ class ChatBroadcastingTest extends TestCase
     public function test_private_channel_authorization()
     {
         // Auth success for same company
-        $this->assertTrue(
-            Broadcast::auth($this->user, 'company.' . $this->company->id . '.chats')
-        );
+        $response = $this->actingAs($this->user)->post('/broadcasting/auth', [
+            'channel_name' => 'private-company.' . $this->company->id . '.chats',
+        ]);
+        $response->assertStatus(200);
 
-        $this->assertTrue(
-            Broadcast::auth($this->user, 'company.' . $this->company->id . '.conversation.' . $this->conversation->id)
-        );
+        $response = $this->actingAs($this->user)->post('/broadcasting/auth', [
+            'channel_name' => 'private-company.' . $this->company->id . '.conversation.' . $this->conversation->id,
+        ]);
+        $response->assertStatus(200);
 
         // Auth failure for other company
         $otherCompany = Company::create([
@@ -94,12 +99,14 @@ class ChatBroadcastingTest extends TestCase
         ]);
         $otherUser = User::factory()->create(['company_id' => $otherCompany->id]);
 
-        $this->assertFalse(
-            Broadcast::auth($otherUser, 'company.' . $this->company->id . '.chats')
-        );
+        $response = $this->actingAs($otherUser)->post('/broadcasting/auth', [
+            'channel_name' => 'private-company.' . $this->company->id . '.chats',
+        ]);
+        $response->assertStatus(403);
 
-        $this->assertFalse(
-            Broadcast::auth($otherUser, 'company.' . $this->company->id . '.conversation.' . $this->conversation->id)
-        );
+        $response = $this->actingAs($otherUser)->post('/broadcasting/auth', [
+            'channel_name' => 'private-company.' . $this->company->id . '.conversation.' . $this->conversation->id,
+        ]);
+        $response->assertStatus(403);
     }
 }
