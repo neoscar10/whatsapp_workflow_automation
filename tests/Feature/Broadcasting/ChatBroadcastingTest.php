@@ -31,7 +31,7 @@ class ChatBroadcastingTest extends TestCase
             'name' => 'Test Company',
             'slug' => 'test-company-' . uniqid(),
             'primary_email' => 'test-company@example.com',
-            'wallet_balance' => 100.00,
+            'status' => 'demo',
         ]);
         $this->user = User::create([
             'name' => 'Test User',
@@ -39,6 +39,10 @@ class ChatBroadcastingTest extends TestCase
             'password' => bcrypt('password'),
             'company_id' => $this->company->id,
         ]);
+        
+        $walletService = app(\App\Services\Wallet\WalletService::class);
+        $wallet = $walletService->getOrCreateWallet($this->user);
+        $walletService->credit($wallet, 100.00, \App\Enums\WalletTransactionCategory::TOPUP, 'Test balance');
         
         $phoneNumber = WhatsAppPhoneNumber::create([
             'company_id' => $this->company->id,
