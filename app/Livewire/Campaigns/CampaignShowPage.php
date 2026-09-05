@@ -40,8 +40,10 @@ class CampaignShowPage extends Component
         $campaign = $this->campaign;
         try {
             $dispatchService->retryFailed($campaign);
+            session()->flash('success', 'All failed campaign recipients have been re-queued for sending.');
             $this->dispatch('notify', ['type' => 'success', 'message' => 'Retry jobs dispatched.']);
         } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
             $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
         }
     }
@@ -78,8 +80,10 @@ class CampaignShowPage extends Component
                 ->findOrFail($recipientId);
             $dispatchService->retryRecipient($recipient);
             $this->closeErrorModal();
+            session()->flash('success', 'Recipient ' . ($recipient->name ?: $recipient->phone) . ' has been re-queued for retry.');
             $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient queued for retry.']);
         } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
             $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
         }
     }

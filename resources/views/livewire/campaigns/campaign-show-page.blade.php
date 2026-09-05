@@ -1,5 +1,25 @@
 <div class="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50 overflow-y-auto" @if($campaign->isSending() || $campaign->status === 'queued') wire:poll.5s @endif>
     <div class="px-8 py-8 space-y-8">
+    {{-- Flash Notifications --}}
+    @if (session()->has('success'))
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center justify-between shadow-sm animate-in fade-in duration-200">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-900"><span class="material-symbols-outlined text-base">close</span></button>
+        </div>
+    @endif
+    @if (session()->has('error'))
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300 flex items-center justify-between shadow-sm animate-in fade-in duration-200">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">error</span>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-rose-600 dark:text-rose-400 hover:text-rose-900"><span class="material-symbols-outlined text-base">close</span></button>
+        </div>
+    @endif
+
     {{-- Header --}}
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div class="flex items-center gap-4">
@@ -30,9 +50,13 @@
         </div>
         <div class="flex items-center gap-2">
             @if($campaign->failed_count > 0)
-                <button wire:click="retryFailed" class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600 transition-all hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-400">
-                    <span class="material-symbols-outlined text-lg">refresh</span>
-                    Retry Failed
+                <button wire:click="retryFailed" 
+                        wire:loading.attr="disabled" 
+                        wire:target="retryFailed" 
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600 transition-all hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-400 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="retryFailed" class="material-symbols-outlined text-lg">refresh</span>
+                    <span wire:loading wire:target="retryFailed" class="material-symbols-outlined text-lg animate-spin">sync</span>
+                    <span>Retry Failed</span>
                 </button>
             @endif
             <button wire:click="exportReport" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-slate-800">
@@ -177,9 +201,11 @@
                                         <button type="button" 
                                                 wire:click="retrySingleRecipient({{ $recipient->id }})" 
                                                 wire:loading.attr="disabled"
+                                                wire:target="retrySingleRecipient({{ $recipient->id }})"
                                                 title="Retry sending to {{ $recipient->name ?? $recipient->phone }}"
-                                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 transition-colors">
-                                            <span class="material-symbols-outlined text-lg">refresh</span>
+                                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span wire:loading.remove wire:target="retrySingleRecipient({{ $recipient->id }})" class="material-symbols-outlined text-lg">refresh</span>
+                                            <span wire:loading wire:target="retrySingleRecipient({{ $recipient->id }})" class="material-symbols-outlined text-lg animate-spin">sync</span>
                                         </button>
                                     @endif
                                     @if($recipient->contact_id)
@@ -269,9 +295,14 @@
                     <button type="button" wire:click="closeErrorModal" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
                         Close
                     </button>
-                    <button type="button" wire:click="retrySingleRecipient({{ $selectedErrorDetails['id'] }})" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-base">refresh</span>
-                        Retry Recipient
+                    <button type="button" 
+                            wire:click="retrySingleRecipient({{ $selectedErrorDetails['id'] }})" 
+                            wire:loading.attr="disabled"
+                            wire:target="retrySingleRecipient({{ $selectedErrorDetails['id'] }})"
+                            class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="retrySingleRecipient({{ $selectedErrorDetails['id'] }})" class="material-symbols-outlined text-base">refresh</span>
+                        <span wire:loading wire:target="retrySingleRecipient({{ $selectedErrorDetails['id'] }})" class="material-symbols-outlined text-base animate-spin">sync</span>
+                        <span>Retry Recipient</span>
                     </button>
                 </div>
             </div>
