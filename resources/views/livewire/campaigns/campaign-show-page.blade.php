@@ -173,13 +173,22 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
+                                    @if(in_array($recipient->status, ['failed', 'skipped', 'pending']))
+                                        <button type="button" 
+                                                wire:click="retrySingleRecipient({{ $recipient->id }})" 
+                                                wire:loading.attr="disabled"
+                                                title="Retry sending to {{ $recipient->name ?? $recipient->phone }}"
+                                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 transition-colors">
+                                            <span class="material-symbols-outlined text-lg">refresh</span>
+                                        </button>
+                                    @endif
                                     @if($recipient->contact_id)
-                                        <a href="{{ route('contacts.index', ['search' => $recipient->phone]) }}" class="text-slate-400 hover:text-primary transition-colors">
+                                        <a href="{{ route('contacts.index', ['search' => $recipient->phone]) }}" class="text-slate-400 hover:text-primary transition-colors" title="View Contact">
                                             <span class="material-symbols-outlined text-xl">account_circle</span>
                                         </a>
                                     @endif
                                     @if($recipient->conversation_id)
-                                        <a href="{{ route('chats.index', ['conversation_id' => $recipient->conversation_id]) }}" class="text-slate-400 hover:text-primary transition-colors">
+                                        <a href="{{ route('chats.index', ['conversation_id' => $recipient->conversation_id]) }}" class="text-slate-400 hover:text-primary transition-colors" title="View Chat">
                                             <span class="material-symbols-outlined text-xl">chat</span>
                                         </a>
                                     @endif

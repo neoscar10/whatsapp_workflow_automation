@@ -260,15 +260,21 @@ class CampaignDispatchService
     }
 
     /**
-     * Retry a single failed recipient.
+     * Retry a single recipient.
      */
     public function retryRecipient(CampaignRecipient $recipient): void
     {
-        if ($recipient->status !== 'failed') {
-            throw new Exception("Recipient is not in failed status.");
-        }
+        $recipient->update([
+            'status' => 'pending',
+            'skip_reason' => null,
+            'meta_error_code' => null,
+            'meta_error_message' => null,
+        ]);
 
-        $recipient->update(['status' => 'pending']);
-        SendCampaignRecipientJob::dispatch($recipient->id);
+        if (config('queue.default') === 'sync') {
+            SendCampaignRecipientJob::dispatchSync($recipient->id);
+        } else {
+            SendCampaignRecipientJob::dispatch($recipient->id);
+        }
     }
 }

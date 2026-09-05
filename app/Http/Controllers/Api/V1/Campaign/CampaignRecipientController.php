@@ -64,7 +64,10 @@ class CampaignRecipientController extends Controller
 
             $this->dispatchService->retryRecipient($recipient);
 
-            return $this->successResponse(null, 'Recipient retry dispatched successfully.');
+            return $this->successResponse(
+                new CampaignRecipientResource($recipient->refresh()),
+                'Recipient retry dispatched successfully.'
+            );
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }

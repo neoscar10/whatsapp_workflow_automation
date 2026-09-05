@@ -146,6 +146,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             // Recipients
             Route::get('/{id}/recipients', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'index'])->name('recipients.index');
             Route::post('/{id}/recipients/{recipientId}/retry', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'retry'])->name('recipients.retry');
+            Route::post('/{id}/recipients/{recipientId}/resend', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'retry'])->name('recipients.resend');
+            Route::post('/{id}/retry/{recipientId}', [\App\Http\Controllers\Api\V1\Campaign\CampaignRecipientController::class, 'retry'])->name('recipients.retry-alias');
 
             // Actions
             Route::post('/{id}/send', [\App\Http\Controllers\Api\V1\Campaign\CampaignActionController::class, 'send'])->name('send');
