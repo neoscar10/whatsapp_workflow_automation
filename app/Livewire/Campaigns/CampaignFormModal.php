@@ -197,6 +197,18 @@ class CampaignFormModal extends Component
             $this->message_body = $campaign->message_body;
             $this->scheduled_at = $campaign->scheduled_at?->format('Y-m-d\TH:i');
 
+            if ($campaign->audience_type === 'manual') {
+                $manuals = $campaign->recipients()->get()->map(fn($r) => [
+                    'phone' => $r->phone,
+                    'name' => $r->name ?? '',
+                ])->toArray();
+                if (!empty($manuals)) {
+                    $this->manual_rows = $manuals;
+                }
+            } elseif ($campaign->audience_type === 'selected_contacts') {
+                $this->selected_contact_ids = $campaign->recipients()->whereNotNull('contact_id')->pluck('contact_id')->toArray();
+            }
+
             // Ensure mapping is initialized for the selected template
             if ($this->whatsapp_template_id) {
                 $this->initializeTemplateMapping($this->whatsapp_template_id);

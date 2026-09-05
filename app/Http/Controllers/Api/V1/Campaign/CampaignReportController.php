@@ -27,7 +27,7 @@ class CampaignReportController extends Controller
             $campaign = $this->campaignService->findForCompany($request->user(), $id);
             $summary = $this->reportService->getSummary($request->user(), $campaign);
 
-            // Add some derived metrics
+            // Add some derived metrics 
             $total = $summary['total'] ?: 1;
             $summary['completion_percentage'] = round(($summary['sent'] + $summary['failed'] + $summary['skipped']) / $total * 100, 2);
             $summary['delivery_rate'] = round($summary['delivered'] / ($summary['sent'] ?: 1) * 100, 2);

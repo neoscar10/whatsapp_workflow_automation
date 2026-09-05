@@ -42,6 +42,21 @@ class CampaignWizardPage extends Component
     ];
     public $csv_file;
     public $import_summary = null;
+    public array $manual_rows = [
+        ['phone' => '', 'name' => '']
+    ];
+
+    // Validation Preview & Correction State
+    public array $validationPreviewData = [
+        'total' => 0,
+        'passed_count' => 0,
+        'failed_count' => 0,
+        'rows' => []
+    ];
+    public string $validationFilter = 'all';
+    public ?int $editingRecipientId = null;
+    public string $editingPhone = '';
+    public string $editingName = '';
 
     // Custom Delete Confirmation Modal State
     public ?int $confirmingDeleteRecipientId = null;
@@ -68,6 +83,18 @@ class CampaignWizardPage extends Component
             $this->template_variable_mapping = array_merge($this->template_variable_mapping, $campaign->template_variable_mapping ?? []);
             $this->message_body = $campaign->message_body;
             $this->scheduled_at = $campaign->scheduled_at?->format('Y-m-d\TH:i');
+
+            if ($campaign->audience_type === 'manual') {
+                $manuals = $campaign->recipients()->get()->map(fn($r) => [
+                    'phone' => $r->phone,
+                    'name' => $r->name ?? '',
+                ])->toArray();
+                if (!empty($manuals)) {
+                    $this->manual_rows = $manuals;
+                }
+            } elseif ($campaign->audience_type === 'selected_contacts') {
+                $this->selected_contact_ids = $campaign->recipients()->whereNotNull('contact_id')->pluck('contact_id')->toArray();
+            }
         } else {
             // Default phone number
             $this->whatsapp_phone_number_id = WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->first()?->id;

@@ -152,6 +152,8 @@ class CampaignAudienceService
                 $contactIds = $selection['contact_ids'] ?? $selection['ids'] ?? [];
                 if (!empty($contactIds)) {
                     $query->whereIn('id', (array) $contactIds);
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
                 break;
 
@@ -160,6 +162,8 @@ class CampaignAudienceService
                 $tagIds = $selection['tag_ids'] ?? $selection['filters']['tag_ids'] ?? [];
                 if (!empty($tagIds)) {
                     $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $tagIds));
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
                 break;
 
@@ -180,6 +184,8 @@ class CampaignAudienceService
                             }
                         }
                     });
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
                 break;
 
@@ -191,17 +197,30 @@ class CampaignAudienceService
 
             case 'all_contacts':
             case 'all':
+            case 'all_saved':
                 // Include all contacts for the company
                 break;
 
             default:
                 // Fallback: If contact_ids, tag_ids, or group_ids or filters exist in payload
-                if (!empty($selection['contact_ids'])) {
-                    $query->whereIn('id', (array) $selection['contact_ids']);
-                } elseif (!empty($selection['tag_ids'])) {
-                    $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $selection['tag_ids']));
-                } elseif (!empty($selection['group_ids'])) {
-                    $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', (array) $selection['group_ids']));
+                if (array_key_exists('contact_ids', $selection)) {
+                    if (!empty($selection['contact_ids'])) {
+                        $query->whereIn('id', (array) $selection['contact_ids']);
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
+                } elseif (array_key_exists('tag_ids', $selection)) {
+                    if (!empty($selection['tag_ids'])) {
+                        $query->whereHas('tags', fn($q) => $q->whereIn('contact_tags.id', (array) $selection['tag_ids']));
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
+                } elseif (array_key_exists('group_ids', $selection)) {
+                    if (!empty($selection['group_ids'])) {
+                        $query->whereHas('groups', fn($q) => $q->whereIn('contact_groups.id', (array) $selection['group_ids']));
+                    } else {
+                        $query->whereRaw('1 = 0');
+                    }
                 } else {
                     $mergedFilters = array_merge($selection, $selection['filters'] ?? []);
                     $this->applyFilters($query, $mergedFilters);
@@ -271,54 +290,60 @@ class CampaignAudienceService
 
         $addedCount = 0;
         $recipients = [];
-        $phonesAdded = $campaign->recipients()->pluck('normalized_phone')->toArray();
+        $phonesAdded = [];
 
-        foreach ($rows as $row) {
-            $rawPhone = trim($row['phone'] ?? '');
-            if (empty($rawPhone)) {
-                continue;
+        DB::transaction(function () use ($actor, $campaign, $rows, &$addedCount, &$recipients, &$phonesAdded) {
+            // Delete existing recipients when replacing/syncing manual audience
+            $campaign->recipients()->delete();
+
+            foreach ($rows as $row) {
+                $rawPhone = trim($row['phone'] ?? '');
+                if (empty($rawPhone)) {
+                    continue;
+                }
+
+                $normalized = PhoneNumberNormalizer::normalize($rawPhone);
+                if (in_array($normalized, $phonesAdded)) {
+                    continue;
+                }
+                $phonesAdded[] = $normalized;
+
+                $contact = Contact::where('company_id', $actor->company_id)
+                    ->where(function ($q) use ($rawPhone, $normalized) {
+                        $q->where('phone', $rawPhone)->orWhere('phone', $normalized);
+                    })->first();
+
+                $isValid = PhoneNumberNormalizer::isValid($rawPhone);
+                $skipReason = null;
+                if (!$isValid) {
+                    $skipReason = 'Invalid phone number format';
+                } elseif ($contact && !$contact->isMessageable()) {
+                    $skipReason = $this->explainSkipReason($contact);
+                }
+
+                $recipients[] = [
+                    'campaign_id' => $campaign->id,
+                    'company_id' => $actor->company_id,
+                    'contact_id' => $contact?->id,
+                    'phone' => $rawPhone,
+                    'normalized_phone' => $normalized,
+                    'name' => !empty($row['name']) ? $row['name'] : $contact?->name,
+                    'personalization_data' => isset($row['variables']) ? json_encode($row['variables']) : null,
+                    'status' => $skipReason ? 'skipped' : 'pending',
+                    'skip_reason' => $skipReason,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $addedCount++;
             }
 
-            $normalized = PhoneNumberNormalizer::normalize($rawPhone);
-            if (in_array($normalized, $phonesAdded)) {
-                continue;
-            }
-            $phonesAdded[] = $normalized;
-
-            $contact = Contact::where('company_id', $actor->company_id)
-                ->where(function ($q) use ($rawPhone, $normalized) {
-                    $q->where('phone', $rawPhone)->orWhere('phone', $normalized);
-                })->first();
-
-            $isValid = PhoneNumberNormalizer::isValid($rawPhone);
-            $skipReason = null;
-            if (!$isValid) {
-                $skipReason = 'Invalid phone number format';
-            } elseif ($contact && !$contact->isMessageable()) {
-                $skipReason = $this->explainSkipReason($contact);
+            if (!empty($recipients)) {
+                CampaignRecipient::insert($recipients);
             }
 
-            $recipients[] = [
-                'campaign_id' => $campaign->id,
-                'company_id' => $actor->company_id,
-                'contact_id' => $contact?->id,
-                'phone' => $rawPhone,
-                'normalized_phone' => $normalized,
-                'name' => $row['name'] ?? $contact?->name,
-                'personalization_data' => isset($row['variables']) ? json_encode($row['variables']) : null,
-                'status' => $skipReason ? 'skipped' : 'pending',
-                'skip_reason' => $skipReason,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-            $addedCount++;
-        }
-
-        if (!empty($recipients)) {
-            CampaignRecipient::insert($recipients);
             $campaign->update(['audience_type' => 'manual']);
             app(CampaignService::class)->recalculateStats($campaign);
-        }
+        });
 
         return [
             'added_count' => $addedCount,

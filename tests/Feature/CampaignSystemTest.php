@@ -112,4 +112,75 @@ class CampaignSystemTest extends TestCase
         $this->assertEquals("Copy of {$campaign->name}", $duplicate->name);
         $this->assertEquals('draft', $duplicate->status);
     }
+
+    public function test_empty_selected_contacts_does_not_load_all_contacts()
+    {
+        // Create 10 existing contacts in database
+        for ($i = 1; $i <= 10; $i++) {
+            $phone = "+234800000000{$i}";
+            Contact::create([
+                'company_id' => $this->company->id,
+                'name' => "Contact {$i}",
+                'phone' => $phone,
+                'normalized_phone' => $phone,
+                'status' => 'active'
+            ]);
+        }
+
+        $service = app(\App\Services\Campaign\CampaignService::class);
+        $audienceService = app(\App\Services\Campaign\CampaignAudienceService::class);
+
+        $campaign = $service->createDraft($this->user, [
+            'name' => 'Empty Selection Campaign',
+            'type' => 'template',
+            'whatsapp_phone_number_id' => $this->phoneNumber->id,
+        ]);
+
+        // Sync audience with empty selected_contacts array
+        $audienceService->syncAudience($this->user, $campaign, [
+            'type' => 'selected_contacts',
+            'contact_ids' => []
+        ]);
+
+        // Must result in 0 recipients, not all 10 saved contacts
+        $this->assertEquals(0, $campaign->refresh()->recipient_count);
+        $this->assertEquals(0, $campaign->recipients()->count());
+    }
+
+    public function test_manual_recipient_selection_replaces_previous_recipients()
+    {
+        // Create saved contacts
+        Contact::create([
+            'company_id' => $this->company->id,
+            'name' => 'Saved Contact',
+            'phone' => '+2348111111111',
+            'normalized_phone' => '+2348111111111',
+            'status' => 'active'
+        ]);
+
+        $service = app(\App\Services\Campaign\CampaignService::class);
+        $audienceService = app(\App\Services\Campaign\CampaignAudienceService::class);
+
+        $campaign = $service->createDraft($this->user, [
+            'name' => 'Manual Recipient Campaign',
+            'type' => 'template',
+            'whatsapp_phone_number_id' => $this->phoneNumber->id,
+        ]);
+
+        // 1. Initial audience synced with all saved contacts
+        $audienceService->syncAudience($this->user, $campaign, [
+            'type' => 'all_contacts',
+        ]);
+        $this->assertEquals(1, $campaign->refresh()->recipient_count);
+
+        // 2. User switches to manual entry and enters 1 manual contact
+        $audienceService->addManualRecipients($this->user, $campaign, [
+            ['phone' => '+2349124034511', 'name' => 'Neo']
+        ]);
+
+        // 3. Campaign recipient list should only contain the 1 manual contact, not saved contacts
+        $this->assertEquals(1, $campaign->refresh()->recipient_count);
+        $this->assertEquals('+2349124034511', $campaign->recipients()->first()->phone);
+        $this->assertEquals('Neo', $campaign->recipients()->first()->name);
+    }
 }

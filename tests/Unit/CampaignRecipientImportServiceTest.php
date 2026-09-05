@@ -61,7 +61,7 @@ class CampaignRecipientImportServiceTest extends TestCase
 
         // Create temporary CSV with 2 specific recipients
         $csvContent = "phone,name\n+2348011112222,Recipient One\n+2348033334444,Recipient Two";
-        $tmpFile = tempnam(sys_get_temp_dir(), 'csv_import_test');
+        $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'csv_import_test_' . uniqid() . '.csv';
         file_put_contents($tmpFile, $csvContent);
 
         // 1. Import CSV
