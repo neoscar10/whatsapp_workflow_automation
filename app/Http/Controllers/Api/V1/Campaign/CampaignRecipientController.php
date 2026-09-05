@@ -43,8 +43,17 @@ class CampaignRecipientController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Recipients retrieved successfully.',
-                'data' => $items,
+                'data' => array_merge([
+                    'data' => $items,
+                    'recipients' => $items,
+                    'audience' => $items,
+                    'rows' => $items,
+                    'meta' => $meta,
+                    'links' => $links,
+                ], is_array($items) ? $items : []),
                 'recipients' => $items,
+                'audience' => $items,
+                'rows' => $items,
                 'meta' => $meta,
                 'links' => $links,
             ]);

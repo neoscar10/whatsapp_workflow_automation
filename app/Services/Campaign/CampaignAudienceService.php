@@ -408,6 +408,8 @@ class CampaignAudienceService
             'failed_count' => $failed,
             'text_session_excluded_count' => $textSessionExcludedCount,
             'rows' => $detailedRows,
+            'data' => $detailedRows,
+            'recipients' => $detailedRows,
         ];
     }
 

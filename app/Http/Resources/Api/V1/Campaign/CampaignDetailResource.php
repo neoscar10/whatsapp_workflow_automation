@@ -43,6 +43,9 @@ class CampaignDetailResource extends JsonResource
                 'read' => $this->read_count,
                 'failed' => $this->failed_count,
             ],
+            'recipients' => CampaignRecipientResource::collection($this->recipients()->latest()->take(200)->get()),
+            'audience' => CampaignRecipientResource::collection($this->recipients()->latest()->take(200)->get()),
+            'rows' => CampaignRecipientResource::collection($this->recipients()->latest()->take(200)->get()),
             'timeline' => [
                 'scheduled_at' => $this->scheduled_at?->toDateTimeString(),
                 'started_at' => $this->started_at?->toDateTimeString(),
