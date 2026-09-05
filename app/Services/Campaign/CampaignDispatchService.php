@@ -148,10 +148,12 @@ class CampaignDispatchService
             ]);
         }
 
+        $messageBody = $this->resolveTemplateBody($campaign, $components);
+
         $message = $conversation->messages()->create([
             'direction' => 'outbound',
             'message_type' => 'template',
-            'body' => $campaign->template_name, // Snapshot name
+            'body' => $messageBody,
             'status' => 'pending',
             'meta_payload' => [
                 'campaign_id' => $campaign->id,
@@ -276,5 +278,25 @@ class CampaignDispatchService
         } else {
             SendCampaignRecipientJob::dispatch($recipient->id);
         }
+    }
+
+    /**
+     * Resolve template variable placeholders in body for local storage and preview.
+     */
+    protected function resolveTemplateBody(Campaign $campaign, array $components): string
+    {
+        $template = $campaign->whatsappTemplate;
+        $body = $template?->body_text ?? $campaign->template_name;
+
+        foreach ($components as $component) {
+            if (($component['type'] ?? '') === 'body' && isset($component['parameters'])) {
+                foreach ($component['parameters'] as $index => $param) {
+                    $placeholder = '{{' . ($index + 1) . '}}';
+                    $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
+                }
+            }
+        }
+
+        return $body;
     }
 }
