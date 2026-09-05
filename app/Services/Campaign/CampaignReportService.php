@@ -37,17 +37,28 @@ class CampaignReportService
             ->with(['contact', 'conversationMessage'])
             ->latest();
 
-        if (!empty($filters['status'])) {
-            $status = strtolower(trim($filters['status']));
-            if ($status !== 'all') {
+        $rawStatus = $filters['status'] ?? $filters['recipient_status'] ?? $filters['filter'] ?? $filters['tab'] ?? null;
+
+        if (!empty($rawStatus)) {
+            $status = strtolower(trim((string) $rawStatus));
+            $allAliases = ['all', 'all_recipients', 'all_messages', 'all_contacts', 'total', 'any', 'none', 'null', 'undefined', '*'];
+            
+            if (!in_array($status, $allAliases) && !str_starts_with($status, 'all')) {
+                if ($status === 'error' || $status === 'failure') {
+                    $status = 'failed';
+                } elseif ($status === 'skip') {
+                    $status = 'skipped';
+                }
                 $query->where('status', $status);
             }
         }
 
-        if (!empty($filters['search'])) {
-            $query->where(function($q) use ($filters) {
-                $q->where('name', 'like', "%{$filters['search']}%")
-                  ->orWhere('phone', 'like', "%{$filters['search']}%");
+        $search = $filters['search'] ?? $filters['q'] ?? null;
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('normalized_phone', 'like', "%{$search}%");
             });
         }
 

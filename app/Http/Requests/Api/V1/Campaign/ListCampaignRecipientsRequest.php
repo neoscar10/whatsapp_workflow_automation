@@ -23,9 +23,13 @@ class ListCampaignRecipientsRequest extends FormRequest
     {
         return [
             'status' => 'nullable|string',
+            'recipient_status' => 'nullable|string',
+            'filter' => 'nullable|string',
+            'tab' => 'nullable|string',
             'search' => 'nullable|string',
+            'q' => 'nullable|string',
             'error_code' => 'nullable|string',
-            'per_page' => 'nullable|integer|min:1|max:100',
+            'per_page' => 'nullable|integer|min:1|max:500',
         ];
     }
 }
