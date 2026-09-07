@@ -48,14 +48,6 @@
                         </a>
                     </div>
                 @endif
-                @if(auth()->user()?->company?->status === 'demo')
-                    <div class="bg-amber-500 text-white text-xs font-bold px-8 py-2 flex items-center justify-between gap-4 select-none shrink-0">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[16px] animate-pulse">info</span>
-                            <span>This company account is currently in <strong>Demo Mode</strong>. Features consumed will use demo credits. Real payments are disabled.</span>
-                        </div>
-                    </div>
-                @endif
                 {{ $slot }}
             </div>
         </main>

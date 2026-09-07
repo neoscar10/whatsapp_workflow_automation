@@ -17,6 +17,7 @@ class DashboardPage extends Component
     public array $chart = [];
     public array $activities = [];
     public array $campaigns = [];
+    public array $verification = [];
 
     public function mount(DashboardOverviewService $service)
     {
@@ -30,6 +31,7 @@ class DashboardPage extends Component
         $this->chart = $data['chart'];
         $this->activities = $data['activities'];
         $this->campaigns = $data['campaigns'];
+        $this->verification = $data['verification'] ?? [];
     }
 
     #[Layout('layouts.panel')]

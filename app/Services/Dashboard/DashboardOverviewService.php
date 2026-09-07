@@ -149,9 +149,17 @@ class DashboardOverviewService
             ];
         }
 
+        $verification = $companyId ? \App\Models\CompanyVerification::where('company_id', $companyId)->first() : null;
+        $verificationStatus = $verification ? $verification->status : 'not_started';
+        $verificationProgress = $verification ? $verification->progress_percentage : 0;
+
         return [
             'heading' => 'Dashboard Overview',
             'subheading' => "Welcome back, {$displayName}. Here's what's happening with your WhatsApp campaigns.",
+            'verification' => [
+                'status' => $verificationStatus,
+                'progress' => $verificationProgress,
+            ],
             'storage' => [
                 'percent' => 0,
                 'label' => 'Storage tracking disabled',

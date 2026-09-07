@@ -38,6 +38,17 @@
             <livewire:web.panel.topbar-wallet-balance />
         @endif
 
+        @if(auth()->user()?->company?->status === 'demo')
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-xs shadow-xs" title="Account is in Demo Mode (100 Demo Credits allocated)">
+                <span class="relative flex size-2">
+                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                    <span class="relative inline-flex size-2 rounded-full bg-amber-500"></span>
+                </span>
+                <span class="material-symbols-outlined text-[16px]">science</span>
+                <span>Demo Mode</span>
+            </div>
+        @endif
+
 
         <div class="mx-1 h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
 

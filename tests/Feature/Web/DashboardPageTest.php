@@ -50,4 +50,45 @@ class DashboardPageTest extends TestCase
             ->call('login')
             ->assertRedirect(route('dashboard'));
     }
+
+    public function test_dashboard_displays_demo_mode_badge_for_demo_companies()
+    {
+        $company = \App\Models\Company::create([
+            'name' => 'Demo Web Co',
+            'slug' => 'demo-web-co',
+            'status' => 'demo',
+            'primary_email' => 'demoweb@co.com',
+        ]);
+
+        $user = User::factory()->create(['company_id' => $company->id]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Demo Mode');
+    }
+
+    public function test_dashboard_displays_verification_alert_when_pending()
+    {
+        $company = \App\Models\Company::create([
+            'name' => 'Pending Verification Co',
+            'slug' => 'pending-verif-co',
+            'status' => 'active',
+            'primary_email' => 'pending@co.com',
+        ]);
+
+        $user = User::factory()->create(['company_id' => $company->id]);
+
+        \App\Models\CompanyVerification::create([
+            'company_id' => $company->id,
+            'status' => 'under_review',
+            'progress_percentage' => 50,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Business Verification Pending');
+        $response->assertSee('Under Review');
+    }
 }
