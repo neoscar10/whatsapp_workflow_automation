@@ -48,7 +48,7 @@ class DashboardPageTest extends TestCase
             ->set('email', $user->email)
             ->set('password', 'password123')
             ->call('login')
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('chats.index'));
     }
 
     public function test_dashboard_displays_demo_mode_badge_for_demo_companies()
