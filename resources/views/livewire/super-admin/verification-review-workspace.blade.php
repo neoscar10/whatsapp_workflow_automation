@@ -66,31 +66,31 @@
                 @foreach($verification->documents as $doc)
                     @php
                         $latest = $doc->latestVersion;
-                        $statusBadge = 'bg-slate-100 text-slate-650 dark:bg-slate-800 dark:text-slate-400';
+                        $statusBadge = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
                         $statusText = 'Not Submitted';
                         
                         if ($doc->status === 'approved') {
-                            $statusBadge = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-350';
+                            $statusBadge = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300';
                             $statusText = 'Approved';
                         } elseif ($doc->status === 'rejected') {
-                            $statusBadge = 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-350';
+                            $statusBadge = 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300';
                             $statusText = 'Rejected';
                         } elseif ($doc->status === 'pending_review') {
-                            $statusBadge = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+                            $statusBadge = 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300';
                             $statusText = 'Pending Review';
                         }
                     @endphp
                     <div 
                         wire:click="selectDocument('{{ $doc->id }}')"
-                        class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-4 {{ $selectedDocId === $doc->id ? 'bg-primary/5 dark:bg-primary/10 border-primary ring-2 ring-primary/20' : 'bg-slate-50/20 dark:bg-slate-800/10 hover:bg-slate-50 dark:hover:bg-slate-850/50 border-slate-200 dark:border-slate-800' }}"
+                        class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-4 {{ $selectedDocId === $doc->id ? 'bg-primary/10 dark:bg-primary/20 border-primary ring-2 ring-primary/20' : 'bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700' }}"
                     >
                         <div>
-                            <span class="px-1.5 py-0.5 text-[8px] font-bold rounded uppercase tracking-wider {{ $doc->documentType->is_required ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/25 dark:text-amber-400' : 'bg-slate-150 text-slate-700 dark:bg-slate-850 dark:text-slate-450' }}">
+                            <span class="px-1.5 py-0.5 text-[8px] font-bold rounded uppercase tracking-wider {{ $doc->documentType->is_required ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/30' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-700/30' }}">
                                 {{ $doc->documentType->is_required ? 'Required' : 'Optional' }}
                             </span>
-                            <h5 class="font-bold text-slate-800 dark:text-white mt-1 text-xs">{{ $doc->documentType->name }}</h5>
+                            <h5 class="font-bold text-slate-900 dark:text-white mt-1.5 text-xs leading-snug">{{ $doc->documentType->name }}</h5>
                             @if($latest)
-                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">Uploaded: {{ $latest->created_at->format('Y-m-d') }}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">Uploaded: {{ $latest->created_at->format('Y-m-d') }}</p>
                             @endif
                         </div>
                         <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase shrink-0 {{ $statusBadge }}">
