@@ -31,9 +31,14 @@ class ChatOutboundTest extends TestCase
         $this->company = Company::create([
             'name' => 'Test Company',
             'slug' => 'test-company',
-            'primary_email' => 'test@example.com'
+            'primary_email' => 'test@example.com',
+            'status' => 'demo',
+            'demo_credits' => 100.0000,
         ]);
-        $this->user = User::factory()->create(['company_id' => $this->company->id]);
+        $this->user = User::factory()->create([
+            'company_id' => $this->company->id,
+            'is_company_owner' => true,
+        ]);
 
         $account = WhatsAppAccount::create([
             'company_id' => $this->company->id,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
+use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Services\Api\Auth\ApiAuthService;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,30 @@ class AuthController extends Controller
     public function __construct(
         protected ApiAuthService $authService
     ) {}
+
+    /**
+     * Handle a registration request.
+     *
+     * @param RegisterRequest $request
+     * @return JsonResponse
+     */
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        try {
+            $deviceName = $request->input('device_name', 'mobile_app');
+            $result = $this->authService->register($request->validated(), $deviceName);
+
+            return $this->successResponse([
+                'token' => $result['token'],
+                'token_type' => $result['token_type'],
+                'user' => new UserResource($result['user']),
+            ], 'Account registered successfully in demo mode.', 201);
+        } catch (ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), $e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse('An error occurred during registration: ' . $e->getMessage(), [], 500);
+        }
+    }
 
     /**
      * Handle a login request.

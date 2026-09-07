@@ -36,20 +36,26 @@ class CompanyRegistrationService
                 'name' => $companyName,
                 'slug' => $companySlug,
                 'primary_email' => $email,
-                'status' => 'trial',
+                'status' => 'demo',
                 'country' => $data['country'] ?? 'IN',
+                'demo_credits' => $data['demo_credits'] ?? 100.0000,
+                'demo_ends_at' => now()->addDays(14),
                 'trial_starts_at' => now(),
                 'trial_ends_at' => now()->addDays(14),
             ]);
 
+            $userName = !empty($data['name']) ? $data['name'] : $companyName;
+
             $user = User::create([
                 'company_id' => $company->id,
-                // Using company name as user name for now as requested
-                'name' => $companyName,
+                'name' => $userName,
                 'email' => $email,
                 'password' => Hash::make($password),
                 'is_company_owner' => true,
             ]);
+
+            // Initialize wallet for company owner
+            app(\App\Services\Wallet\WalletService::class)->getOrCreateWallet($user);
 
             return [
                 'company' => $company,

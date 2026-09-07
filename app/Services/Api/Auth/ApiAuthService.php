@@ -43,6 +43,28 @@ class ApiAuthService
     }
 
     /**
+     * Register a new user and company via API, and return an authentication token.
+     *
+     * @param array $data
+     * @param string $deviceName
+     * @return array
+     */
+    public function register(array $data, string $deviceName = 'mobile_app'): array
+    {
+        $registrationService = app(\App\Services\Company\CompanyRegistrationService::class);
+        $result = $registrationService->register($data);
+
+        $user = $result['user'];
+        $token = $user->createToken($deviceName)->plainTextToken;
+
+        return [
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user->load('company'),
+        ];
+    }
+
+    /**
      * Revoke the user's current token.
      *
      * @param User $user

@@ -24,6 +24,9 @@ class UserResource extends JsonResource
                 'id' => $this->company->id ?? null,
                 'name' => $this->company->name ?? null,
                 'status' => $this->company->status ?? null,
+                'demo_credits' => $this->company?->demo_credits ? (float) $this->company->demo_credits : 0.0,
+                'demo_ends_at' => $this->company?->demo_ends_at?->toIso8601String(),
+                'country' => $this->company?->country ?? 'IN',
             ],
             'created_at' => $this->created_at->toIso8601String(),
         ];

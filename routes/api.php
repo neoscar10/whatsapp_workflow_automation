@@ -29,6 +29,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
     Route::prefix('auth')->name('auth.')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/login', [AuthController::class, 'login'])->name('login');
 
         Route::middleware('auth:sanctum')->group(function () {
