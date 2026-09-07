@@ -42,6 +42,7 @@ class AuthRegistrationApiTest extends TestCase
                             'id',
                             'name',
                             'status',
+                            'is_demo',
                             'demo_credits',
                             'demo_ends_at',
                             'country',
