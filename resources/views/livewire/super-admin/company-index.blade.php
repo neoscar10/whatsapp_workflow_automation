@@ -28,6 +28,7 @@
                         <th class="p-4">Company Name</th>
                         <th class="p-4">Owner</th>
                         <th class="p-4">Status</th>
+                        <th class="p-4">Live Mode Access</th>
                         <th class="p-4">User Count</th>
                         <th class="p-4">Created Date</th>
                         <th class="p-4">Actions</th>
@@ -69,6 +70,24 @@
                                     {{ $company->status }}
                                 </span>
                             </td>
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <button 
+                                        type="button" 
+                                        wire:click="toggleLiveAccess({{ $company->id }})" 
+                                        class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {{ $company->can_access_live ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700' }}"
+                                        title="{{ $company->can_access_live ? 'Live Mode Access Enabled (Click to disable)' : 'Live Mode Access Disabled (Click to enable)' }}"
+                                    >
+                                        <span class="sr-only">Toggle Live Access</span>
+                                        <span 
+                                            class="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $company->can_access_live ? 'translate-x-5' : 'translate-x-0' }}"
+                                        ></span>
+                                    </button>
+                                    <span class="text-xs font-bold {{ $company->can_access_live ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">
+                                        {{ $company->can_access_live ? 'Enabled' : 'Disabled' }}
+                                    </span>
+                                </div>
+                            </td>
                             <td class="p-4 text-slate-600 dark:text-slate-400">
                                 {{ $company->users_count }} users
                             </td>
@@ -97,7 +116,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="p-8 text-center text-slate-400 dark:text-slate-500 font-bold">
+                            <td colspan="7" class="p-8 text-center text-slate-400 dark:text-slate-500 font-bold">
                                 No companies found on the platform.
                             </td>
                         </tr>

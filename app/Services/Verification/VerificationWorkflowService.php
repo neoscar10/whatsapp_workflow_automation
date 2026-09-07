@@ -141,6 +141,62 @@ class VerificationWorkflowService
     }
 
     /**
+     * Submit a text input value for a requirement.
+     */
+    public function submitTextInput(
+        CompanyVerification $verification,
+        DocumentType $documentType,
+        string $textValue,
+        User $uploader
+    ): CompanyVerificationDocumentVersion {
+        $verificationDoc = CompanyVerificationDocument::where('company_verification_id', $verification->id)
+            ->where('document_type_id', $documentType->id)
+            ->firstOrFail();
+
+        // Determine next version number
+        $latestVersion = $verificationDoc->latestVersion;
+        $nextVersionNumber = $latestVersion ? $latestVersion->version_number + 1 : 1;
+
+        // Create new version for text input
+        $version = CompanyVerificationDocumentVersion::create([
+            'company_verification_document_id' => $verificationDoc->id,
+            'version_number' => $nextVersionNumber,
+            'file_path' => 'text_input',
+            'file_name' => Str::limit($textValue, 50),
+            'mime_type' => 'text/plain',
+            'file_size' => strlen($textValue),
+            'text_value' => $textValue,
+            'status' => 'pending_review',
+            'uploaded_by' => $uploader->id,
+        ]);
+
+        // Update document state
+        $verificationDoc->update(['status' => 'pending_review']);
+
+        // Log timeline event
+        CompanyVerificationTimeline::create([
+            'company_verification_id' => $verification->id,
+            'event_type' => 'upload',
+            'title' => 'Information Submitted',
+            'description' => "Submitted Version {$nextVersionNumber} of {$documentType->name}.",
+            'actor_id' => $uploader->id,
+            'metadata' => ['document_name' => $documentType->name, 'version' => $nextVersionNumber, 'type' => 'input'],
+        ]);
+
+        // Log audit trail
+        VerificationAuditLog::create([
+            'company_id' => $verification->company_id,
+            'user_id' => $uploader->id,
+            'action' => 'submit_text_input',
+            'metadata' => ['document_type_id' => $documentType->id, 'version_id' => $version->id],
+        ]);
+
+        $this->recalculateStatus($verification);
+
+        return $version;
+    }
+
+    /**
      * Approve document version.
      */
     public function approveDocument(CompanyVerificationDocumentVersion $version, User $reviewer, ?string $notes = null): void

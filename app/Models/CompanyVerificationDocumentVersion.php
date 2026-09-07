@@ -19,6 +19,7 @@ class CompanyVerificationDocumentVersion extends Model
         'file_name',
         'mime_type',
         'file_size',
+        'text_value',
         'status',
         'rejection_reason',
         'reviewer_notes',

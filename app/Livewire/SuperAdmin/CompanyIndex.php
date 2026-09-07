@@ -53,6 +53,23 @@ class CompanyIndex extends Component
         $this->showStatusModal = true;
     }
 
+    public function toggleLiveAccess($id)
+    {
+        $company = Company::findOrFail($id);
+        $newAccess = !$company->can_access_live;
+        
+        $updateData = ['can_access_live' => $newAccess];
+
+        // If disabling live access while company is currently active (live mode), revert status to demo
+        if (!$newAccess && $company->status === 'active') {
+            $updateData['status'] = 'demo';
+        }
+
+        $company->update($updateData);
+
+        session()->flash('success', "Live mode access for '{$company->name}' " . ($newAccess ? 'enabled' : 'disabled') . ".");
+    }
+
     public function saveStatus()
     {
         $rules = [
@@ -72,7 +89,11 @@ class CompanyIndex extends Component
             'status' => $this->newStatus,
         ];
 
-        if ($this->newStatus === 'demo') {
+        if ($this->newStatus === 'active') {
+            $updateData['can_access_live'] = true;
+            $updateData['demo_ends_at'] = null;
+            $updateData['demo_whatsapp_phone_number_id'] = null;
+        } elseif ($this->newStatus === 'demo') {
             $updateData['demo_credits'] = $this->demoCredits;
             $updateData['demo_whatsapp_phone_number_id'] = $this->selectedDemoPhoneNumberId;
 

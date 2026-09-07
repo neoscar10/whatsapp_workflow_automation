@@ -78,7 +78,7 @@
                                     <span class="material-symbols-outlined text-[16px]">{{ $tpl->is_active ? 'block' : 'check_circle' }}</span>
                                     <span>{{ $tpl->is_active ? 'Disable' : 'Enable' }}</span>
                                 </button>
-                                <button wire:click="deleteTemplate('{{ $tpl->id }}')" @click="open = false" class="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 flex items-center gap-1.5">
+                                <button wire:click="requestDeleteTemplate('{{ $tpl->id }}')" @click="open = false" class="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-[16px] text-rose-600">delete</span>
                                     <span>Delete</span>
                                 </button>
@@ -120,8 +120,8 @@
                             <thead>
                                 <tr class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     <th class="p-4">Sort</th>
-                                    <th class="p-4">Document Details</th>
-                                    <th class="p-4">Formats & Max Size</th>
+                                    <th class="p-4">Requirement Details</th>
+                                    <th class="p-4">Type & Specifications</th>
                                     <th class="p-4">Rules</th>
                                     <th class="p-4 text-right">Actions</th>
                                 </tr>
@@ -150,15 +150,27 @@
                                             </div>
                                         </td>
                                         <td class="p-4">
-                                            <p class="font-bold text-slate-900 dark:text-white text-sm">{{ $doc->name }}</p>
+                                            <div class="flex items-center gap-2">
+                                                <p class="font-bold text-slate-900 dark:text-white text-sm">{{ $doc->name }}</p>
+                                                @if(($doc->input_type ?? 'document') === 'input')
+                                                    <span class="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Text Input</span>
+                                                @else
+                                                    <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Document</span>
+                                                @endif
+                                            </div>
                                             <p class="text-[11px] text-slate-450 dark:text-slate-500 mt-0.5 max-w-sm leading-relaxed">{{ $doc->description ?: 'No description provided.' }}</p>
                                             @if($doc->placeholder)
-                                                <p class="text-[10px] text-slate-400 dark:text-slate-500 italic mt-1 font-mono">Placeholder: {{ $doc->placeholder }}</p>
+                                                <p class="text-[10px] text-slate-400 dark:text-slate-500 italic mt-1 font-mono">Instruction / Placeholder: {{ $doc->placeholder }}</p>
                                             @endif
                                         </td>
                                         <td class="p-4">
-                                            <span class="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded !text-black dark:!text-slate-300">{{ $doc->accepted_formats }}</span>
-                                            <div class="text-[11px] text-slate-450 dark:text-slate-500 mt-1 font-bold">Max size: {{ $doc->max_size_mb }} MB</div>
+                                            @if(($doc->input_type ?? 'document') === 'input')
+                                                <span class="font-mono text-[10px] bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300 font-bold">Text Input Field</span>
+                                                <div class="text-[11px] text-slate-450 dark:text-slate-500 mt-1">Collect plain text / ID string</div>
+                                            @else
+                                                <span class="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded !text-black dark:!text-slate-300">{{ $doc->accepted_formats }}</span>
+                                                <div class="text-[11px] text-slate-450 dark:text-slate-500 mt-1 font-bold">Max size: {{ $doc->max_size_mb }} MB</div>
+                                            @endif
                                         </td>
                                         <td class="p-4">
                                             <div class="flex flex-col gap-1">
@@ -202,7 +214,7 @@
                                                     <span class="material-symbols-outlined text-[16px]">{{ $doc->is_active ? 'block' : 'check_circle' }}</span>
                                                     <span>{{ $doc->is_active ? 'Disable' : 'Enable' }}</span>
                                                 </button>
-                                                <button wire:click="deleteDocument('{{ $doc->id }}')" @click="open = false" class="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 flex items-center gap-1.5">
+                                                <button wire:click="requestDeleteDocument('{{ $doc->id }}')" @click="open = false" class="w-full text-left px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 flex items-center gap-1.5">
                                                     <span class="material-symbols-outlined text-[16px] text-rose-600">delete</span>
                                                     <span>Delete</span>
                                                 </button>
@@ -267,21 +279,13 @@
                             @error('templateDescription') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Sort Order</label>
-                                <input type="number" min="0" wire:model="templateSortOrder" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
-                                @error('templateSortOrder') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Status</label>
-                                <select wire:model="templateIsActive" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none">
-                                    <option value="1">Active</option>
-                                    <option value="0">Disabled</option>
-                                </select>
-                                @error('templateIsActive') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Status</label>
+                            <select wire:model="templateIsActive" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none">
+                                <option value="1">Active</option>
+                                <option value="0">Disabled</option>
+                            </select>
+                            @error('templateIsActive') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
@@ -302,7 +306,7 @@
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $editingDocumentId ? 'Edit Document Requirement' : 'Add Document Requirement' }}</h3>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $editingDocumentId ? 'Edit Requirement' : 'Add Requirement' }}</h3>
                     <button wire:click="closeDocumentModal" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
                         <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
@@ -310,44 +314,53 @@
                 <form wire:submit.prevent="saveDocument" class="flex flex-col overflow-hidden">
                     <div class="p-6 space-y-4 overflow-y-auto max-h-[60vh] pr-2">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Document Name</label>
-                            <input type="text" wire:model="docName" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="e.g. Utility Bill Address Proof" />
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Requirement Type</label>
+                            <select wire:model.live="docInputType" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none">
+                                <option value="document">Document Upload (File Upload: PDF, Image)</option>
+                                <option value="input">Text Input Field (Collect Plain Text / ID Number)</option>
+                            </select>
+                            @error('docInputType') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Requirement Name</label>
+                            <input type="text" wire:model="docName" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="e.g. CAC Registration Number or Utility Bill" />
                             @error('docName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Description</label>
-                            <textarea wire:model="docDescription" class="w-full min-h-[60px] p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none" placeholder="Detailed document instructions, acceptable evidence, etc..."></textarea>
+                            <textarea wire:model="docDescription" class="w-full min-h-[60px] p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none" placeholder="Detailed instructions, evidence requirements, etc..."></textarea>
                             @error('docDescription') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Placeholder / Upload Box Instruction</label>
-                            <input type="text" wire:model="docPlaceholder" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="e.g. Upload a clean copy of your utility bill (PDF, JPG)" />
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Placeholder / Field Instruction</label>
+                            <input type="text" wire:model="docPlaceholder" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="{{ $docInputType === 'input' ? 'e.g. Enter your 8-digit CAC registration number' : 'e.g. Upload a clean copy of your utility bill (PDF, JPG)' }}" />
                             @error('docPlaceholder') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
+                        @if($docInputType === 'document')
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Accepted Formats (comma separated)</label>
+                                    <input type="text" wire:model="docAcceptedFormats" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                    @error('docAcceptedFormats') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Max Size (MB)</label>
+                                    <input type="number" min="1" max="50" wire:model="docMaxSizeMb" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
+                                    @error('docMaxSizeMb') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @else
+                            <div class="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 rounded-xl text-xs text-blue-800 dark:text-blue-300">
+                                <strong class="font-bold">Text Input Field:</strong> Users will be prompted to enter a text value (e.g. ID number) rather than uploading a file.
+                            </div>
+                        @endif
+
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Accepted Formats (comma separated)</label>
-                                <input type="text" wire:model="docAcceptedFormats" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
-                                @error('docAcceptedFormats') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Max Size (MB)</label>
-                                <input type="number" min="1" max="50" wire:model="docMaxSizeMb" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
-                                @error('docMaxSizeMb') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Sort Order</label>
-                                <input type="number" min="0" wire:model="docSortOrder" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none" />
-                                @error('docSortOrder') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Requirement</label>
                                 <select wire:model="docIsRequired" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-sm font-medium text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all outline-none">
@@ -419,6 +432,52 @@
                         </button>
                         <button type="button" wire:click="confirmDisableDocument" class="px-4 py-2 text-xs font-bold bg-amber-650 hover:bg-amber-700 text-white rounded-lg transition-colors">
                             Yes, Disable
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Confirm Delete Template Modal -->
+    @if($confirmingDeleteTemplateId)
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div class="p-6 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-100 text-rose-600 mb-4">
+                        <span class="material-symbols-outlined text-2xl">delete_forever</span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Delete Verification Checklist?</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">Are you sure you want to permanently delete this checklist and all its document requirements? This action cannot be undone.</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" wire:click="cancelDeleteTemplate" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" wire:click="confirmDeleteTemplate" class="px-4 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors">
+                            Yes, Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Confirm Delete Document Modal -->
+    @if($confirmingDeleteDocumentId)
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div class="p-6 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-100 text-rose-600 mb-4">
+                        <span class="material-symbols-outlined text-2xl">delete_forever</span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Delete Requirement?</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">Are you sure you want to permanently delete this document requirement? This action cannot be undone.</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" wire:click="cancelDeleteDocument" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" wire:click="confirmDeleteDocument" class="px-4 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors">
+                            Yes, Delete
                         </button>
                     </div>
                 </div>

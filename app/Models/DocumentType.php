@@ -16,6 +16,7 @@ class DocumentType extends Model
         'verification_template_id',
         'name',
         'description',
+        'input_type',
         'placeholder',
         'accepted_formats',
         'max_size_mb',

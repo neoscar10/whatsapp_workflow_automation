@@ -46,6 +46,7 @@ class Company extends Model
         'description',
         'logo_path',
         'status',
+        'can_access_live',
         'country',
         'demo_credits',
         'demo_ends_at',
@@ -55,6 +56,7 @@ class Company extends Model
     ];
 
     protected $casts = [
+        'can_access_live' => 'boolean',
         'demo_credits' => 'decimal:4',
         'demo_ends_at' => 'datetime',
         'trial_starts_at' => 'datetime',

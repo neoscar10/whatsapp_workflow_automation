@@ -18,6 +18,7 @@ class DocumentTypeResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'input_type' => $this->input_type ?? 'document',
             'is_required' => (bool)$this->is_required,
             'requires_expiry_date' => (bool)$this->requires_expiry_date,
             'max_size_mb' => $this->max_size_mb,

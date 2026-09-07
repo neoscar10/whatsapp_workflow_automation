@@ -29,10 +29,11 @@ class CompanyModuleAssignment extends Component
         $this->reset(['moduleSlug', 'expiresAt']);
     }
 
-    public function assignModule(ModuleService $moduleService)
+    public function assignModule()
     {
         $this->validate();
 
+        $moduleService = app(ModuleService::class);
         $company = Company::findOrFail($this->selectedCompanyId);
         $moduleService->assignModuleToCompany($company, $this->moduleSlug, $this->expiresAt ?: null);
 
@@ -40,8 +41,9 @@ class CompanyModuleAssignment extends Component
         $this->reset(['moduleSlug', 'expiresAt']);
     }
 
-    public function removeModule(ModuleService $moduleService, $slug)
+    public function removeModule($slug)
     {
+        $moduleService = app(ModuleService::class);
         $company = Company::findOrFail($this->selectedCompanyId);
         $moduleService->removeModuleFromCompany($company, $slug);
 

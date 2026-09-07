@@ -87,7 +87,7 @@
 
     <!-- Checklist grid -->
     <div class="space-y-4">
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Document Requirements</h3>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Requirements</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @forelse($verification->documents as $doc)
                 @php
@@ -107,6 +107,7 @@
                     }
                     
                     $styles = $statusStyles[$stateKey] ?? $statusStyles['not_submitted'];
+                    $isInputType = ($doc->documentType->input_type ?? 'document') === 'input';
                 @endphp
                 <div class="border rounded-2xl p-5 flex flex-col justify-between transition-all {{ $styles['bg'] }}">
                     <div>
@@ -137,10 +138,14 @@
                             </div>
                         @endif
 
-                        <!-- File Details if Uploaded -->
+                        <!-- Details if Uploaded or Submitted -->
                         @if($latest)
                             <div class="mt-4 flex items-center justify-between text-xs text-slate-450 bg-slate-50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 font-mono">
-                                <span class="truncate pr-4" title="{{ $latest->file_name }}">{{ $latest->file_name }}</span>
+                                @if($latest->text_value || $latest->mime_type === 'text/plain')
+                                    <span class="truncate pr-4 font-bold text-slate-900 dark:text-white" title="{{ $latest->text_value ?? $latest->file_name }}">Submitted: {{ $latest->text_value ?? $latest->file_name }}</span>
+                                @else
+                                    <span class="truncate pr-4" title="{{ $latest->file_name }}">{{ $latest->file_name }}</span>
+                                @endif
                                 <span class="shrink-0">v{{ $latest->version_number }}</span>
                             </div>
                         @endif
@@ -160,19 +165,26 @@
                         <div>
                             @if($stateKey === 'not_submitted')
                                 <button type="button" wire:click="openUploadModal('{{ $doc->documentType->id }}')" class="px-3.5 py-1.5 bg-primary hover:bg-primary/95 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[16px]">upload</span>
-                                    <span>Upload Document</span>
+                                    <span class="material-symbols-outlined text-[16px]">{{ $isInputType ? 'edit_note' : 'upload' }}</span>
+                                    <span>{{ $isInputType ? 'Submit Information' : 'Upload Document' }}</span>
                                 </button>
                             @elseif($stateKey === 'resubmission_required' || $stateKey === 'rejected')
                                 <button type="button" wire:click="openUploadModal('{{ $doc->documentType->id }}')" class="px-3.5 py-1.5 bg-rose-650 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-[16px]">replay</span>
-                                    <span>Upload New Version</span>
+                                    <span>{{ $isInputType ? 'Submit New Value' : 'Upload New Version' }}</span>
                                 </button>
                             @elseif($stateKey === 'approved' || $stateKey === 'pending_review')
-                                <a href="{{ $latest->getDownloadUrl() }}" target="_blank" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
-                                    <span>View Uploaded</span>
-                                </a>
+                                @if($isInputType)
+                                    <button type="button" wire:click="openUploadModal('{{ $doc->documentType->id }}')" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                                        <span>Update Value</span>
+                                    </button>
+                                @else
+                                    <a href="{{ $latest->getDownloadUrl() }}" target="_blank" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                        <span>View Uploaded</span>
+                                    </a>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -221,94 +233,107 @@
         </div>
     @endif
 
-    <!-- Upload Modal -->
+    <!-- Upload / Input Modal -->
     @if($showUploadModal)
         @php
             $docType = \App\Models\DocumentType::find($selectedDocTypeId);
+            $isInputType = $docType && ($docType->input_type ?? 'document') === 'input';
         @endphp
         <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Upload {{ $docType ? $docType->name : 'Document' }}</h3>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $isInputType ? 'Submit Information' : 'Upload Document' }}: {{ $docType ? $docType->name : '' }}</h3>
                     <button wire:click="closeUploadModal" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
                         <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
                 </div>
                 <form wire:submit.prevent="submitDocument" class="flex flex-col overflow-hidden">
                     <div class="p-6 space-y-4 overflow-y-auto max-h-[60vh] pr-2">
-                        <!-- Instructions -->
-                        <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-xs text-slate-500 leading-relaxed border border-slate-100 dark:border-slate-800">
-                            <strong>Requirements:</strong> Format ({{ $docType->accepted_formats }}) up to {{ $docType->max_size_mb }}MB.
-                        </div>
-
-                        <!-- Drag and Drop upload area -->
-                        <div 
-                            class="relative flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850/40 transition-colors"
-                            x-data="{ isDragging: false, isUploading: false, progress: 0 }"
-                            @dragover.prevent="isDragging = true"
-                            @dragleave.prevent="isDragging = false"
-                            @drop.prevent="isDragging = false; $wire.upload('file', $event.dataTransfer.files[0])"
-                            x-on:livewire-upload-start="isUploading = true"
-                            x-on:livewire-upload-finish="isUploading = false"
-                            x-on:livewire-upload-error="isUploading = false"
-                            x-on:livewire-upload-progress="progress = $event.detail.progress"
-                            onclick="document.getElementById('doc_file_input').click()"
-                        >
-                            <input type="file" id="doc_file_input" class="hidden" wire:model="file" accept="{{ '.' . str_replace(',', ',.', $docType->accepted_formats) }}" />
-                            <span class="material-symbols-outlined text-[36px] text-slate-400 mb-2">upload_file</span>
-                            <p class="text-xs font-bold text-slate-750 dark:text-slate-350">Click or drag and drop here</p>
-                            <p class="text-[10px] text-slate-400 mt-1">Accepts PDF, JPG, PNG files</p>
- 
-                            <!-- Livewire Upload Progress -->
-                            <div class="w-full mt-3" x-show="isUploading" x-cloak>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-primary h-1.5 rounded-full transition-all duration-300" x-bind:style="'width: ' + progress + '%'"></div>
-                                </div>
-                                <span class="text-[9px] text-primary font-bold mt-1 block" x-text="'Uploading file... ' + progress + '%'"></span>
+                        @if($isInputType)
+                            <div class="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl text-xs text-blue-800 dark:text-blue-300 leading-relaxed border border-blue-100 dark:border-blue-900/50">
+                                <strong>Instructions:</strong> {{ $docType->description ?: 'Please provide the required text value or identification code below.' }}
                             </div>
-                        </div>
-                        @error('file') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
 
-                        <!-- Preview before upload -->
-                        @if($file)
-                            <div class="p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <div class="flex items-center gap-3 truncate">
-                                    @if(in_array(strtolower($file->getClientOriginalExtension()), ['jpg', 'png', 'jpeg', 'gif']))
-                                        <img src="{{ $file->temporaryUrl() }}" class="size-10 object-cover rounded border border-slate-250" />
-                                    @else
-                                        <span class="material-symbols-outlined text-[30px] text-slate-400">description</span>
-                                    @endif
-                                    <div class="truncate">
-                                        <p class="text-xs font-bold text-slate-750 dark:text-slate-300 truncate">{{ $file->getClientOriginalName() }}</p>
-                                        <p class="text-[10px] text-slate-400">{{ round($file->getSize() / 1024, 1) }} KB</p>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">{{ $docType->name }}</label>
+                                <textarea wire:model="inputValue" rows="4" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm font-medium text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none" placeholder="{{ $docType->placeholder ?: 'Enter value...' }}"></textarea>
+                                @error('inputValue') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                        @else
+                            <!-- Instructions -->
+                            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-xs text-slate-500 leading-relaxed border border-slate-100 dark:border-slate-800">
+                                <strong>Requirements:</strong> Format ({{ $docType->accepted_formats }}) up to {{ $docType->max_size_mb }}MB.
+                            </div>
+
+                            <!-- Drag and Drop upload area -->
+                            <div 
+                                class="relative flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850/40 transition-colors"
+                                x-data="{ isDragging: false, isUploading: false, progress: 0 }"
+                                @dragover.prevent="isDragging = true"
+                                @dragleave.prevent="isDragging = false"
+                                @drop.prevent="isDragging = false; $wire.upload('file', $event.dataTransfer.files[0])"
+                                x-on:livewire-upload-start="isUploading = true"
+                                x-on:livewire-upload-finish="isUploading = false"
+                                x-on:livewire-upload-error="isUploading = false"
+                                x-on:livewire-upload-progress="progress = $event.detail.progress"
+                                onclick="document.getElementById('doc_file_input').click()"
+                            >
+                                <input type="file" id="doc_file_input" class="hidden" wire:model="file" accept="{{ '.' . str_replace(',', ',.', $docType->accepted_formats) }}" />
+                                <span class="material-symbols-outlined text-[36px] text-slate-400 mb-2">upload_file</span>
+                                <p class="text-xs font-bold text-slate-750 dark:text-slate-350">Click or drag and drop here</p>
+                                <p class="text-[10px] text-slate-400 mt-1">Accepts PDF, JPG, PNG files</p>
+     
+                                <!-- Livewire Upload Progress -->
+                                <div class="w-full mt-3" x-show="isUploading" x-cloak>
+                                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                        <div class="bg-primary h-1.5 rounded-full transition-all duration-300" x-bind:style="'width: ' + progress + '%'"></div>
                                     </div>
+                                    <span class="text-[9px] text-primary font-bold mt-1 block" x-text="'Uploading file... ' + progress + '%'"></span>
                                 </div>
-                                <button type="button" wire:click="$set('file', null)" class="text-rose-600 hover:text-rose-700">
-                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                </button>
+                            </div>
+                            @error('file') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+
+                            <!-- Preview before upload -->
+                            @if($file)
+                                <div class="p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-3 truncate">
+                                        @if(in_array(strtolower($file->getClientOriginalExtension()), ['jpg', 'png', 'jpeg', 'gif']))
+                                            <img src="{{ $file->temporaryUrl() }}" class="size-10 object-cover rounded border border-slate-250" />
+                                        @else
+                                            <span class="material-symbols-outlined text-[30px] text-slate-400">description</span>
+                                        @endif
+                                        <div class="truncate">
+                                            <p class="text-xs font-bold text-slate-750 dark:text-slate-300 truncate">{{ $file->getClientOriginalName() }}</p>
+                                            <p class="text-[10px] text-slate-400">{{ round($file->getSize() / 1024, 1) }} KB</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" wire:click="$set('file', null)" class="text-rose-600 hover:text-rose-700">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                </div>
+                            @endif
+
+                            <!-- Dates -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Issue Date (Optional)</label>
+                                    <input type="date" wire:model="issueDate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-900 px-4 text-sm text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                                    @error('issueDate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Expiry Date (Optional)</label>
+                                    <input type="date" wire:model="expiryDate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-900 px-4 text-sm text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
+                                    @error('expiryDate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                                </div>
                             </div>
                         @endif
-
-                        <!-- Dates -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Issue Date (Optional)</label>
-                                <input type="date" wire:model="issueDate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-900 px-4 text-sm text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
-                                @error('issueDate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Expiry Date (Optional)</label>
-                                <input type="date" wire:model="expiryDate" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-900 px-4 text-sm text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all" />
-                                @error('expiryDate') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
                     </div>
                     <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                         <button type="button" wire:click="closeUploadModal" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-300 rounded-lg transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors" wire:loading.attr="disabled" wire:target="file">
-                            Upload Document
+                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors" wire:loading.attr="disabled" {{ !$isInputType ? 'wire:target="file"' : '' }}>
+                            {{ $isInputType ? 'Submit Value' : 'Upload Document' }}
                         </button>
                     </div>
                 </form>
@@ -347,8 +372,8 @@
                             </div>
                             
                             <div class="text-xs space-y-1">
-                                <p class="text-slate-450">Uploaded by: <strong class="font-bold text-slate-850 dark:text-slate-300">{{ $version->uploader?->name ?? 'N/A' }}</strong></p>
-                                <p class="text-slate-400 text-[10px]">Uploaded at: {{ $version->created_at->format('Y-m-d H:i:s') }}</p>
+                                <p class="text-slate-450">Submitted by: <strong class="font-bold text-slate-850 dark:text-slate-300">{{ $version->uploader?->name ?? 'N/A' }}</strong></p>
+                                <p class="text-slate-400 text-[10px]">Submitted at: {{ $version->created_at->format('Y-m-d H:i:s') }}</p>
                                 @if($version->issue_date || $version->expiry_date)
                                     <p class="text-slate-400 text-[10px]">
                                         Validity: {{ $version->issue_date ? $version->issue_date->format('Y-m-d') : 'N/A' }} to {{ $version->expiry_date ? $version->expiry_date->format('Y-m-d') : 'Indefinite' }}
@@ -370,14 +395,20 @@
                             @endif
 
                             <div class="flex justify-end pt-1">
-                                <a href="{{ $version->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-850 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-xs">download</span>
-                                    <span>Download File</span>
-                                </a>
+                                @if($version->text_value || $version->mime_type === 'text/plain')
+                                    <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl w-full text-xs font-mono text-slate-900 dark:text-white font-bold">
+                                        Submitted Value: {{ $version->text_value ?? $version->file_name }}
+                                    </div>
+                                @else
+                                    <a href="{{ $version->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-850 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">download</span>
+                                        <span>Download File</span>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @empty
-                        <p class="text-center text-xs text-slate-400 py-6">No uploads recorded.</p>
+                        <p class="text-center text-xs text-slate-400 py-6">No submission records found.</p>
                     @endforelse
                 </div>
                 <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">

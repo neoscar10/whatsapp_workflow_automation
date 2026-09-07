@@ -25,6 +25,7 @@ class VerificationTemplateConfig extends Component
     public $editingDocumentId = null;
     public $docName = '';
     public $docDescription = '';
+    public $docInputType = 'document'; // 'document' or 'input'
     public $docPlaceholder = '';
     public $docAcceptedFormats = 'pdf,jpg,png,jpeg';
     public $docMaxSizeMb = 10;
@@ -35,6 +36,10 @@ class VerificationTemplateConfig extends Component
     // Confirmation Modals for disabling
     public $confirmingDisableTemplateId = null;
     public $confirmingDisableDocumentId = null;
+
+    // Confirmation Modals for deleting
+    public $confirmingDeleteTemplateId = null;
+    public $confirmingDeleteDocumentId = null;
 
     public function mount()
     {
@@ -79,21 +84,26 @@ class VerificationTemplateConfig extends Component
             'templateCountryCode' => ['nullable', 'string', 'size:2', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Company::$countries))],
             'templateDescription' => 'nullable|string',
             'templateIsActive' => 'required|boolean',
-            'templateSortOrder' => 'required|integer|min:0',
         ]);
 
-        $data = [
-            'name' => $this->templateName,
-            'country_code' => $this->templateCountryCode ? strtoupper($this->templateCountryCode) : null,
-            'description' => $this->templateDescription,
-            'is_active' => $this->templateIsActive,
-            'sort_order' => $this->templateSortOrder,
-        ];
-
         if ($this->editingTemplateId) {
+            $data = [
+                'name' => $this->templateName,
+                'country_code' => $this->templateCountryCode ? strtoupper($this->templateCountryCode) : null,
+                'description' => $this->templateDescription,
+                'is_active' => $this->templateIsActive,
+            ];
             VerificationTemplate::findOrFail($this->editingTemplateId)->update($data);
             session()->flash('success_templates', 'Verification checklist updated successfully.');
         } else {
+            $maxOrder = VerificationTemplate::max('sort_order');
+            $data = [
+                'name' => $this->templateName,
+                'country_code' => $this->templateCountryCode ? strtoupper($this->templateCountryCode) : null,
+                'description' => $this->templateDescription,
+                'is_active' => $this->templateIsActive,
+                'sort_order' => $maxOrder !== null ? $maxOrder + 1 : 1,
+            ];
             $newTemplate = VerificationTemplate::create($data);
             $this->selectedTemplateId = $newTemplate->id;
             session()->flash('success_templates', 'Verification checklist created successfully.');
@@ -132,6 +142,24 @@ class VerificationTemplateConfig extends Component
         session()->flash('success_templates', 'Checklist active status updated.');
     }
 
+    public function requestDeleteTemplate($id)
+    {
+        $this->confirmingDeleteTemplateId = $id;
+    }
+
+    public function confirmDeleteTemplate()
+    {
+        if ($this->confirmingDeleteTemplateId) {
+            $this->deleteTemplate($this->confirmingDeleteTemplateId);
+            $this->confirmingDeleteTemplateId = null;
+        }
+    }
+
+    public function cancelDeleteTemplate()
+    {
+        $this->confirmingDeleteTemplateId = null;
+    }
+
     public function deleteTemplate($id)
     {
         $template = VerificationTemplate::findOrFail($id);
@@ -157,7 +185,6 @@ class VerificationTemplateConfig extends Component
             $current->update(['sort_order' => $previous->sort_order]);
             $previous->update(['sort_order' => $oldOrder]);
         } else {
-            // Decrement if already at the top to clear order conflict
             $current->update(['sort_order' => max(0, $current->sort_order - 1)]);
         }
     }
@@ -191,10 +218,7 @@ class VerificationTemplateConfig extends Component
         $this->templateCountryCode = 'IN';
         $this->templateDescription = '';
         $this->templateIsActive = true;
-        
-        // Default to next order value
-        $maxOrder = VerificationTemplate::max('sort_order');
-        $this->templateSortOrder = $maxOrder !== null ? $maxOrder + 1 : 0;
+        $this->templateSortOrder = 0;
         
         $this->resetErrorBag();
     }
@@ -213,9 +237,10 @@ class VerificationTemplateConfig extends Component
         $this->editingDocumentId = $doc->id;
         $this->docName = $doc->name;
         $this->docDescription = $doc->description;
+        $this->docInputType = $doc->input_type ?: 'document';
         $this->docPlaceholder = $doc->placeholder;
-        $this->docAcceptedFormats = $doc->accepted_formats;
-        $this->docMaxSizeMb = (int) $doc->max_size_mb;
+        $this->docAcceptedFormats = $doc->accepted_formats ?: 'pdf,jpg,png,jpeg';
+        $this->docMaxSizeMb = (int) ($doc->max_size_mb ?: 10);
         $this->docIsRequired = (bool) $doc->is_required;
         $this->docIsActive = (bool) $doc->is_active;
         $this->docSortOrder = (int) $doc->sort_order;
@@ -229,33 +254,40 @@ class VerificationTemplateConfig extends Component
             return;
         }
 
-        $this->validate([
+        $rules = [
             'docName' => 'required|string|max:255',
             'docDescription' => 'nullable|string',
+            'docInputType' => 'required|in:document,input',
             'docPlaceholder' => 'nullable|string',
-            'docAcceptedFormats' => 'required|string',
-            'docMaxSizeMb' => 'required|integer|min:1|max:50',
             'docIsRequired' => 'required|boolean',
             'docIsActive' => 'required|boolean',
-            'docSortOrder' => 'required|integer|min:0',
-        ]);
+        ];
+
+        if ($this->docInputType === 'document') {
+            $rules['docAcceptedFormats'] = 'required|string';
+            $rules['docMaxSizeMb'] = 'required|integer|min:1|max:50';
+        }
+
+        $this->validate($rules);
 
         $data = [
             'verification_template_id' => $this->selectedTemplateId,
             'name' => $this->docName,
             'description' => $this->docDescription,
+            'input_type' => $this->docInputType,
             'placeholder' => $this->docPlaceholder,
-            'accepted_formats' => $this->docAcceptedFormats,
-            'max_size_mb' => $this->docMaxSizeMb,
+            'accepted_formats' => $this->docInputType === 'input' ? 'text' : $this->docAcceptedFormats,
+            'max_size_mb' => $this->docInputType === 'input' ? 1 : $this->docMaxSizeMb,
             'is_required' => $this->docIsRequired,
             'is_active' => $this->docIsActive,
-            'sort_order' => $this->docSortOrder,
         ];
 
         if ($this->editingDocumentId) {
             DocumentType::findOrFail($this->editingDocumentId)->update($data);
             session()->flash('success_documents', 'Document requirement updated successfully.');
         } else {
+            $maxOrder = DocumentType::where('verification_template_id', $this->selectedTemplateId)->max('sort_order');
+            $data['sort_order'] = $maxOrder !== null ? $maxOrder + 1 : 1;
             DocumentType::create($data);
             session()->flash('success_documents', 'Document requirement added successfully.');
         }
@@ -298,6 +330,24 @@ class VerificationTemplateConfig extends Component
         $doc = DocumentType::findOrFail($id);
         $doc->update(['is_active' => !$doc->is_active]);
         session()->flash('success_documents', 'Document active status toggled.');
+    }
+
+    public function requestDeleteDocument($id)
+    {
+        $this->confirmingDeleteDocumentId = $id;
+    }
+
+    public function confirmDeleteDocument()
+    {
+        if ($this->confirmingDeleteDocumentId) {
+            $this->deleteDocument($this->confirmingDeleteDocumentId);
+            $this->confirmingDeleteDocumentId = null;
+        }
+    }
+
+    public function cancelDeleteDocument()
+    {
+        $this->confirmingDeleteDocumentId = null;
     }
 
     public function reorderDocuments($fromId, $toId)
@@ -385,18 +435,13 @@ class VerificationTemplateConfig extends Component
         $this->editingDocumentId = null;
         $this->docName = '';
         $this->docDescription = '';
+        $this->docInputType = 'document';
         $this->docPlaceholder = '';
         $this->docAcceptedFormats = 'pdf,jpg,png,jpeg';
         $this->docMaxSizeMb = 10;
         $this->docIsRequired = true;
         $this->docIsActive = true;
-
-        if ($this->selectedTemplateId) {
-            $maxOrder = DocumentType::where('verification_template_id', $this->selectedTemplateId)->max('sort_order');
-            $this->docSortOrder = $maxOrder !== null ? $maxOrder + 1 : 0;
-        } else {
-            $this->docSortOrder = 0;
-        }
+        $this->docSortOrder = 0;
 
         $this->resetErrorBag();
     }

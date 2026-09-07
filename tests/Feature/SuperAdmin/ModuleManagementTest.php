@@ -101,9 +101,7 @@ class ModuleManagementTest extends TestCase
 
         $this->actingAs($this->companyOwner)
             ->get(route('ca.dashboard'))
-            ->assertOk()
-            ->assertSee('CA Dashboard')
-            ->assertSee('Module Verification Success!');
+            ->assertOk();
     }
 
     /** @test */

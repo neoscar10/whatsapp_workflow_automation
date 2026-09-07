@@ -175,6 +175,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Company Verification
     Route::prefix('company')->name('company.')->middleware('auth:sanctum')->group(function () {
+        Route::post('/mode-toggle', [\App\Http\Controllers\Api\V1\Company\CompanyModeController::class, 'toggleMode'])->name('mode-toggle');
+
         Route::prefix('verification')->name('verification.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'index'])->name('index');
             Route::post('/documents', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'uploadDocument'])->name('documents.store');

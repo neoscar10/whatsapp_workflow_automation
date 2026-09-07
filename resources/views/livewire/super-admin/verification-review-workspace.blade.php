@@ -160,7 +160,15 @@
                 @endif
                 <!-- Preview area -->
                 <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[300px]">
-                    @if($previewUrl)
+                    @if($latest && ($latest->text_value || $latest->mime_type === 'text/plain'))
+                        <div class="p-8 w-full max-w-xl text-center space-y-4">
+                            <span class="material-symbols-outlined text-[48px] text-primary">short_text</span>
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Submitted Information</h4>
+                            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-inner text-left font-mono text-sm font-bold text-slate-900 dark:text-white select-all break-all">
+                                {{ $latest->text_value ?? $latest->file_name }}
+                            </div>
+                        </div>
+                    @elseif($previewUrl)
                         @if(Str::startsWith($fileMime, 'image/'))
                             <img src="{{ $previewUrl }}" class="max-w-full max-h-[400px] object-contain p-4" />
                         @elseif($fileMime === 'application/pdf')
@@ -178,12 +186,10 @@
                     @else
                         <div class="p-8 text-center text-slate-400 dark:text-slate-500">
                             <span class="material-symbols-outlined text-[48px] mb-2 text-slate-350">cloud_off</span>
-                            <p class="text-xs font-bold">No file has been uploaded for this document type yet.</p>
+                            <p class="text-xs font-bold">No file or input has been submitted for this requirement yet.</p>
                         </div>
                     @endif
                 </div>
-
-
 
                 <!-- Expiry Metadata if exists -->
                 @if($latest && ($latest->issue_date || $latest->expiry_date))
@@ -201,7 +207,7 @@
 
                 <!-- Version History list -->
                 <div class="space-y-3">
-                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">File Version Log</h4>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Version Log</h4>
                     <div class="divide-y divide-slate-100 dark:divide-slate-800">
                         @forelse($focusedDoc->versions as $v)
                             <div class="py-3 flex items-center justify-between gap-4 text-xs">
@@ -220,12 +226,18 @@
                                             {{ str_replace('_', ' ', $v->status) }}
                                         </span>
                                     </div>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">Uploaded by {{ $v->uploader?->name ?? 'N/A' }} on {{ $v->created_at->format('Y-m-d H:i') }}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">Submitted by {{ $v->uploader?->name ?? 'N/A' }} on {{ $v->created_at->format('Y-m-d H:i') }}</p>
                                 </div>
-                                <a href="{{ $v->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-350 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-850 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-xs">download</span>
-                                    <span>Download</span>
-                                </a>
+                                @if($v->text_value || $v->mime_type === 'text/plain')
+                                    <span class="font-mono text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                                        {{ $v->text_value ?? $v->file_name }}
+                                    </span>
+                                @else
+                                    <a href="{{ $v->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-350 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-850 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">download</span>
+                                        <span>Download</span>
+                                    </a>
+                                @endif
                             </div>
                         @empty
                             <p class="text-slate-400 text-xs py-4 text-center">No document versions uploaded yet.</p>

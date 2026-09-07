@@ -21,6 +21,7 @@ class BusinessVerificationDashboard extends Component
     // Upload Form State
     public $selectedDocTypeId = null;
     public $file = null;
+    public $inputValue = null;
     public $issueDate = null;
     public $expiryDate = null;
 
@@ -85,26 +86,41 @@ class BusinessVerificationDashboard extends Component
         $company = Auth::user()->company;
         $verification = $workflowService->getOrCreateVerification($company);
 
-        // Validation Rules dynamically matching document requirements
-        $maxSizeKb = $docType->max_size_mb * 1024;
-        $formats = $docType->accepted_formats; // e.g. 'pdf,jpg,png,jpeg'
+        if ($docType->input_type === 'input') {
+            $this->validate([
+                'inputValue' => 'required|string|max:1000',
+            ]);
 
-        $this->validate([
-            'file' => "required|file|max:{$maxSizeKb}|mimes:{$formats}",
-            'issueDate' => 'nullable|date',
-            'expiryDate' => 'nullable|date|after_or_equal:issueDate',
-        ]);
+            $workflowService->submitTextInput(
+                $verification,
+                $docType,
+                $this->inputValue,
+                Auth::user()
+            );
 
-        $workflowService->uploadDocument(
-            $verification,
-            $docType,
-            $this->file,
-            Auth::user(),
-            $this->issueDate,
-            $this->expiryDate
-        );
+            session()->flash('success', "{$docType->name} submitted successfully and is pending review.");
+        } else {
+            // Validation Rules dynamically matching document requirements
+            $maxSizeKb = $docType->max_size_mb * 1024;
+            $formats = $docType->accepted_formats; // e.g. 'pdf,jpg,png,jpeg'
 
-        session()->flash('success', "{$docType->name} uploaded successfully and is pending review.");
+            $this->validate([
+                'file' => "required|file|max:{$maxSizeKb}|mimes:{$formats}",
+                'issueDate' => 'nullable|date',
+                'expiryDate' => 'nullable|date|after_or_equal:issueDate',
+            ]);
+
+            $workflowService->uploadDocument(
+                $verification,
+                $docType,
+                $this->file,
+                Auth::user(),
+                $this->issueDate,
+                $this->expiryDate
+            );
+
+            session()->flash('success', "{$docType->name} uploaded successfully and is pending review.");
+        }
 
         $this->closeUploadModal();
         $this->dispatch('refreshVerification');
@@ -114,6 +130,7 @@ class BusinessVerificationDashboard extends Component
     {
         $this->selectedDocTypeId = null;
         $this->file = null;
+        $this->inputValue = null;
         $this->issueDate = null;
         $this->expiryDate = null;
         $this->resetErrorBag();
