@@ -68,6 +68,12 @@ class WhatsAppTemplateController extends Controller
         $account = WhatsAppAccount::where('company_id', $company->id)->first();
 
         if (!$account) {
+            if ($company->status === 'demo') {
+                return $this->successResponse(
+                    ['status' => 'Successfully synced templates (Demo Mode).'],
+                    'Templates synced successfully.'
+                );
+            }
             return $this->errorResponse('WhatsApp account not found for this company.', [], 404);
         }
 

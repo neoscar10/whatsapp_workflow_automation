@@ -13,8 +13,9 @@ class WhatsAppPhoneNumberService
     {
         $company = $user->company;
         if ($company && $company->status === 'demo') {
-            if ($company->demo_whatsapp_phone_number_id) {
-                return WhatsAppPhoneNumber::where('id', $company->demo_whatsapp_phone_number_id)
+            $demoNumberId = $this->resolveDemoPhoneNumberId($company);
+            if ($demoNumberId) {
+                return WhatsAppPhoneNumber::where('id', $demoNumberId)
                     ->paginate($filters['per_page'] ?? 10);
             }
             return WhatsAppPhoneNumber::whereRaw('1 = 0')->paginate($filters['per_page'] ?? 10);
@@ -42,7 +43,8 @@ class WhatsAppPhoneNumberService
     {
         $company = $user->company;
         if ($company && $company->status === 'demo') {
-            $hasDemoNumber = (bool)$company->demo_whatsapp_phone_number_id;
+            $demoNumberId = $this->resolveDemoPhoneNumberId($company);
+            $hasDemoNumber = (bool)$demoNumberId;
             return [
                 'all_count' => $hasDemoNumber ? 1 : 0,
                 'active_count' => $hasDemoNumber ? 1 : 0,
@@ -123,11 +125,33 @@ class WhatsAppPhoneNumberService
     public function findForUser(User $user, int $numberId): WhatsAppPhoneNumber
     {
         $company = $user->company;
-        if ($company && $company->status === 'demo' && $company->demo_whatsapp_phone_number_id == $numberId) {
-            return WhatsAppPhoneNumber::findOrFail($numberId);
+        if ($company && $company->status === 'demo') {
+            $demoNumberId = $this->resolveDemoPhoneNumberId($company);
+            if ($demoNumberId && $demoNumberId == $numberId) {
+                return WhatsAppPhoneNumber::findOrFail($numberId);
+            }
         }
 
         return WhatsAppPhoneNumber::where('company_id', $user->company_id)
             ->findOrFail($numberId);
+    }
+
+    protected function resolveDemoPhoneNumberId(\App\Models\Company $company): ?int
+    {
+        if ($company->demo_whatsapp_phone_number_id) {
+            return $company->demo_whatsapp_phone_number_id;
+        }
+
+        $systemDemoCompany = \App\Models\Company::where('slug', 'system-demo')->first();
+        if ($systemDemoCompany) {
+            $id = WhatsAppPhoneNumber::where('company_id', $systemDemoCompany->id)
+                ->where('status', 'active')
+                ->value('id');
+            if ($id) {
+                return $id;
+            }
+        }
+
+        return WhatsAppPhoneNumber::where('status', 'active')->value('id');
     }
 }

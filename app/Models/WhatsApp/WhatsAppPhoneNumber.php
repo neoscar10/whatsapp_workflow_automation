@@ -52,8 +52,20 @@ class WhatsAppPhoneNumber extends Model
     {
         $company = \App\Models\Company::find($companyId);
         if ($company && $company->status === 'demo') {
-            if ($company->demo_whatsapp_phone_number_id) {
-                return $query->where('id', $company->demo_whatsapp_phone_number_id);
+            $demoNumberId = $company->demo_whatsapp_phone_number_id;
+            if (!$demoNumberId) {
+                $systemDemoCompany = \App\Models\Company::where('slug', 'system-demo')->first();
+                if ($systemDemoCompany) {
+                    $demoNumberId = static::where('company_id', $systemDemoCompany->id)
+                        ->where('status', 'active')
+                        ->value('id');
+                }
+                if (!$demoNumberId) {
+                    $demoNumberId = static::where('status', 'active')->value('id');
+                }
+            }
+            if ($demoNumberId) {
+                return $query->where('id', $demoNumberId);
             }
             return $query->whereRaw('1 = 0');
         }

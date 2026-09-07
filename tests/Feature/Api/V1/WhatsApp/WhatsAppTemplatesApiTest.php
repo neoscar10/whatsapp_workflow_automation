@@ -150,4 +150,28 @@ class WhatsAppTemplatesApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('message', 'Template deleted successfully.');
     }
+
+    public function test_demo_company_can_sync_templates_gracefully()
+    {
+        $demoCompany = Company::create([
+            'name' => 'Demo Company',
+            'slug' => 'demo-company',
+            'status' => 'demo',
+            'primary_email' => 'demo@company.com',
+        ]);
+
+        $demoUser = User::create([
+            'name' => 'Demo User',
+            'email' => 'demouser@example.com',
+            'password' => bcrypt('password'),
+            'company_id' => $demoCompany->id,
+        ]);
+
+        $response = $this->actingAs($demoUser, 'sanctum')
+            ->postJson(route('api.v1.whatsapp.templates.sync'));
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('message', 'Templates synced successfully.');
+    }
 }

@@ -40,7 +40,24 @@ class WhatsAppSetupController extends Controller
         $account = WhatsAppAccount::where('company_id', $company->id)->first();
 
         if (!$account) {
-            return $this->errorResponse('WhatsApp account not found.', [], 404);
+            if ($company->status === 'demo') {
+                $account = new WhatsAppAccount([
+                    'id' => 0,
+                    'company_id' => $company->id,
+                    'waba_id' => 'demo_waba_sandbox_id',
+                    'business_id' => 'demo_business_id',
+                    'connection_status' => 'connected',
+                    'webhook_status' => 'verified',
+                    'webhook_callback_url' => url('/api/v1/webhooks/whatsapp'),
+                    'webhook_verify_token' => 'demo_verify_token',
+                    'webhook_subscription_status' => 'subscribed',
+                    'connected_at' => now(),
+                    'last_verified_at' => now(),
+                    'last_synced_at' => now(),
+                ]);
+            } else {
+                return $this->errorResponse('WhatsApp account not found.', [], 404);
+            }
         }
 
         return $this->successResponse(

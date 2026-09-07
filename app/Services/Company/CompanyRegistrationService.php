@@ -32,6 +32,17 @@ class CompanyRegistrationService
                 $count++;
             }
 
+            $demoCompany = Company::where('slug', 'system-demo')->first();
+            $demoPhoneNumberId = null;
+            if ($demoCompany) {
+                $demoPhoneNumberId = \App\Models\WhatsApp\WhatsAppPhoneNumber::where('company_id', $demoCompany->id)
+                    ->where('status', 'active')
+                    ->value('id');
+            }
+            if (!$demoPhoneNumberId) {
+                $demoPhoneNumberId = \App\Models\WhatsApp\WhatsAppPhoneNumber::where('status', 'active')->value('id');
+            }
+
             $company = Company::create([
                 'name' => $companyName,
                 'slug' => $companySlug,
@@ -40,6 +51,7 @@ class CompanyRegistrationService
                 'country' => $data['country'] ?? 'IN',
                 'demo_credits' => $data['demo_credits'] ?? 100.0000,
                 'demo_ends_at' => now()->addDays(14),
+                'demo_whatsapp_phone_number_id' => $demoPhoneNumberId,
                 'trial_starts_at' => now(),
                 'trial_ends_at' => now()->addDays(14),
             ]);
