@@ -101,6 +101,7 @@
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                     @forelse($verifications as $ver)
                         @php
+                            $isSubmitted = $ver->submitted_at !== null || in_array($ver->status, ['under_review', 'partially_approved', 'verified', 'rejected', 'suspended']);
                             $statusColors = [
                                 'not_started' => 'text-slate-500 dark:text-slate-400',
                                 'in_progress' => 'text-amber-600 dark:text-amber-400',
@@ -113,11 +114,13 @@
                             ];
                             $textColor = $statusColors[$ver->status] ?? 'text-slate-500';
                             
-                            // Count pending docs
+                            // Count pending docs only if submitted
                             $pendingDocsCount = 0;
-                            foreach ($ver->documents as $doc) {
-                                if ($doc->latestVersion && $doc->latestVersion->status === 'pending_review') {
-                                    $pendingDocsCount++;
+                            if ($isSubmitted) {
+                                foreach ($ver->documents as $doc) {
+                                    if ($doc->latestVersion && $doc->latestVersion->status === 'pending_review') {
+                                        $pendingDocsCount++;
+                                    }
                                 }
                             }
                         @endphp
@@ -131,7 +134,7 @@
                             </td>
                             <td class="p-4">
                                 <span class="text-[10px] font-extrabold uppercase tracking-wide {{ $textColor }}">
-                                    {{ str_replace('_', ' ', $ver->status) }}
+                                    {{ $isSubmitted ? str_replace('_', ' ', $ver->status) : 'Drafting (Not Submitted)' }}
                                 </span>
                             </td>
                             <td class="p-4 w-48">
@@ -143,7 +146,12 @@
                                 </div>
                             </td>
                             <td class="p-4 text-slate-700 dark:text-slate-300 font-bold">
-                                @if($pendingDocsCount > 0)
+                                @if(!$isSubmitted)
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold text-[11px] flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">hourglass_empty</span>
+                                        <span>Awaiting Submit</span>
+                                    </span>
+                                @elseif($pendingDocsCount > 0)
                                     <span class="text-blue-600 dark:text-blue-400 flex items-center gap-1">
                                         <span class="material-symbols-outlined text-sm font-bold">mark_as_unread</span>
                                         <span>{{ $pendingDocsCount }} doc(s)</span>
@@ -155,7 +163,7 @@
                             <td class="p-4 text-right">
                                 <a href="{{ route('superadmin.verification-review', ['id' => $ver->id]) }}" class="px-3.5 py-1.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 inline-flex">
                                     <span class="material-symbols-outlined text-sm">rate_review</span>
-                                    <span>Review Workspace</span>
+                                    <span>{{ $isSubmitted ? 'Review Workspace' : 'View Status' }}</span>
                                 </a>
                             </td>
                         </tr>
