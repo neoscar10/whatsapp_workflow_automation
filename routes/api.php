@@ -52,6 +52,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::prefix('chats')->name('chats.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'store'])->name('store');
+            Route::post('/inject-message', [\App\Http\Controllers\Api\V1\Chat\ExternalChatMessageController::class, 'injectMessage'])->name('inject-message');
             Route::get('/{conversation}', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'show'])->name('show');
             Route::post('/{conversation}/close', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'close'])->name('close');
             Route::post('/{conversation}/reopen', [\App\Http\Controllers\Api\V1\Chat\ChatController::class, 'reopen'])->name('reopen');
