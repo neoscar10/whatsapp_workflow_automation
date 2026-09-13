@@ -1,16 +1,10 @@
 <div class="mx-auto w-full max-w-5xl p-6 md:p-8 space-y-6 flex-1 overflow-y-auto no-scrollbar">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Business Verification</h1>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Tell us about your business and provide the official documents that apply to your entity. We’ll review the information before your business is submitted for WhatsApp onboarding.
-            </p>
-        </div>
-        <div class="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-full shadow-sm shrink-0 self-start md:self-auto flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm text-primary">lock</span>
-            <span>Secure onboarding · Human review</span>
-        </div>
+    <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Business Verification</h1>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Tell us about your business and provide the official documents that apply to your entity. We’ll review the information before your business is submitted for WhatsApp onboarding.
+        </p>
     </div>
 
     <!-- Session Flash Message -->
