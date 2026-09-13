@@ -1,7 +1,7 @@
 <div class="p-8 flex gap-8 h-[calc(100vh-80px)] overflow-hidden">
     <!-- Left Column: Metadata & Checklist -->
     <div class="w-4/12 flex flex-col gap-6 overflow-y-auto no-scrollbar pr-2 h-full">
-        <!-- Back Button & Header -->
+        <!-- Back Button & Action Controls Header -->
         <div class="flex items-center justify-between">
             <a href="{{ route('superadmin.verification-queue') }}" class="text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 text-xs font-bold flex items-center gap-1">
                 <span class="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -9,18 +9,32 @@
             </a>
 
             <!-- Status Controls -->
-            <div class="flex items-center gap-3">
-                <a href="{{ route('superadmin.verification-review.download-all', ['id' => $verification->id]) }}" class="px-3 py-1.5 bg-primary hover:bg-primary-dark text-white text-[10px] font-bold rounded-lg uppercase tracking-wide flex items-center gap-1 shadow-sm">
-                    <span class="material-symbols-outlined text-[14px]">download</span>
-                    <span>Download All</span>
-                </a>
+            <div class="flex items-center gap-2">
+                @if($verification->documents->isNotEmpty())
+                    <a href="{{ route('superadmin.verification-review.download-all', ['id' => $verification->id]) }}" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg uppercase tracking-wide flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">download</span>
+                        <span>Files</span>
+                    </a>
+                @endif
+
                 @if($verification->status === 'suspended')
-                    <button type="button" wire:click="unsuspendVerification" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide">
-                        Lift Suspension
+                    <button type="button" wire:click="unsuspendVerification" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide">
+                        Unsuspend
                     </button>
                 @else
-                    <button type="button" wire:click="suspendVerification" class="px-3 py-1.5 bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-750 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide">
-                        Suspend Verification
+                    <button type="button" wire:click="suspendVerification" class="px-2.5 py-1.5 bg-slate-900 hover:bg-black dark:bg-slate-800 dark:hover:bg-slate-750 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide">
+                        Suspend
+                    </button>
+                @endif
+
+                @if($verification->business_type && $verification->status !== 'verified')
+                    <button type="button" wire:click="approveVerification" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide flex items-center gap-1 shadow-sm">
+                        <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                        <span>Approve All</span>
+                    </button>
+                    <button type="button" wire:click="rejectVerification" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg uppercase tracking-wide flex items-center gap-1 shadow-sm">
+                        <span class="material-symbols-outlined text-[14px]">cancel</span>
+                        <span>Reject</span>
                     </button>
                 @endif
             </div>
@@ -29,139 +43,151 @@
         <!-- Summary Info Card -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
             <div class="flex items-center gap-4">
-                <div class="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold uppercase text-lg">
+                <div class="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold uppercase text-lg shrink-0">
                     {{ substr($verification->company->name, 0, 2) }}
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ $verification->company->name }}</h3>
-                    <p class="text-xs text-slate-450 dark:text-slate-500">Registered Country: <span class="uppercase font-bold">{{ $verification->company->country }}</span></p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Country: <span class="uppercase font-bold text-slate-800 dark:text-slate-200">{{ $verification->company->country }}</span></p>
                 </div>
             </div>
 
             <!-- Verification Progress Bar -->
-            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-bold text-slate-500">Current Status:
-                        <span class="ml-1 uppercase text-primary font-bold">{{ str_replace('_', ' ', $verification->status) }}</span>
+                        <span class="ml-1 uppercase text-primary font-extrabold">{{ str_replace('_', ' ', $verification->status) }}</span>
                     </span>
                     <span class="font-bold text-slate-900 dark:text-white">{{ $verification->progress_percentage }}% Approved</span>
                 </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
-                    <div class="bg-primary h-1.5 rounded-full" style="width: {{ $verification->progress_percentage }}%"></div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-primary h-1.5 rounded-full transition-all duration-300" style="width: {{ $verification->progress_percentage }}%"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Business Onboarding Details Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-                <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Submitted Business Info</h4>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                    {{ $verification->business_type ?: 'General Entity' }}
-                </span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-100 dark:border-slate-800 pt-3">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Legal Name</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->legal_name ?: $verification->company->name }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">WA Display Name</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->display_name ?: '—' }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Category</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->category ?: '—' }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Website</span>
-                    @if($verification->website)
-                        <a href="{{ $verification->website }}" target="_blank" class="text-primary hover:underline font-bold truncate block">{{ $verification->website }}</a>
-                    @else
-                        <span class="text-slate-400">—</span>
-                    @endif
-                </div>
-                <div class="col-span-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Registered Address</span>
-                    <span class="font-medium text-slate-800 dark:text-slate-200 block leading-snug">{{ $verification->address ?: '—' }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Authorized Signatory</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_name ?: '—' }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Designation</span>
-                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_designation ?: '—' }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Email</span>
-                    <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_email ?: $verification->company->primary_email }}</span>
-                </div>
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Phone</span>
-                    <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_phone ?: '—' }}</span>
-                </div>
-                <div class="col-span-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">WhatsApp Number to Register</span>
-                    <span class="font-mono text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">{{ $verification->wa_phone ?: '—' }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Session Message inside workstation -->
+        <!-- Session Flash Message -->
         @if (session()->has('success_review'))
-            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                {{ session('success_review') }}
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 p-4 text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">check_circle</span>
+                <span>{{ session('success_review') }}</span>
             </div>
         @endif
 
-        <!-- Document Checklist Selection List -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Required Checklist</h4>
-            <div class="space-y-3">
-                @foreach($verification->documents as $doc)
-                    @php
-                        $latest = $doc->latestVersion;
-                        $statusBadge = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-                        $statusText = 'Not Submitted';
-                        
-                        if ($doc->status === 'approved') {
-                            $statusBadge = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300';
-                            $statusText = 'Approved';
-                        } elseif ($doc->status === 'rejected') {
-                            $statusBadge = 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300';
-                            $statusText = 'Rejected';
-                        } elseif ($doc->status === 'pending_review') {
-                            $statusBadge = 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300';
-                            $statusText = 'Pending Review';
-                        }
-                    @endphp
-                    <div 
-                        wire:click="selectDocument('{{ $doc->id }}')"
-                        class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-4 {{ $selectedDocId === $doc->id ? 'bg-primary/10 dark:bg-primary/20 border-primary ring-2 ring-primary/20' : 'bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700' }}"
-                    >
-                        <div>
-                            <span class="px-1.5 py-0.5 text-[8px] font-bold rounded uppercase tracking-wider {{ $doc->documentType->is_required ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/30' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-700/30' }}">
-                                {{ $doc->documentType->is_required ? 'Required' : 'Optional' }}
-                            </span>
-                            <h5 class="font-bold text-slate-900 dark:text-white mt-1.5 text-xs leading-snug">{{ $doc->documentType->name }}</h5>
-                            @if($latest)
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">Uploaded: {{ $latest->created_at->format('Y-m-d') }}</p>
-                            @endif
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase shrink-0 {{ $statusBadge }}">
-                            {{ $statusText }}
-                        </span>
-                    </div>
-                @endforeach
+        @if(!$verification->business_type)
+            <!-- EMPTY / NOT SUBMITTED STATE -->
+            <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-6 shadow-sm text-center space-y-3">
+                <span class="material-symbols-outlined text-[44px] text-amber-600 dark:text-amber-400">pending_actions</span>
+                <h4 class="text-sm font-bold text-amber-900 dark:text-amber-300">No Business Type Selected Yet</h4>
+                <p class="text-xs text-amber-700/90 dark:text-amber-400/80 leading-relaxed">
+                    This company has not selected a business entity type or submitted onboarding information yet. Once the user completes Step 1 at <code class="bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded font-mono text-[11px]">/company/verification</code>, their entity information and required documents will automatically populate here.
+                </p>
             </div>
-        </div>
+        @else
+            <!-- SUBMITTED BUSINESS DETAILS CARD -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Submitted Business Info</h4>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-primary/10 text-primary dark:bg-primary/20">
+                        {{ $verification->business_type }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-100 dark:border-slate-800 pt-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Legal Name</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $verification->legal_name ?: $verification->company->name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">WA Display Name</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $verification->display_name ?: '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Category</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $verification->category ?: '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Website</span>
+                        @if($verification->website)
+                            <a href="{{ $verification->website }}" target="_blank" class="text-primary hover:underline font-bold truncate block">{{ $verification->website }}</a>
+                        @else
+                            <span class="text-slate-400">—</span>
+                        @endif
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Registered Address</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-200 block leading-snug">{{ $verification->address ?: '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Signatory</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_name ?: '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Designation</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_designation ?: '—' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Email</span>
+                        <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_email ?: $verification->company->primary_email }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Phone</span>
+                        <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_phone ?: '—' }}</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase block">WhatsApp Number to Register</span>
+                        <span class="font-mono text-primary font-extrabold text-sm">{{ $verification->wa_phone ?: '—' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Checklist Selection List -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Required Checklist ({{ $verification->business_type }})</h4>
+                <div class="space-y-3">
+                    @foreach($verification->documents as $doc)
+                        @php
+                            $latest = $doc->latestVersion;
+                            $statusBadge = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+                            $statusText = 'Not Submitted';
+                            
+                            if ($doc->status === 'approved') {
+                                $statusBadge = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+                                $statusText = 'Approved';
+                            } elseif ($doc->status === 'rejected') {
+                                $statusBadge = 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
+                                $statusText = 'Rejected';
+                            } elseif ($doc->status === 'pending_review') {
+                                $statusBadge = 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300';
+                                $statusText = 'Pending Review';
+                            }
+                        @endphp
+                        <div 
+                            wire:click="selectDocument('{{ $doc->id }}')"
+                            class="p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-4 {{ $selectedDocId === $doc->id ? 'bg-primary/10 dark:bg-primary/20 border-primary ring-2 ring-primary/20' : 'bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700' }}"
+                        >
+                            <div>
+                                <span class="px-1.5 py-0.5 text-[8px] font-bold rounded uppercase tracking-wider {{ $doc->documentType->is_required ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }}">
+                                    {{ $doc->documentType->is_required ? 'Required' : 'Optional' }}
+                                </span>
+                                <h5 class="font-bold text-slate-900 dark:text-white mt-1.5 text-xs leading-snug">{{ $doc->documentType->name }}</h5>
+                                @if($latest)
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">Uploaded: {{ $latest->created_at->format('Y-m-d') }}</p>
+                                @endif
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wide uppercase shrink-0 {{ $statusBadge }}">
+                                {{ $statusText }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         <!-- Activity Log Timeline -->
         @if($verification->timeline->isNotEmpty())
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
-                <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Activity Timeline</h4>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Activity Timeline</h4>
                 <div class="relative border-l border-slate-100 dark:border-slate-800 space-y-6" style="padding-left: 40px;">
                     @foreach($verification->timeline as $time)
                         <div class="relative">
@@ -181,7 +207,7 @@
                                     <span class="text-xs font-bold text-slate-900 dark:text-white">{{ $time->title }}</span>
                                     <span class="text-[10px] text-slate-400">{{ $time->created_at->diffForHumans() }}</span>
                                 </div>
-                                <p class="text-xs text-slate-450 mt-1 leading-relaxed">{{ $time->description }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{{ $time->description }}</p>
                                 @if($time->actor)
                                     <p class="text-[10px] text-slate-400 mt-1">By: {{ $time->actor->name }}</p>
                                 @endif
@@ -204,19 +230,18 @@
                     <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $focusedDoc->documentType->name }}</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">File Type: {{ $fileMime ?? 'Not Uploaded' }}</p>
                 </div>
+
+                @if($latest && $latest->status === 'pending_review')
+                    <button type="button" wire:click="$set('showActionModal', true)" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-sm">
+                        <span class="material-symbols-outlined text-sm">rate_review</span>
+                        <span>Review Document</span>
+                    </button>
+                @endif
             </div>
 
             <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
-                @if($latest && $latest->status === 'pending_review')
-                    <div class="flex justify-end">
-                        <button type="button" wire:click="$set('showActionModal', true)" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-                            <span class="material-symbols-outlined text-sm">rate_review</span>
-                            <span>Take Action</span>
-                        </button>
-                    </div>
-                @endif
                 <!-- Preview area -->
-                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[300px]">
+                <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center justify-center min-h-[350px]">
                     @if($latest && ($latest->text_value || $latest->mime_type === 'text/plain'))
                         <div class="p-8 w-full max-w-xl text-center space-y-4">
                             <span class="material-symbols-outlined text-[48px] text-primary">short_text</span>
@@ -227,14 +252,14 @@
                         </div>
                     @elseif($previewUrl)
                         @if(Str::startsWith($fileMime, 'image/'))
-                            <img src="{{ $previewUrl }}" class="max-w-full max-h-[400px] object-contain p-4" />
+                            <img src="{{ $previewUrl }}" class="max-w-full max-h-[450px] object-contain p-4 rounded-xl" />
                         @elseif($fileMime === 'application/pdf')
-                            <iframe src="{{ $previewUrl }}" class="w-full h-[400px] border-none"></iframe>
+                            <iframe src="{{ $previewUrl }}" class="w-full h-[450px] border-none"></iframe>
                         @else
-                            <div class="p-8 text-center text-slate-550 dark:text-slate-400">
+                            <div class="p-8 text-center text-slate-500 dark:text-slate-400">
                                 <span class="material-symbols-outlined text-[48px] mb-2 text-slate-400">description</span>
                                 <p class="text-xs font-bold mb-3">{{ $latest->file_name }}</p>
-                                <a href="{{ $previewUrl }}" target="_blank" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg transition-colors inline-flex items-center gap-1.5">
+                                <a href="{{ $previewUrl }}" target="_blank" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-sm">open_in_new</span>
                                     <span>Download & Open File</span>
                                 </a>
@@ -242,7 +267,7 @@
                         @endif
                     @else
                         <div class="p-8 text-center text-slate-400 dark:text-slate-500">
-                            <span class="material-symbols-outlined text-[48px] mb-2 text-slate-350">cloud_off</span>
+                            <span class="material-symbols-outlined text-[48px] mb-2 text-slate-400">cloud_off</span>
                             <p class="text-xs font-bold">No file or input has been submitted for this requirement yet.</p>
                         </div>
                     @endif
@@ -250,7 +275,7 @@
 
                 <!-- Expiry Metadata if exists -->
                 @if($latest && ($latest->issue_date || $latest->expiry_date))
-                    <div class="grid grid-cols-2 gap-4 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl bg-slate-50/20 dark:bg-slate-800/10 text-xs text-slate-600 dark:text-slate-450">
+                    <div class="grid grid-cols-2 gap-4 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20 text-xs text-slate-600 dark:text-slate-400">
                         <div>
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Issue Date</span>
                             <span class="font-bold text-slate-900 dark:text-white">{{ $latest->issue_date ? $latest->issue_date->format('Y-m-d') : 'N/A' }}</span>
@@ -265,7 +290,7 @@
                 <!-- Version History list -->
                 <div class="space-y-3">
                     <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Version Log</h4>
-                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800 border-t border-slate-100 dark:border-slate-800">
                         @forelse($focusedDoc->versions as $v)
                             <div class="py-3 flex items-center justify-between gap-4 text-xs">
                                 <div>
@@ -273,13 +298,13 @@
                                         <span class="font-bold text-slate-800 dark:text-white">v{{ $v->version_number }}</span>
                                         @php
                                             $vStyles = [
-                                                'approved' => 'bg-emerald-100 text-emerald-850 dark:bg-emerald-950 dark:text-emerald-400',
-                                                'rejected' => 'bg-rose-100 text-rose-850 dark:bg-rose-950 dark:text-rose-450',
+                                                'approved' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400',
+                                                'rejected' => 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-450',
                                                 'pending_review' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
                                             ];
                                             $styleBadge = $vStyles[$v->status] ?? 'bg-slate-100 text-slate-700';
                                         @endphp
-                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {{ $styleBadge }}">
+                                        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {{ $styleBadge }}">
                                             {{ str_replace('_', ' ', $v->status) }}
                                         </span>
                                     </div>
@@ -290,7 +315,7 @@
                                         {{ $v->text_value ?? $v->file_name }}
                                     </span>
                                 @else
-                                    <a href="{{ $v->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-350 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-850 flex items-center gap-1">
+                                    <a href="{{ $v->getDownloadUrl() }}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-350 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-800 flex items-center gap-1">
                                         <span class="material-symbols-outlined text-xs">download</span>
                                         <span>Download</span>
                                     </a>
@@ -304,7 +329,7 @@
             </div>
         @else
             <div class="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-400 dark:text-slate-500">
-                <span class="material-symbols-outlined text-[48px] text-slate-350 mb-2">find_in_page</span>
+                <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-700 mb-2">find_in_page</span>
                 <h4 class="font-bold text-slate-900 dark:text-white">No document selected</h4>
                 <p class="text-xs max-w-xs mt-1 leading-relaxed">Select a verification document from the checklist on the left to begin reviewing files.</p>
             </div>
@@ -313,19 +338,17 @@
 
     <!-- Rejection Dialog Modal -->
     @if($showRejectionDialog)
-        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white">Reject Document</h3>
-                    <button wire:click="closeRejectionDialog" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
-                        <span class="material-symbols-outlined text-[20px]">close</span>
-                    </button>
+                    <button wire:click="closeRejectionDialog" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold">✕</button>
                 </div>
                 <form wire:submit.prevent="reject">
                     <div class="p-6 space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Rejection Reason Category</label>
-                            <select wire:model="rejectionReason" class="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 text-xs font-semibold outline-none text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 transition-all">
+                            <label class="block text-xs font-bold text-slate-900 dark:text-white uppercase mb-2">Rejection Reason Category</label>
+                            <select wire:model="rejectionReason" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-3 text-xs font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 transition-all">
                                 <option value="document_unclear">Document Unclear</option>
                                 <option value="expired_document">Expired Document</option>
                                 <option value="wrong_document">Wrong Document</option>
@@ -335,20 +358,20 @@
                                 <option value="fraud_concern">Fraud Concern</option>
                                 <option value="other">Other / Custom</option>
                             </select>
-                            @error('rejectionReason') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            @error('rejectionReason') <span class="text-xs text-rose-500 mt-1 block font-bold">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase mb-2">Reviewer Explanation Note</label>
-                            <textarea wire:model="reviewerNotes" rows="4" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none" placeholder="Provide instructions on what the user needs to correct..."></textarea>
-                            @error('reviewerNotes') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
+                            <label class="block text-xs font-bold text-slate-900 dark:text-white uppercase mb-2">Reviewer Explanation Note</label>
+                            <textarea wire:model="reviewerNotes" rows="4" class="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Provide instructions on what the user needs to correct..."></textarea>
+                            @error('reviewerNotes') <span class="text-xs text-rose-500 mt-1 block font-bold">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                        <button type="button" wire:click="closeRejectionDialog" class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-750 dark:text-slate-350 rounded-lg transition-colors">
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+                        <button type="button" wire:click="closeRejectionDialog" class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 text-xs font-bold bg-rose-650 hover:bg-rose-700 text-white rounded-lg transition-colors">
+                        <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white">
                             Confirm Rejection
                         </button>
                     </div>
@@ -359,26 +382,24 @@
 
     <!-- Action Modal -->
     @if($showActionModal && $latest)
-        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white">Review {{ $focusedDoc->documentType->name }}</h3>
-                    <button wire:click="$set('showActionModal', false)" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
-                        <span class="material-symbols-outlined text-[20px]">close</span>
-                    </button>
+                    <button wire:click="$set('showActionModal', false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold">✕</button>
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-550 dark:text-slate-400 uppercase">Reviewer Notes (Optional)</label>
-                        <textarea wire:model="reviewerNotes" rows="3" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none" placeholder="Provide notes, validations, or internal memos..."></textarea>
+                        <label class="block text-xs font-bold text-slate-900 dark:text-white uppercase">Reviewer Notes (Optional)</label>
+                        <textarea wire:model="reviewerNotes" rows="3" class="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Provide notes, validations, or internal memos..."></textarea>
                     </div>
                 </div>
-                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                    <button type="button" wire:click="openRejectionDialog('{{ $latest->id }}')" class="px-4 py-2 bg-rose-650 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+                    <button type="button" wire:click="openRejectionDialog('{{ $latest->id }}')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">close</span>
                         <span>Reject</span>
                     </button>
-                    <button type="button" wire:click="approve('{{ $latest->id }}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
+                    <button type="button" wire:click="approve('{{ $latest->id }}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">check</span>
                         <span>Approve</span>
                     </button>
