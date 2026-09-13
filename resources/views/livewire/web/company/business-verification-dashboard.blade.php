@@ -515,17 +515,44 @@
                             Format: PDF, JPG or PNG up to 10 MB.
                         </div>
 
-                        <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center bg-slate-50/50 dark:bg-slate-950">
+                        <div 
+                            x-data="{ isUploading: false, progress: 0 }"
+                            x-on:livewire-upload-start="isUploading = true"
+                            x-on:livewire-upload-finish="isUploading = false"
+                            x-on:livewire-upload-error="isUploading = false"
+                            x-on:livewire-upload-progress="progress = $event.detail.progress"
+                            class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center bg-slate-50/50 dark:bg-slate-950 relative overflow-hidden"
+                        >
                             <input type="file" id="onboard_file_input" class="hidden" wire:model="file" accept=".pdf,.jpg,.jpeg,.png" />
-                            <label for="onboard_file_input" class="cursor-pointer">
+                            <label for="onboard_file_input" class="cursor-pointer block">
                                 <span class="material-symbols-outlined text-3xl text-primary mb-1 block">upload_file</span>
                                 <span class="block text-xs font-bold text-primary mb-1">Click to select file</span>
                                 <span class="text-[10px] text-slate-400 block">Accepted: PDF, JPG, PNG</span>
                             </label>
 
+                            <!-- Live File Transfer Progress Indicator -->
+                            <div x-show="isUploading" class="mt-4 p-3 bg-primary/10 dark:bg-primary/20 border border-primary/20 rounded-xl text-left space-y-2">
+                                <div class="flex justify-between items-center text-xs font-bold text-primary">
+                                    <span class="flex items-center gap-2">
+                                        <svg class="animate-spin size-4 text-primary" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Uploading file to server...
+                                    </span>
+                                    <span x-text="progress + '%'"></span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-primary h-2 rounded-full transition-all duration-150" :style="'width: ' + progress + '%'"></div>
+                                </div>
+                            </div>
+
                             @if($file)
-                                <div class="mt-3 p-2.5 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white truncate">
-                                    {{ $file->getClientOriginalName() }} ({{ round($file->getSize() / 1024 / 1024, 2) }} MB)
+                                <div class="mt-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white flex items-center justify-between gap-2">
+                                    <span class="truncate">{{ $file->getClientOriginalName() }} ({{ round($file->getSize() / 1024 / 1024, 2) }} MB)</span>
+                                    <span class="text-emerald-500 font-extrabold shrink-0 text-xs flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">check_circle</span> Ready
+                                    </span>
                                 </div>
                             @endif
                         </div>
@@ -534,19 +561,28 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-900 dark:text-white mb-1">Issue Date (Optional)</label>
-                                <input type="date" wire:model="issueDate" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white" />
+                                <input type="date" wire:model="issueDate" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-primary" />
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-900 dark:text-white mb-1">Expiry Date (Optional)</label>
-                                <input type="date" wire:model="expiryDate" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white" />
+                                <input type="date" wire:model="expiryDate" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-primary" />
                             </div>
                         </div>
                     </div>
 
-                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
-                        <button type="button" wire:click="closeUploadModal" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">Cancel</button>
-                        <button type="submit" class="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs" wire:loading.attr="disabled" wire:target="file">
-                            Upload file
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 items-center">
+                        <button type="button" wire:click="closeUploadModal" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Cancel</button>
+                        <button 
+                            type="submit" 
+                            class="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20" 
+                            wire:loading.attr="disabled" 
+                            wire:target="file, submitDocument"
+                            {{ !$file ? 'disabled' : '' }}
+                        >
+                            <span wire:loading wire:target="file, submitDocument" class="animate-spin size-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
+                            <span wire:loading.remove wire:target="file, submitDocument">Upload file</span>
+                            <span wire:loading wire:target="file">Uploading file...</span>
+                            <span wire:loading wire:target="submitDocument">Saving document...</span>
                         </button>
                     </div>
                 </form>

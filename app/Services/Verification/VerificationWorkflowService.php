@@ -180,9 +180,10 @@ class VerificationWorkflowService
         ?string $issueDate = null,
         ?string $expiryDate = null
     ): CompanyVerificationDocumentVersion {
-        $verificationDoc = CompanyVerificationDocument::where('company_verification_id', $verification->id)
-            ->where('document_type_id', $documentType->id)
-            ->firstOrFail();
+        $verificationDoc = CompanyVerificationDocument::firstOrCreate([
+            'company_verification_id' => $verification->id,
+            'document_type_id' => $documentType->id,
+        ]);
 
         // Get file properties before storing
         $originalName = $file->getClientOriginalName();

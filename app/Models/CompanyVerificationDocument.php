@@ -37,6 +37,6 @@ class CompanyVerificationDocument extends Model
 
     public function latestVersion(): HasOne
     {
-        return $this->hasOne(CompanyVerificationDocumentVersion::class, 'company_verification_document_id')->latestOfMany();
+        return $this->hasOne(CompanyVerificationDocumentVersion::class, 'company_verification_document_id')->latestOfMany('version_number');
     }
 }
