@@ -179,8 +179,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::prefix('verification')->name('verification.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'index'])->name('index');
+            Route::post('/entity-type', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'selectEntityType'])->name('entity-type');
+            Route::post('/details', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'updateDetails'])->name('details');
             Route::post('/documents', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'uploadDocument'])->name('documents.store');
             Route::get('/documents/{documentTypeId}/history', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'history'])->name('documents.history');
+            Route::post('/submit', [\App\Http\Controllers\Api\V1\Company\VerificationController::class, 'submit'])->name('submit');
         });
 
         Route::prefix('profile')->name('profile.')->group(function () {
