@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-5xl p-6 md:p-8 space-y-6 flex-1 overflow-y-auto">
+<div class="mx-auto w-full max-w-5xl p-6 md:p-8 space-y-6 flex-1 overflow-y-auto no-scrollbar">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
