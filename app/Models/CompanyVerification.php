@@ -15,14 +15,27 @@ class CompanyVerification extends Model
 
     protected $fillable = [
         'company_id',
+        'business_type',
+        'legal_name',
+        'display_name',
+        'category',
+        'website',
+        'address',
+        'signatory_name',
+        'signatory_designation',
+        'business_email',
+        'business_phone',
+        'wa_phone',
         'status',
         'progress_percentage',
         'last_activity_at',
+        'submitted_at',
     ];
 
     protected $casts = [
         'progress_percentage' => 'integer',
         'last_activity_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     public function company(): BelongsTo

@@ -52,6 +52,63 @@
             </div>
         </div>
 
+        <!-- Business Onboarding Details Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+                <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Submitted Business Info</h4>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    {{ $verification->business_type ?: 'General Entity' }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-100 dark:border-slate-800 pt-3">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Legal Name</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->legal_name ?: $verification->company->name }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">WA Display Name</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->display_name ?: '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Category</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->category ?: '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Website</span>
+                    @if($verification->website)
+                        <a href="{{ $verification->website }}" target="_blank" class="text-primary hover:underline font-bold truncate block">{{ $verification->website }}</a>
+                    @else
+                        <span class="text-slate-400">—</span>
+                    @endif
+                </div>
+                <div class="col-span-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Registered Address</span>
+                    <span class="font-medium text-slate-800 dark:text-slate-200 block leading-snug">{{ $verification->address ?: '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Authorized Signatory</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_name ?: '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Designation</span>
+                    <span class="font-bold text-slate-900 dark:text-white">{{ $verification->signatory_designation ?: '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Email</span>
+                    <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_email ?: $verification->company->primary_email }}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Business Phone</span>
+                    <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $verification->business_phone ?: '—' }}</span>
+                </div>
+                <div class="col-span-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">WhatsApp Number to Register</span>
+                    <span class="font-mono text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">{{ $verification->wa_phone ?: '—' }}</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Session Message inside workstation -->
         @if (session()->has('success_review'))
             <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">

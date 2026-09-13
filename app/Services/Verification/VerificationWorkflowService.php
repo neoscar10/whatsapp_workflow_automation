@@ -17,6 +17,32 @@ use Illuminate\Support\Str;
 
 class VerificationWorkflowService
 {
+    public static array $entityRequirements = [
+        'Sole proprietorship' => [
+            ['name' => 'Business registration / licence evidence', 'description' => 'Official evidence showing that the business exists and is registered or licensed where applicable.', 'is_required' => true, 'sort_order' => 1],
+            ['name' => 'Business address evidence', 'description' => 'An official or reliable document that supports the business address entered above.', 'is_required' => true, 'sort_order' => 2],
+        ],
+        'Partnership' => [
+            ['name' => 'Partnership / registration evidence', 'description' => 'Official evidence establishing the partnership and its business registration where applicable.', 'is_required' => true, 'sort_order' => 1],
+            ['name' => 'Business address evidence', 'description' => 'An official document supporting the business address.', 'is_required' => true, 'sort_order' => 2],
+            ['name' => 'Partner / authorization evidence', 'description' => 'Use when needed to show the submitting person is authorized to act for the partnership.', 'is_required' => true, 'sort_order' => 3],
+        ],
+        'LLP' => [
+            ['name' => 'LLP registration / incorporation evidence', 'description' => 'Official evidence showing the LLP\'s registration and legal identity.', 'is_required' => true, 'sort_order' => 1],
+            ['name' => 'Business address evidence', 'description' => 'An official document supporting the registered or business address.', 'is_required' => true, 'sort_order' => 2],
+        ],
+        'Private / public company' => [
+            ['name' => 'Company incorporation / registration evidence', 'description' => 'Official evidence showing the company\'s registration and legal identity.', 'is_required' => true, 'sort_order' => 1],
+            ['name' => 'Business address evidence', 'description' => 'An official document supporting the registered or business address.', 'is_required' => true, 'sort_order' => 2],
+            ['name' => 'Authorization evidence', 'description' => 'Use when needed to show the submitting person is authorized to act for the company.', 'is_required' => true, 'sort_order' => 3],
+        ],
+        'Trust / society / NGO' => [
+            ['name' => 'Organization registration evidence', 'description' => 'Official evidence establishing the trust, society, NGO or other eligible organization.', 'is_required' => true, 'sort_order' => 1],
+            ['name' => 'Organization address evidence', 'description' => 'An official document supporting the organization\'s address.', 'is_required' => true, 'sort_order' => 2],
+            ['name' => 'Authorization evidence', 'description' => 'Use when needed to show the submitting person is authorized to act for the organization.', 'is_required' => true, 'sort_order' => 3],
+        ],
+    ];
+
     /**
      * Get or create verification state for a company.
      */
@@ -30,9 +56,77 @@ class VerificationWorkflowService
             ]
         );
 
-        $this->syncChecklist($verification);
+        if ($verification->business_type) {
+            $this->syncChecklistForEntity($verification, $verification->business_type);
+        } else {
+            $this->syncChecklist($verification);
+        }
 
         return $verification;
+    }
+
+    /**
+     * Synchronize checklist based on selected business entity type.
+     */
+    public function syncChecklistForEntity(CompanyVerification $verification, string $businessType): void
+    {
+        $template = VerificationTemplate::firstOrCreate(
+            ['country_code' => null, 'is_active' => true],
+            [
+                'name' => 'Standard Business Verification Template',
+                'description' => 'Predefined verification requirements based on business entity type.',
+                'sort_order' => 1,
+            ]
+        );
+
+        $reqs = self::$entityRequirements[$businessType] ?? self::$entityRequirements['Sole proprietorship'];
+        
+        // Add optional document
+        $allReqs = array_merge($reqs, [
+            [
+                'name' => 'Additional supporting document',
+                'description' => 'Optional. Add another official document if it helps clarify your business information.',
+                'is_required' => false,
+                'sort_order' => 99,
+            ]
+        ]);
+
+        $activeDocTypeIds = [];
+
+        foreach ($allReqs as $req) {
+            $docType = DocumentType::firstOrCreate(
+                [
+                    'verification_template_id' => $template->id,
+                    'name' => $req['name'],
+                ],
+                [
+                    'description' => $req['description'],
+                    'accepted_formats' => 'pdf,jpg,png,jpeg',
+                    'max_size_mb' => 10,
+                    'is_required' => $req['is_required'],
+                    'sort_order' => $req['sort_order'],
+                    'is_active' => true,
+                    'input_type' => 'document',
+                ]
+            );
+
+            $activeDocTypeIds[] = $docType->id;
+
+            CompanyVerificationDocument::firstOrCreate([
+                'company_verification_id' => $verification->id,
+                'document_type_id' => $docType->id,
+            ]);
+        }
+
+        // Clean up documents belonging to previous entity choices if they have no uploads yet
+        $existingDocs = CompanyVerificationDocument::where('company_verification_id', $verification->id)->get();
+        foreach ($existingDocs as $doc) {
+            if (!in_array($doc->document_type_id, $activeDocTypeIds) && $doc->status === 'not_submitted' && !$doc->latestVersion) {
+                $doc->delete();
+            }
+        }
+
+        $this->recalculateStatus($verification);
     }
 
     /**
@@ -40,10 +134,13 @@ class VerificationWorkflowService
      */
     public function syncChecklist(CompanyVerification $verification): void
     {
-        $company = $verification->company;
+        if ($verification->business_type) {
+            $this->syncChecklistForEntity($verification, $verification->business_type);
+            return;
+        }
 
         // Try country-specific template first
-        $template = VerificationTemplate::where('country_code', $company->country)
+        $template = VerificationTemplate::where('country_code', $verification->company->country ?? null)
             ->where('is_active', true)
             ->first();
 
