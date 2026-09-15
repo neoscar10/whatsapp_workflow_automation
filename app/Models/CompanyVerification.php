@@ -27,6 +27,8 @@ class CompanyVerification extends Model
         'business_phone',
         'wa_phone',
         'status',
+        'rejection_reason',
+        'rejection_notes',
         'progress_percentage',
         'last_activity_at',
         'submitted_at',

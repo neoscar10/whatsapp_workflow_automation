@@ -25,6 +25,11 @@ class VerificationReviewWorkspace extends Component
     public $rejectionReason = 'document_unclear';
     public $reviewerNotes = '';
 
+    // Overall Application Rejection Form
+    public $showAppRejectionModal = false;
+    public $appRejectionCategory = 'document_unclear';
+    public $appRejectionNotes = '';
+
     public function mount($id, VerificationWorkflowService $workflowService)
     {
         $this->verificationId = $id;
@@ -39,6 +44,18 @@ class VerificationReviewWorkspace extends Component
         if ($firstDoc) {
             $this->selectedDocId = $firstDoc->id;
         }
+    }
+
+    public function openAppRejectionModal()
+    {
+        $this->showAppRejectionModal = true;
+    }
+
+    public function closeAppRejectionModal()
+    {
+        $this->showAppRejectionModal = false;
+        $this->appRejectionNotes = '';
+        $this->resetErrorBag();
     }
 
     public function selectDocument($docId)
@@ -92,6 +109,8 @@ class VerificationReviewWorkspace extends Component
 
         $verification->update([
             'status' => 'verified',
+            'rejection_reason' => null,
+            'rejection_notes' => null,
             'progress_percentage' => 100,
             'last_activity_at' => now(),
         ]);
@@ -119,11 +138,22 @@ class VerificationReviewWorkspace extends Component
 
     public function rejectVerification(VerificationWorkflowService $workflowService)
     {
+        $this->validate([
+            'appRejectionCategory' => 'required|string',
+            'appRejectionNotes' => 'required|string|max:2000',
+        ], [
+            'appRejectionNotes.required' => 'Please enter a rejection message explaining what the company needs to update.',
+        ]);
+
         $verification = CompanyVerification::findOrFail($this->verificationId);
         $oldStatus = $verification->status;
 
+        $categoryLabel = ucwords(str_replace('_', ' ', $this->appRejectionCategory));
+
         $verification->update([
             'status' => 'rejected',
+            'rejection_reason' => $this->appRejectionCategory,
+            'rejection_notes' => $this->appRejectionNotes,
             'last_activity_at' => now(),
         ]);
 
@@ -131,10 +161,15 @@ class VerificationReviewWorkspace extends Component
         CompanyVerificationTimeline::create([
             'company_verification_id' => $verification->id,
             'event_type' => 'status_change',
-            'title' => 'Verification Rejected',
-            'description' => 'Super admin marked the verification application as requiring changes / rejected.',
+            'title' => 'Verification Rejected / Changes Requested',
+            'description' => "Reason ({$categoryLabel}): {$this->appRejectionNotes}",
             'actor_id' => Auth::id(),
-            'metadata' => ['old_status' => $oldStatus, 'new_status' => 'rejected'],
+            'metadata' => [
+                'old_status' => $oldStatus, 
+                'new_status' => 'rejected',
+                'rejection_reason' => $this->appRejectionCategory,
+                'rejection_notes' => $this->appRejectionNotes,
+            ],
         ]);
 
         // Audit Trail
@@ -142,9 +177,11 @@ class VerificationReviewWorkspace extends Component
             'company_id' => $verification->company_id,
             'user_id' => Auth::id(),
             'action' => 'reject_verification_application',
+            'metadata' => ['notes' => $this->appRejectionNotes],
         ]);
 
-        session()->flash('success_review', "Verification application marked as rejected / changes requested.");
+        session()->flash('success_review', "Verification application marked as rejected and feedback message sent to company.");
+        $this->showAppRejectionModal = false;
         $this->dispatch('$refresh');
     }
 

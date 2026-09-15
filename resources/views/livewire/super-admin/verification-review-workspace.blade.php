@@ -36,7 +36,7 @@
                     <span class="material-symbols-outlined text-base">check_circle</span>
                     <span>Approve All</span>
                 </button>
-                <button type="button" wire:click="rejectVerification" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-rose-600/20 transition-all">
+                <button type="button" wire:click="openAppRejectionModal" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-rose-600/20 transition-all">
                     <span class="material-symbols-outlined text-base">cancel</span>
                     <span>Reject</span>
                 </button>
@@ -428,6 +428,60 @@
                         <span>Approve</span>
                     </button>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Overall Application Rejection Modal -->
+    @if($showAppRejectionModal)
+        <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-rose-600 text-xl">gavel</span>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Reject Verification Application</h3>
+                    </div>
+                    <button type="button" wire:click="closeAppRejectionModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold">✕</button>
+                </div>
+                
+                <form wire:submit.prevent="rejectVerification">
+                    <div class="p-6 space-y-4">
+                        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-800 dark:text-rose-300 leading-relaxed">
+                            <strong>Note:</strong> Rejecting this application will notify the company <strong class="text-rose-950 dark:text-white">{{ $verification->company->name }}</strong> and ask them to fix their business details or resubmit supporting documents.
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">Rejection Reason Category <span class="text-rose-500">*</span></label>
+                            <select wire:model="appRejectionCategory" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-3 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500/20 transition-all">
+                                <option value="document_unclear">Document Unclear / Unreadable</option>
+                                <option value="expired_document">Expired Document</option>
+                                <option value="wrong_document">Wrong Document Uploaded</option>
+                                <option value="name_mismatch">Legal Name Mismatch</option>
+                                <option value="address_mismatch">Registered Address Mismatch</option>
+                                <option value="incomplete_document">Incomplete Document Pages</option>
+                                <option value="wa_display_name_issue">WhatsApp Display Name Ineligible</option>
+                                <option value="other">Other Reason</option>
+                            </select>
+                            @error('appRejectionCategory') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">Detailed Rejection Message / Instructions <span class="text-rose-500">*</span></label>
+                            <textarea wire:model="appRejectionNotes" rows="4" class="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500/20 transition-all resize-none" placeholder="Explain clearly to the company what information or documents need correction..."></textarea>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">This exact message will be displayed to the user on their verification screen.</span>
+                            @error('appRejectionNotes') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 items-center">
+                        <button type="button" wire:click="closeAppRejectionModal" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all">
+                            Confirm & Send Rejection
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif

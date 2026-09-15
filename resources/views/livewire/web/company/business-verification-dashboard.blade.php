@@ -399,90 +399,183 @@
         <!-- STEP 5: SUBMITTED TIMELINE & STATUS TRACKER -->
         @if($currentStep === 5)
             <div class="space-y-6 py-2">
-                <div class="flex items-center gap-4">
-                    <div class="size-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-2xl shrink-0">
-                        ✓
-                    </div>
-                    <div>
-                        <div class="text-[11px] uppercase tracking-widest font-extrabold text-primary mb-0.5">
-                            Status: {{ str_replace('_', ' ', strtoupper($verification->status)) }}
+                @if($verification->status === 'rejected')
+                    <!-- REJECTED / CHANGES REQUESTED BANNER -->
+                    <div class="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="size-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md shadow-rose-500/20">
+                                ✕
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300">
+                                        Status: Action Required / Rejected
+                                    </span>
+                                    <span class="text-[11px] text-rose-500 font-bold">
+                                        {{ $verification->last_activity_at ? $verification->last_activity_at->diffForHumans() : 'Recently' }}
+                                    </span>
+                                </div>
+                                <h2 class="text-xl font-bold text-rose-900 dark:text-white mt-1">
+                                    Changes Requested for your Verification
+                                </h2>
+                                <p class="text-xs text-rose-700 dark:text-rose-300 mt-0.5">
+                                    Our review team has evaluated your application and requested changes before it can be submitted to Meta.
+                                </p>
+                            </div>
                         </div>
-                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            @if($verification->status === 'verified')
-                                Your business verification is approved!
-                            @elseif($verification->status === 'rejected')
-                                Changes requested for your verification
-                            @else
-                                Your verification is now in review
-                            @endif
-                        </h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">We’ve received your business information and documents. You can track the process below.</p>
-                    </div>
-                </div>
 
-                <!-- Timeline Rows -->
-                <div class="divide-y divide-slate-100 dark:divide-slate-800 border-y border-slate-100 dark:border-slate-800 py-2">
-                    <div class="py-4 grid grid-cols-[32px_1fr_auto] gap-4 items-start">
-                        <div class="size-7 rounded-full bg-primary text-white flex items-center justify-center font-black text-xs">✓</div>
-                        <div>
-                            <strong class="text-xs text-slate-900 dark:text-white block">Submitted</strong>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Your application was received successfully.</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400">{{ $verification->submitted_at ? $verification->submitted_at->diffForHumans() : 'Done' }}</div>
-                    </div>
+                        <!-- Admin Feedback Message Box -->
+                        @if($verification->rejection_notes || $verification->rejection_reason)
+                            <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 space-y-2">
+                                <div class="flex items-center gap-2 text-xs font-bold text-rose-900 dark:text-white uppercase tracking-wider">
+                                    <span class="material-symbols-outlined text-rose-600 text-base">feedback</span>
+                                    <span>Reviewer Feedback & Reason: {{ ucwords(str_replace('_', ' ', $verification->rejection_reason ?? 'Action Needed')) }}</span>
+                                </div>
+                                <p class="text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed pl-6">
+                                    "{{ $verification->rejection_notes }}"
+                                </p>
+                            </div>
+                        @endif
 
-                    <div class="py-4 grid grid-cols-[32px_1fr_auto] gap-4 items-start">
-                        <div class="size-7 rounded-full text-xs font-black flex items-center justify-center {{ in_array($verification->status, ['under_review', 'partially_approved', 'verified']) ? 'bg-primary text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
-                            {{ in_array($verification->status, ['under_review', 'partially_approved', 'verified']) ? '✓' : '2' }}
-                        </div>
-                        <div>
-                            <strong class="text-xs text-slate-900 dark:text-white block">Internal review</strong>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Our team is checking the business information and documents.</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-bold">
-                            {{ $verification->status === 'under_review' ? 'Current' : ($verification->status === 'not_started' ? 'Pending' : 'Done') }}
+                        <!-- Individual Rejected Documents if any -->
+                        @php
+                            $rejectedDocs = $verification->documents->filter(fn($d) => $d->latestVersion && $d->latestVersion->status === 'rejected');
+                        @endphp
+                        @if($rejectedDocs->isNotEmpty())
+                            <div class="space-y-2">
+                                <strong class="text-xs font-bold text-rose-900 dark:text-white block">Specific Documents Requiring Re-upload:</strong>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    @foreach($rejectedDocs as $rDoc)
+                                        <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 text-xs">
+                                            <span class="font-bold text-slate-900 dark:text-white block truncate">{{ $rDoc->documentType->name }}</span>
+                                            @if($rDoc->latestVersion->reviewer_notes)
+                                                <span class="text-[11px] text-rose-600 dark:text-rose-400 block mt-0.5 italic">"{{ $rDoc->latestVersion->reviewer_notes }}"</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="pt-2 flex flex-wrap items-center gap-3 border-t border-rose-200/60 dark:border-rose-900/40">
+                            <button type="button" wire:click="goStep(3)" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-md shadow-rose-600/20 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-base">upload_file</span>
+                                <span>Re-upload Documents (Step 3)</span>
+                            </button>
+                            <button type="button" wire:click="goStep(2)" class="px-5 py-2.5 rounded-xl border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 font-bold text-xs hover:bg-rose-100 dark:hover:bg-rose-950/60 transition-all flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-base">edit</span>
+                                <span>Update Business Details (Step 2)</span>
+                            </button>
                         </div>
                     </div>
-
-                    <div class="py-4 grid grid-cols-[32px_1fr_auto] gap-4 items-start">
-                        <div class="size-7 rounded-full text-xs font-black flex items-center justify-center {{ $verification->status === 'verified' ? 'bg-primary text-white' : ($verification->status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500') }}">
-                            {{ $verification->status === 'verified' ? '✓' : '3' }}
+                @else
+                    <!-- STANDARD STATUS HEADER -->
+                    <div class="flex items-center gap-4">
+                        <div class="size-14 rounded-2xl {{ $verification->status === 'verified' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400' : 'bg-primary/10 dark:bg-primary/20 text-primary' }} flex items-center justify-center font-black text-2xl shrink-0">
+                            {{ $verification->status === 'verified' ? '✓' : '⌛' }}
                         </div>
                         <div>
-                            <strong class="text-xs text-slate-900 dark:text-white block">Changes requested or ready for Meta</strong>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">If anything is missing, we’ll ask you to update it. Otherwise, we’ll prepare the Meta handoff.</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-bold">
-                            {{ $verification->status === 'rejected' ? 'Action Needed' : 'Next' }}
+                            <div class="text-[11px] uppercase tracking-widest font-extrabold text-primary mb-0.5">
+                                Status: {{ str_replace('_', ' ', strtoupper($verification->status)) }}
+                            </div>
+                            <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                                @if($verification->status === 'verified')
+                                    Your business verification is approved!
+                                @else
+                                    Your verification is now in review
+                                @endif
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">We’ve received your business information and documents. You can track the process below.</p>
                         </div>
                     </div>
+                @endif
 
-                    <div class="py-4 grid grid-cols-[32px_1fr_auto] gap-4 items-start">
-                        <div class="size-7 rounded-full text-xs font-black flex items-center justify-center {{ $verification->status === 'verified' ? 'bg-primary text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
-                            {{ $verification->status === 'verified' ? '✓' : '4' }}
+                <!-- Timeline Step Cards -->
+                <div class="space-y-3 pt-2">
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Verification Timeline</h3>
+                    
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-950">
+                        <!-- Step 1 Timeline Row -->
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0">✓</div>
+                                <div>
+                                    <strong class="text-xs text-slate-900 dark:text-white block font-bold">Submitted</strong>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Your application was received successfully.</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                                {{ $verification->submitted_at ? $verification->submitted_at->diffForHumans() : 'Done' }}
+                            </span>
                         </div>
-                        <div>
-                            <strong class="text-xs text-slate-900 dark:text-white block">Meta verification</strong>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">The business is submitted to Meta for the relevant onboarding checks.</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400">Pending</div>
-                    </div>
 
-                    <div class="py-4 grid grid-cols-[32px_1fr_auto] gap-4 items-start">
-                        <div class="size-7 rounded-full text-xs font-black flex items-center justify-center {{ $verification->status === 'verified' ? 'bg-primary text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
-                            {{ $verification->status === 'verified' ? '✓' : '5' }}
+                        <!-- Step 2 Timeline Row -->
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 {{ in_array($verification->status, ['under_review', 'partially_approved', 'verified']) ? 'bg-primary text-white' : ($verification->status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500') }}">
+                                    {{ in_array($verification->status, ['under_review', 'partially_approved', 'verified']) ? '✓' : ($verification->status === 'rejected' ? '!' : '2') }}
+                                </div>
+                                <div>
+                                    <strong class="text-xs text-slate-900 dark:text-white block font-bold">Internal review</strong>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Our team is checking the business information and documents.</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold shrink-0 {{ $verification->status === 'under_review' ? 'text-primary' : ($verification->status === 'rejected' ? 'text-rose-500' : 'text-slate-400') }}">
+                                {{ $verification->status === 'under_review' ? 'Current' : ($verification->status === 'rejected' ? 'Action Needed' : 'Completed') }}
+                            </span>
                         </div>
-                        <div>
-                            <strong class="text-xs text-slate-900 dark:text-white block">Number registration & completion</strong>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Once approved, the WhatsApp number can complete platform registration.</span>
+
+                        <!-- Step 3 Timeline Row -->
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 {{ $verification->status === 'verified' ? 'bg-emerald-500 text-white' : ($verification->status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500') }}">
+                                    {{ $verification->status === 'verified' ? '✓' : ($verification->status === 'rejected' ? '!' : '3') }}
+                                </div>
+                                <div>
+                                    <strong class="text-xs text-slate-900 dark:text-white block font-bold">Changes requested or ready for Meta</strong>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">If anything is missing, we’ll ask you to update it. Otherwise, we’ll prepare the Meta handoff.</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold shrink-0 {{ $verification->status === 'rejected' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400' }}">
+                                {{ $verification->status === 'rejected' ? 'Action Needed' : 'Next' }}
+                            </span>
                         </div>
-                        <div class="text-[10px] text-slate-400">{{ $verification->status === 'verified' ? 'Completed' : 'Pending' }}</div>
+
+                        <!-- Step 4 Timeline Row -->
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 {{ $verification->status === 'verified' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
+                                    {{ $verification->status === 'verified' ? '✓' : '4' }}
+                                </div>
+                                <div>
+                                    <strong class="text-xs text-slate-900 dark:text-white block font-bold">Meta verification</strong>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">The business is submitted to Meta for the relevant onboarding checks.</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-400 shrink-0">Pending</span>
+                        </div>
+
+                        <!-- Step 5 Timeline Row -->
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 {{ $verification->status === 'verified' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500' }}">
+                                    {{ $verification->status === 'verified' ? '✓' : '5' }}
+                                </div>
+                                <div>
+                                    <strong class="text-xs text-slate-900 dark:text-white block font-bold">Number registration & completion</strong>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Once approved, the WhatsApp number can complete platform registration.</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold shrink-0 {{ $verification->status === 'verified' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }}">
+                                {{ $verification->status === 'verified' ? 'Completed' : 'Pending' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     <strong class="text-slate-900 dark:text-white block mb-1">What happens next?</strong>
-                    Keep your business information and documents available. If our reviewer requests changes, you’ll be able to update only the affected items instead of starting the whole application again.
+                    Keep your business information and documents available. If our reviewer requests changes, you can update your details or re-upload documents without starting over.
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">

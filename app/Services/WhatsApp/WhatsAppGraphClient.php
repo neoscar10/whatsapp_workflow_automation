@@ -29,6 +29,29 @@ class WhatsAppGraphClient
 
             if ($response->failed()) {
                 $error = $response->json('error.message', 'Unknown Meta API error');
+
+                // Fallback: If error indicates phone_numbers field doesn't exist on this node,
+                // the user likely entered a Phone Number ID directly instead of a WABA ID.
+                if (str_contains(strtolower($error), 'phone_numbers') || $response->json('error.code') == 100) {
+                    $directUrl = "{$this->baseUrl}/{$this->version}/{$wabaId}";
+                    $directResponse = Http::withToken($accessToken)
+                        ->timeout(15)
+                        ->get($directUrl);
+
+                    if ($directResponse->successful() && $directResponse->json('id')) {
+                        $phoneData = $directResponse->json();
+                        Log::info("WhatsApp API getPhoneNumbers fallback success for single Phone Number ID", [
+                            'id' => $wabaId,
+                            'data' => $phoneData
+                        ]);
+
+                        return [
+                            'success' => true,
+                            'data' => [$phoneData]
+                        ];
+                    }
+                }
+
                 Log::error("WhatsApp API Error (getPhoneNumbers): {$error}", [
                     'waba_id' => $wabaId,
                     'status' => $response->status(),
