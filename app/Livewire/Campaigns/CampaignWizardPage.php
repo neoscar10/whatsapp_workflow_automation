@@ -41,6 +41,7 @@ class CampaignWizardPage extends Component
         'group_ids' => [],
     ];
     public $csv_file;
+    public array $csv_rows = [];
     public $import_summary = null;
     public array $manual_rows = [
         ['phone' => '', 'name' => '']
@@ -177,9 +178,6 @@ class CampaignWizardPage extends Component
         if ($this->campaignId) {
             $campaign = $service->findForCompany(Auth::user(), $this->campaignId);
             $service->update(Auth::user(), $campaign, $data);
-        } else {
-            $campaign = $service->createDraft(Auth::user(), $data);
-            $this->campaignId = $campaign->id;
         }
     }
 
@@ -199,12 +197,28 @@ class CampaignWizardPage extends Component
 
     public function loadValidationPreview()
     {
-        if (!$this->campaignId) return;
+        if ($this->campaignId) {
+            $campaign = Campaign::find($this->campaignId);
+            if ($campaign) {
+                $campaign->update(['type' => $this->type]);
+                $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewRecipients(Auth::user(), $campaign);
+            }
+        } else {
+            $selection = [
+                'audience_type' => $this->audience_type,
+                'type' => $this->audience_type,
+                'contact_ids' => $this->selected_contact_ids,
+                'group_ids' => $this->selected_group_ids,
+                'filters' => $this->audience_filters,
+                'manual_rows' => $this->manual_rows,
+                'csv_rows' => $this->csv_rows,
+            ];
 
-        $campaign = Campaign::find($this->campaignId);
-        if ($campaign) {
-            $campaign->update(['type' => $this->type]);
-            $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewRecipients(Auth::user(), $campaign);
+            $this->validationPreviewData = app(CampaignAudienceService::class)->validateAndPreviewSelection(
+                Auth::user(),
+                $selection,
+                $this->type
+            );
         }
     }
 
@@ -237,21 +251,42 @@ class CampaignWizardPage extends Component
 
     public function saveRecipientRow($id)
     {
-        if (!$this->campaignId) return;
-
-        $campaign = Campaign::find($this->campaignId);
-        if ($campaign) {
-            try {
-                app(CampaignAudienceService::class)->correctRecipientRow(Auth::user(), $campaign, $id, [
-                    'phone' => $this->editingPhone,
-                    'name' => $this->editingName,
-                ]);
-                $this->cancelEditRecipientRow();
-                $this->loadValidationPreview();
-                $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient updated & re-validated.']);
-            } catch (\Exception $e) {
-                $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+        if ($this->campaignId) {
+            $campaign = Campaign::find($this->campaignId);
+            if ($campaign) {
+                try {
+                    app(CampaignAudienceService::class)->correctRecipientRow(Auth::user(), $campaign, $id, [
+                        'phone' => $this->editingPhone,
+                        'name' => $this->editingName,
+                    ]);
+                    $this->cancelEditRecipientRow();
+                    $this->loadValidationPreview();
+                    $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient updated & re-validated.']);
+                } catch (\Exception $e) {
+                    $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+                }
             }
+        } else {
+            if ($this->audience_type === 'manual') {
+                foreach ($this->manual_rows as $idx => $row) {
+                    if (($row['id'] ?? ($idx + 1)) == $id) {
+                        $this->manual_rows[$idx]['phone'] = $this->editingPhone;
+                        $this->manual_rows[$idx]['name'] = $this->editingName;
+                        break;
+                    }
+                }
+            } elseif ($this->audience_type === 'imported') {
+                foreach ($this->csv_rows as $idx => $row) {
+                    if (($row['id'] ?? ($idx + 1)) == $id) {
+                        $this->csv_rows[$idx]['phone'] = $this->editingPhone;
+                        $this->csv_rows[$idx]['name'] = $this->editingName;
+                        break;
+                    }
+                }
+            }
+            $this->cancelEditRecipientRow();
+            $this->loadValidationPreview();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient updated & re-validated.']);
         }
     }
 
@@ -271,18 +306,41 @@ class CampaignWizardPage extends Component
 
     public function removeRecipientRow($id)
     {
-        if (!$this->campaignId) return;
-
-        $campaign = Campaign::find($this->campaignId);
-        if ($campaign) {
-            try {
-                app(CampaignAudienceService::class)->removeRecipientRow(Auth::user(), $campaign, $id);
-                $this->cancelRemoveRecipientRow();
-                $this->loadValidationPreview();
-                $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient removed from campaign.']);
-            } catch (\Exception $e) {
-                $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+        if ($this->campaignId) {
+            $campaign = Campaign::find($this->campaignId);
+            if ($campaign) {
+                try {
+                    app(CampaignAudienceService::class)->removeRecipientRow(Auth::user(), $campaign, $id);
+                    $this->cancelRemoveRecipientRow();
+                    $this->loadValidationPreview();
+                    $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient removed from campaign.']);
+                } catch (\Exception $e) {
+                    $this->dispatch('notify', ['type' => 'error', 'message' => $e->getMessage()]);
+                }
             }
+        } else {
+            if ($this->audience_type === 'manual') {
+                foreach ($this->manual_rows as $idx => $row) {
+                    if (($row['id'] ?? ($idx + 1)) == $id) {
+                        unset($this->manual_rows[$idx]);
+                        $this->manual_rows = array_values($this->manual_rows);
+                        break;
+                    }
+                }
+            } elseif ($this->audience_type === 'imported') {
+                foreach ($this->csv_rows as $idx => $row) {
+                    if (($row['id'] ?? ($idx + 1)) == $id) {
+                        unset($this->csv_rows[$idx]);
+                        $this->csv_rows = array_values($this->csv_rows);
+                        break;
+                    }
+                }
+            } else {
+                $this->selected_contact_ids = array_filter($this->selected_contact_ids, fn($cId) => $cId != $id);
+            }
+            $this->cancelRemoveRecipientRow();
+            $this->loadValidationPreview();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Recipient removed from campaign.']);
         }
     }
 
@@ -318,16 +376,29 @@ class CampaignWizardPage extends Component
         ]);
 
         $path = $this->csv_file->store('temp');
+        $fullPath = storage_path('app/' . $path);
         $service = app(CampaignRecipientImportService::class);
-        $campaign = Campaign::findOrFail($this->campaignId);
 
         try {
-            // Clear prior recipients if re-importing CSV
-            $campaign->recipients()->delete();
+            if ($this->campaignId) {
+                $campaign = Campaign::findOrFail($this->campaignId);
+                $campaign->recipients()->delete();
 
-            $this->import_summary = $service->importFromCsv(Auth::user(), $campaign, storage_path('app/' . $path));
-            $this->audience_type = 'imported';
-            $campaign->update(['audience_type' => 'imported']);
+                $this->import_summary = $service->importFromCsv(Auth::user(), $campaign, $fullPath);
+                $this->audience_type = 'imported';
+                $campaign->update(['audience_type' => 'imported']);
+            } else {
+                $this->csv_rows = $service->parseCsvToRows($fullPath);
+                $this->audience_type = 'imported';
+
+                $total = count($this->csv_rows);
+                $this->import_summary = [
+                    'total' => $total,
+                    'success' => $total,
+                    'failed' => 0,
+                ];
+            }
+
             $this->loadValidationPreview();
             $this->dispatch('notify', ['type' => 'success', 'message' => 'CSV imported successfully.']);
         } catch (\Exception $e) {
@@ -354,6 +425,8 @@ class CampaignWizardPage extends Component
 
     protected function saveStep4()
     {
+        if (!$this->campaignId) return;
+
         $service = app(CampaignService::class);
         $campaign = Campaign::findOrFail($this->campaignId);
 
@@ -369,10 +442,88 @@ class CampaignWizardPage extends Component
 
     public function finish()
     {
-        $campaign = Campaign::findOrFail($this->campaignId);
-        
+        if (!$this->campaignId) {
+            $this->validateStep1();
+            
+            $service = app(CampaignService::class);
+            $data = [
+                'name' => $this->name,
+                'description' => $this->description,
+                'type' => $this->type,
+                'whatsapp_phone_number_id' => $this->whatsapp_phone_number_id,
+                'scheduled_at' => $this->send_mode === 'schedule' ? $this->scheduled_at : null,
+            ];
+
+            $campaign = $service->createDraft(Auth::user(), $data);
+            $this->campaignId = $campaign->id;
+        } else {
+            $campaign = Campaign::findOrFail($this->campaignId);
+        }
+
+        if ($this->audience_type === 'imported' && !empty($this->csv_rows)) {
+            $recipients = [];
+            foreach ($this->csv_rows as $row) {
+                $rawPhone = trim($row['phone'] ?? '');
+                if (empty($rawPhone)) continue;
+
+                $normalized = \App\Support\PhoneNumberNormalizer::normalize($rawPhone);
+                $contact = \App\Models\Contact\Contact::forCompany(Auth::user()->company_id)
+                    ->where('normalized_phone', $normalized)
+                    ->first();
+
+                $isValid = \App\Support\PhoneNumberNormalizer::isValid($rawPhone);
+                $isMessageable = $contact ? $contact->isMessageable() : true;
+                $skipReason = !$isValid ? 'Invalid phone number format' : (!$isMessageable ? 'Contact opted out' : null);
+
+                $recipients[] = [
+                    'campaign_id' => $campaign->id,
+                    'company_id' => Auth::user()->company_id,
+                    'contact_id' => $contact?->id,
+                    'phone' => $rawPhone,
+                    'normalized_phone' => $normalized,
+                    'name' => $row['name'] ?? $contact?->name,
+                    'source' => 'imported',
+                    'status' => $skipReason ? 'skipped' : 'pending',
+                    'skip_reason' => $skipReason,
+                    'personalization_data' => isset($row['personalization_data']) ? json_encode($row['personalization_data']) : null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            if (!empty($recipients)) {
+                $campaign->recipients()->delete();
+                \App\Models\Campaign\CampaignRecipient::insert($recipients);
+            }
+            $campaign->update(['audience_type' => 'imported']);
+            app(CampaignService::class)->recalculateStats($campaign);
+        } else {
+            $this->saveStep2();
+        }
+
+        $this->saveStep4();
+
+        if (in_array($this->send_mode, ['now', 'schedule'])) {
+            $billingType = 'text';
+            if ($this->type === 'template') {
+                $template = WhatsAppTemplate::find($this->whatsapp_template_id);
+                if ($template) {
+                    $category = strtolower($template->category);
+                    if (in_array($category, ['utility', 'authentication', 'marketing'])) {
+                        $billingType = 'template_' . ($category === 'authentication' ? 'auth' : $category);
+                    } else {
+                        $billingType = 'template_utility';
+                    }
+                }
+            }
+
+            if (!app(\App\Services\Payment\BillingService::class)->canAffordActivity(Auth::user()->company, $billingType)) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => "Insufficient wallet balance to start or schedule this campaign."]);
+                return;
+            }
+        }
+
         if ($this->send_mode === 'now') {
-            app(app(CampaignService::class)->update(Auth::user(), $campaign, ['status' => 'queued']));
+            app(CampaignService::class)->update(Auth::user(), $campaign, ['status' => 'queued']);
             app(\App\Services\Campaign\CampaignDispatchService::class)->dispatchCampaign($campaign);
             $msg = 'Campaign started successfully.';
         } elseif ($this->send_mode === 'schedule') {

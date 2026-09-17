@@ -115,6 +115,57 @@ class CampaignRecipientImportService
         return $summary;
     }
 
+    /**
+     * Parse CSV file rows into memory array without persisting.
+     */
+    public function parseCsvToRows(string $filePath): array
+    {
+        $file = fopen($filePath, 'r');
+        $header = fgetcsv($file);
+        
+        if (!$header) {
+            throw new Exception("Invalid CSV file.");
+        }
+
+        $phoneIndex = $this->findIndex($header, ['phone', 'whatsapp', 'number', 'mobile', 'contact', 'telephone', 'tel', 'msisdn', 'phone_number']);
+        if ($phoneIndex === false) {
+            if (isset($header[0]) && preg_match('/^\+?[0-9]{7,16}$/', preg_replace('/[^\d+]/', '', (string)$header[0]))) {
+                $phoneIndex = 0;
+            } else {
+                throw new Exception("CSV must contain a 'phone' or 'mobile' column.");
+            }
+        }
+
+        $nameIndex = $this->findIndex($header, ['name', 'full_name', 'fullname', 'contact_name', 'first_name']);
+
+        $rows = [];
+        $idx = 0;
+
+        while (($row = fgetcsv($file)) !== false) {
+            $idx++;
+            $phone = $row[$phoneIndex] ?? '';
+            if (empty($phone)) continue;
+
+            $name = $nameIndex !== false ? ($row[$nameIndex] ?? '') : null;
+
+            $personalization = [];
+            foreach ($header as $hIdx => $colName) {
+                if (in_array($hIdx, [$phoneIndex, $nameIndex])) continue;
+                $personalization[$colName] = $row[$hIdx] ?? null;
+            }
+
+            $rows[] = [
+                'id' => $idx,
+                'phone' => $phone,
+                'name' => $name,
+                'personalization_data' => $personalization,
+            ];
+        }
+
+        fclose($file);
+        return $rows;
+    }
+
     protected function findIndex(array $header, array $needles): int|bool
     {
         foreach ($header as $index => $column) {

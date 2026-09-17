@@ -439,6 +439,184 @@ class CampaignAudienceService
     }
 
     /**
+     * Detailed validation & preview of campaign recipients from selection/memory (without requiring a Campaign model).
+     */
+    public function validateAndPreviewSelection(User $actor, array $selection, string $campaignType): array
+    {
+        $audienceType = $selection['audience_type'] ?? $selection['type'] ?? 'selected_contacts';
+
+        if ($audienceType === 'manual') {
+            $rawRows = $selection['manual_rows'] ?? [];
+            $recipients = collect();
+
+            foreach ($rawRows as $idx => $row) {
+                $rawPhone = trim($row['phone'] ?? '');
+                if (empty($rawPhone)) continue;
+
+                $normalized = PhoneNumberNormalizer::normalize($rawPhone);
+                $contact = Contact::forCompany($actor->company_id)
+                    ->where(function ($q) use ($rawPhone, $normalized) {
+                        $q->where('phone', $rawPhone)->orWhere('phone', $normalized);
+                    })->first();
+
+                $isValid = PhoneNumberNormalizer::isValid($rawPhone);
+                $skipReason = null;
+                if (!$isValid) {
+                    $skipReason = 'Invalid phone number format';
+                } elseif ($contact && !$contact->isMessageable()) {
+                    $skipReason = $this->explainSkipReason($contact);
+                }
+
+                $recipients->push((object)[
+                    'id' => $row['id'] ?? ($idx + 1),
+                    'contact_id' => $contact?->id,
+                    'phone' => $rawPhone,
+                    'normalized_phone' => $normalized,
+                    'name' => !empty($row['name']) ? $row['name'] : $contact?->name,
+                    'status' => $skipReason ? 'skipped' : 'pending',
+                    'skip_reason' => $skipReason,
+                    'personalization_data' => null,
+                ]);
+            }
+        } elseif ($audienceType === 'imported') {
+            $rawRows = $selection['csv_rows'] ?? [];
+            $recipients = collect();
+            foreach ($rawRows as $idx => $row) {
+                $rawPhone = trim($row['phone'] ?? '');
+                if (empty($rawPhone)) continue;
+
+                $normalized = PhoneNumberNormalizer::normalize($rawPhone);
+                $contact = Contact::forCompany($actor->company_id)
+                    ->where('normalized_phone', $normalized)
+                    ->first();
+
+                $isValid = PhoneNumberNormalizer::isValid($rawPhone);
+                $isMessageable = $contact ? $contact->isMessageable() : true;
+
+                $skipReason = null;
+                if (!$isValid) {
+                    $skipReason = 'Invalid phone number format';
+                } elseif (!$isMessageable) {
+                    $skipReason = $this->explainSkipReason($contact);
+                }
+
+                $recipients->push((object)[
+                    'id' => $row['id'] ?? ($idx + 1),
+                    'contact_id' => $contact?->id,
+                    'phone' => $rawPhone,
+                    'normalized_phone' => $normalized,
+                    'name' => $row['name'] ?? $contact?->name,
+                    'status' => $skipReason ? 'skipped' : 'pending',
+                    'skip_reason' => $skipReason,
+                    'personalization_data' => $row['personalization_data'] ?? null,
+                ]);
+            }
+        } else {
+            $contacts = $this->resolveContacts($actor->company_id, $selection);
+            $recipients = collect();
+            $phonesAdded = [];
+
+            foreach ($contacts as $idx => $contact) {
+                $normalized = PhoneNumberNormalizer::normalize($contact->phone);
+                if (in_array($normalized, $phonesAdded)) continue;
+                $phonesAdded[] = $normalized;
+
+                $isMessageable = $contact->isMessageable();
+                $recipients->push((object)[
+                    'id' => $contact->id,
+                    'contact_id' => $contact->id,
+                    'phone' => $contact->phone,
+                    'normalized_phone' => $normalized,
+                    'name' => $contact->name,
+                    'status' => $isMessageable ? 'pending' : 'skipped',
+                    'skip_reason' => $isMessageable ? null : $this->explainSkipReason($contact),
+                    'personalization_data' => null,
+                ]);
+            }
+        }
+
+        $total = $recipients->count();
+        $passed = 0;
+        $failed = 0;
+        $textSessionExcludedCount = 0;
+
+        // Active 24-hour customer service window lookups for this company
+        $activeContactIds = \App\Models\Chat\Conversation::where('company_id', $actor->company_id)
+            ->whereNotNull('contact_id')
+            ->where('last_customer_message_at', '>=', now()->subHours(24))
+            ->pluck('contact_id')
+            ->toArray();
+
+        $activePhones = \App\Models\Chat\Conversation::where('company_id', $actor->company_id)
+            ->where('last_customer_message_at', '>=', now()->subHours(24))
+            ->pluck('contact_phone')
+            ->map(fn($p) => PhoneNumberNormalizer::normalize($p))
+            ->filter()
+            ->toArray();
+
+        $isTextCampaign = ($campaignType === 'text');
+
+        $detailedRows = $recipients->map(function ($r) use ($isTextCampaign, $activeContactIds, $activePhones, &$passed, &$failed, &$textSessionExcludedCount) {
+            $isValidPhone = PhoneNumberNormalizer::isValid($r->phone);
+            $isSkipped = $r->status === 'skipped';
+
+            $hasActiveSession = false;
+            if ($r->contact_id && in_array($r->contact_id, $activeContactIds)) {
+                $hasActiveSession = true;
+            } elseif ($r->normalized_phone && in_array($r->normalized_phone, $activePhones)) {
+                $hasActiveSession = true;
+            } elseif ($isValidPhone && in_array(PhoneNumberNormalizer::normalize($r->phone), $activePhones)) {
+                $hasActiveSession = true;
+            }
+
+            $textSessionFailed = $isTextCampaign && !$hasActiveSession;
+
+            if ($textSessionFailed) {
+                $textSessionExcludedCount++;
+            }
+
+            $isPassed = $isValidPhone && !$isSkipped && !$textSessionFailed;
+
+            if ($isPassed) {
+                $passed++;
+            } else {
+                $failed++;
+            }
+
+            $errorReason = $r->skip_reason;
+            if (!$isValidPhone) {
+                $errorReason = 'Invalid phone number format';
+            } elseif ($textSessionFailed) {
+                $errorReason = 'No active 24h session. Text campaigns require customer interaction in the last 24h.';
+            }
+
+            return [
+                'id' => $r->id,
+                'phone' => $r->phone,
+                'normalized_phone' => $r->normalized_phone,
+                'name' => $r->name,
+                'status' => $r->status,
+                'is_session_active' => $hasActiveSession,
+                'is_valid' => $isPassed,
+                'validation_status' => $isPassed ? 'passed' : 'failed',
+                'error_reason' => $errorReason ?: ($isPassed ? null : 'Validation issue'),
+                'personalization_data' => $r->personalization_data,
+            ];
+        });
+
+        return [
+            'campaign_type' => $campaignType,
+            'total' => $total,
+            'passed_count' => $passed,
+            'failed_count' => $failed,
+            'text_session_excluded_count' => $textSessionExcludedCount,
+            'rows' => $detailedRows,
+            'data' => $detailedRows,
+            'recipients' => $detailedRows,
+        ];
+    }
+
+    /**
      * Correct an individual recipient row.
      */
     public function correctRecipientRow(User $actor, Campaign $campaign, int $recipientId, array $data): array
