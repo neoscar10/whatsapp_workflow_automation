@@ -88,12 +88,28 @@ class ChatTemplateDirectoryService
             $variables[] = ['name' => $var, 'component' => 'body'];
         }
 
+        // Extract Button variables (Dynamic URLs)
+        foreach ($template->buttons as $btnIndex => $button) {
+            $isUrl = strtoupper($button->type ?? '') === 'URL';
+            $url = $button->url ?? '';
+            if ($isUrl && (str_contains($url, '{{1}}') || str_contains($url, '{{ 1 }}') || str_contains($url, '%7B%7B1%7D%7D') || preg_match('/\{\{\d+\}\}/', $url))) {
+                $variables[] = [
+                    'name' => "Button ({$button->text}) Link Variable",
+                    'component' => 'button',
+                    'button_index' => $btnIndex,
+                    'var_index' => 1,
+                ];
+            }
+        }
+
         // Find buttons text
         $buttonText = $template->buttons->first()?->text;
 
         return [
             'id' => $template->id,
             'name' => $template->display_title ?? $template->remote_template_name,
+            'header_type' => $template->header_type,
+            'header_text' => $template->header_text,
             'preview_paragraphs' => array_filter(array_map('trim', $paragraphs)),
             'variables' => $variables, // Array of ['name' => '...', 'component' => '...']
             'category_label' => ucfirst($template->category),

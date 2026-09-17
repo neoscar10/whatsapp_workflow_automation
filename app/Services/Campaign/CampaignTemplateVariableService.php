@@ -77,6 +77,7 @@ class CampaignTemplateVariableService
     protected function resolveButtonParams(Campaign $campaign, CampaignRecipient $recipient): array
     {
         $mapping = $campaign->template_variable_mapping['button'] ?? [];
+        $defaults = $campaign->default_variable_values['button'] ?? [];
         $contact = $recipient->contact;
         $personalization = $recipient->personalization_data ?? [];
         
@@ -86,6 +87,15 @@ class CampaignTemplateVariableService
             $params = [];
             foreach ($vars as $varIndex => $config) {
                 $value = $this->resolveValue($config, $personalization, $contact);
+                
+                if (empty($value) && isset($config['fallback'])) {
+                    $value = $config['fallback'];
+                }
+
+                if (empty($value) && isset($defaults[$btnIndex][$varIndex])) {
+                    $value = $defaults[$btnIndex][$varIndex];
+                }
+
                 $params[] = [
                     'type' => 'text',
                     'text' => (string)($value ?? '')
@@ -215,8 +225,10 @@ class CampaignTemplateVariableService
 
         // Buttons (Dynamic URLs)
         foreach ($template->buttons as $btnIndex => $button) {
-            if ($button->type === 'URL' && str_contains($button->url, '{{1}}')) {
-                // WhatsApp currently only supports one variable {{1}} in URLs
+            $isUrl = strtoupper($button->type ?? '') === 'URL';
+            $url = $button->url ?? '';
+            if ($isUrl && (str_contains($url, '{{1}}') || str_contains($url, '{{ 1 }}') || str_contains($url, '%7B%7B1%7D%7D') || preg_match('/\{\{\d+\}\}/', $url))) {
+                // WhatsApp supports variable {{1}} in dynamic URLs
                 $variables['button'][$btnIndex][1] = [
                     'key' => 1,
                     'button_text' => $button->text,

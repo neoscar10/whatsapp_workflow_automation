@@ -96,10 +96,56 @@ class CampaignWizardPage extends Component
             } elseif ($campaign->audience_type === 'selected_contacts') {
                 $this->selected_contact_ids = $campaign->recipients()->whereNotNull('contact_id')->pluck('contact_id')->toArray();
             }
+            if ($this->whatsapp_template_id) {
+                $this->initializeTemplateMapping($this->whatsapp_template_id);
+            }
         } else {
             // Default phone number
             $this->whatsapp_phone_number_id = WhatsAppPhoneNumber::forCompany(Auth::user()->company_id)->first()?->id;
         }
+    }
+
+    protected function initializeTemplateMapping($templateId)
+    {
+        $template = WhatsAppTemplate::find($templateId);
+        if (!$template) return;
+
+        $variables = app(CampaignTemplateVariableService::class)->extractVariables($template);
+        
+        $currentMapping = $this->template_variable_mapping;
+
+        foreach ($variables['header'] as $index => $var) {
+            if (!isset($currentMapping['header'][$index])) {
+                $currentMapping['header'][$index] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+            }
+        }
+
+        foreach ($variables['body'] as $index => $var) {
+            if (!isset($currentMapping['body'][$index])) {
+                $currentMapping['body'][$index] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+            }
+        }
+
+        foreach ($variables['button'] as $btnIndex => $vars) {
+            foreach ($vars as $varIndex => $var) {
+                if (!isset($currentMapping['button'][$btnIndex][$varIndex])) {
+                    $currentMapping['button'][$btnIndex][$varIndex] = ['source' => 'static', 'value' => '', 'fallback' => ''];
+                }
+            }
+        }
+
+        $this->template_variable_mapping = $currentMapping;
+    }
+
+    public function updatedWhatsappTemplateId($value)
+    {
+        if (!$value) {
+            $this->template_variable_mapping = ['header' => [], 'body' => [], 'button' => []];
+            return;
+        }
+
+        $this->template_variable_mapping = ['header' => [], 'body' => [], 'button' => []];
+        $this->initializeTemplateMapping($value);
     }
 
     public function nextStep()

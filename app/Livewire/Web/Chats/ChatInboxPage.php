@@ -470,6 +470,8 @@ class ChatInboxPage extends Component
                 $this->templateVariables[$key] = [
                     'component' => $varData['component'],
                     'name' => $varData['name'],
+                    'button_index' => $varData['button_index'] ?? null,
+                    'var_index' => $varData['var_index'] ?? null,
                     'type' => 'system',
                     'value' => 'contact_name', // Default to contact name if possible
                 ];
@@ -554,12 +556,13 @@ class ChatInboxPage extends Component
                 }
             }
 
-            // 2. Resolve Variables (Header Text & Body)
+            // 2. Resolve Variables (Header Text, Body & Buttons)
             if (!empty($this->templateVariables)) {
                 $resolver = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class);
                 $conversation = \App\Models\Chat\Conversation::find($this->selectedConversationId);
                 
                 $groupedParams = ['header' => [], 'body' => []];
+                $buttonParams = [];
 
                 foreach ($this->templateVariables as $key => $config) {
                     $value = $resolver->getValueFromMapping($config, $conversation, auth()->user());
@@ -570,10 +573,18 @@ class ChatInboxPage extends Component
                     }
 
                     $componentType = $config['component'] ?? 'body';
-                    $groupedParams[$componentType][] = [
-                        'type' => 'text',
-                        'text' => (string)$value,
-                    ];
+                    if ($componentType === 'button') {
+                        $btnIndex = $config['button_index'] ?? 0;
+                        $buttonParams[$btnIndex][] = [
+                            'type' => 'text',
+                            'text' => (string)$value,
+                        ];
+                    } else {
+                        $groupedParams[$componentType][] = [
+                            'type' => 'text',
+                            'text' => (string)$value,
+                        ];
+                    }
                 }
 
                 // Add Text Header parameters if any
@@ -589,6 +600,16 @@ class ChatInboxPage extends Component
                     $apiComponents[] = [
                         'type' => 'body',
                         'parameters' => $groupedParams['body'],
+                    ];
+                }
+
+                // Add Button parameters if any
+                foreach ($buttonParams as $btnIndex => $params) {
+                    $apiComponents[] = [
+                        'type' => 'button',
+                        'sub_type' => 'url',
+                        'index' => (string)$btnIndex,
+                        'parameters' => $params,
                     ];
                 }
             }
