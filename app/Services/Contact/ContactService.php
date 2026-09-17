@@ -174,6 +174,24 @@ class ContactService
     }
 
     /**
+     * Attach groups to a contact.
+     */
+    public function attachGroups(User $actor, Contact $contact, array $groupIds): Contact
+    {
+        $contact->groups()->syncWithoutDetaching($groupIds);
+        return $contact->fresh(['tags', 'groups']);
+    }
+
+    /**
+     * Detach a group from a contact.
+     */
+    public function detachGroup(User $actor, Contact $contact, int $groupId): Contact
+    {
+        $contact->groups()->detach($groupId);
+        return $contact->fresh(['tags', 'groups']);
+    }
+
+    /**
      * Delete a contact.
      */
     public function delete(User $actor, Contact $contact): void

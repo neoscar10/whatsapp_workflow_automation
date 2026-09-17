@@ -103,6 +103,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'destroy'])->name('destroy');
             Route::post('/{id}/opt-in', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'optIn'])->name('opt-in');
             Route::post('/{id}/opt-out', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'optOut'])->name('opt-out');
+            Route::post('/{id}/groups', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'attachGroups'])->name('groups.attach');
+            Route::delete('/{id}/groups/{groupId}', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'detachGroup'])->name('groups.detach');
             Route::post('/sync', [\App\Http\Controllers\Api\V1\Contact\ContactController::class, 'sync'])->name('sync');
         });
 

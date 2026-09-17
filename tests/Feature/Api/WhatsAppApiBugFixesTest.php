@@ -204,4 +204,52 @@ class WhatsAppApiBugFixesTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('success', true);
     }
+
+    /** @test */
+    public function contact_creation_and_update_with_group_assignment_via_api()
+    {
+        $group1 = \App\Models\Contact\ContactGroup::create([
+            'company_id' => $this->company->id,
+            'name' => 'VIP Customers',
+            'slug' => 'vip-customers-' . uniqid(),
+        ]);
+
+        $group2 = \App\Models\Contact\ContactGroup::create([
+            'company_id' => $this->company->id,
+            'name' => 'Wholesale Leads',
+            'slug' => 'wholesale-leads-' . uniqid(),
+        ]);
+
+        // 1. Create contact with group_ids
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->postJson('/api/v1/contacts', [
+                'name' => 'Jane Group User',
+                'phone' => '+15550009999',
+                'group_ids' => [$group1->id],
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.groups.0.id', $group1->id);
+
+        $contactId = $response->json('data.id');
+
+        // 2. Update contact with new group_ids
+        $updateResponse = $this->actingAs($this->user, 'sanctum')
+            ->patchJson("/api/v1/contacts/{$contactId}", [
+                'group_ids' => [$group1->id, $group2->id],
+            ]);
+
+        $updateResponse->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(2, 'data.groups');
+
+        // 3. Detach a group via API
+        $detachResponse = $this->actingAs($this->user, 'sanctum')
+            ->deleteJson("/api/v1/contacts/{$contactId}/groups/{$group1->id}");
+
+        $detachResponse->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(1, 'data.groups');
+    }
 }

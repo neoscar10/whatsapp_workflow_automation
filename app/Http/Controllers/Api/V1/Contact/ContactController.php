@@ -64,7 +64,7 @@ class ContactController extends Controller
 
         try {
             $contact = $this->contactService->create($request->user(), $request->validated(), $companyId);
-            return $this->successResponse(new ContactResource($contact), 'Contact created successfully.', 201);
+            return $this->successResponse(new ContactResource($contact->load(['tags', 'groups'])), 'Contact created successfully.', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), [], 422);
         }
@@ -101,7 +101,7 @@ class ContactController extends Controller
         try {
             $contact = $this->contactService->findForCompany($companyId, $id);
             $contact = $this->contactService->update($request->user(), $contact, $request->validated());
-            return $this->successResponse(new ContactResource($contact), 'Contact updated successfully.');
+            return $this->successResponse(new ContactResource($contact->load(['tags', 'groups'])), 'Contact updated successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), [], 422);
         }
@@ -121,6 +121,49 @@ class ContactController extends Controller
             $contact = $this->contactService->findForCompany($companyId, $id);
             $this->contactService->delete($request->user(), $contact);
             return $this->successResponse(null, 'Contact deleted successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), [], 422);
+        }
+    }
+
+    /**
+     * Attach groups to a contact.
+     */
+    public function attachGroups(Request $request, int $id): JsonResponse
+    {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        $request->validate([
+            'group_ids' => 'required|array',
+            'group_ids.*' => 'integer|exists:contact_groups,id',
+        ]);
+
+        try {
+            $contact = $this->contactService->findForCompany($companyId, $id);
+            $contact = $this->contactService->attachGroups($request->user(), $contact, $request->input('group_ids'));
+            return $this->successResponse(new ContactResource($contact), 'Groups attached successfully.');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), [], 422);
+        }
+    }
+
+    /**
+     * Detach a group from a contact.
+     */
+    public function detachGroup(Request $request, int $id, int $groupId): JsonResponse
+    {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        try {
+            $contact = $this->contactService->findForCompany($companyId, $id);
+            $contact = $this->contactService->detachGroup($request->user(), $contact, $groupId);
+            return $this->successResponse(new ContactResource($contact), 'Group detached successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), [], 422);
         }
