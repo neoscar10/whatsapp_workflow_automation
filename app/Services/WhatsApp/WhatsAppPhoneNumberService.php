@@ -102,11 +102,20 @@ class WhatsAppPhoneNumberService
     {
         $number = $this->findForUser($user, $numberId);
         
-        $number->update([
-            'display_name' => $data['display_name'],
-            'phone_number_id' => $data['phone_number_id'],
-            'phone_number' => $data['phone_number'] ?? $number->phone_number,
-        ]);
+        $updateData = [];
+        if (array_key_exists('display_name', $data)) {
+            $updateData['display_name'] = $data['display_name'];
+        }
+        if (array_key_exists('phone_number_id', $data)) {
+            $updateData['phone_number_id'] = $data['phone_number_id'];
+        }
+        if (array_key_exists('phone_number', $data)) {
+            $updateData['phone_number'] = $data['phone_number'];
+        }
+
+        if (!empty($updateData)) {
+            $number->update($updateData);
+        }
 
         return $number;
     }

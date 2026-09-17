@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\WhatsApp\Templates;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class ListWhatsAppTemplatesRequest extends FormRequest
+class ListWhatsAppTemplatesRequest extends BaseApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.

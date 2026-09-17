@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\WhatsApp\Setup;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class UpdateWhatsAppPhoneNumberRequest extends FormRequest
+class UpdateWhatsAppPhoneNumberRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
@@ -14,8 +14,8 @@ class UpdateWhatsAppPhoneNumberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'display_name' => 'required|string|max:255',
-            'phone_number_id' => 'required|string|max:255',
+            'display_name' => 'sometimes|required|string|max:255',
+            'phone_number_id' => 'sometimes|required|string|max:255',
             'phone_number' => 'nullable|string|max:255',
         ];
     }

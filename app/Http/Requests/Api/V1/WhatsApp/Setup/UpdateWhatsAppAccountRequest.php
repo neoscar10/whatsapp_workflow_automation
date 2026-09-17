@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\WhatsApp\Setup;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class UpdateWhatsAppAccountRequest extends FormRequest
+class UpdateWhatsAppAccountRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
@@ -15,8 +15,10 @@ class UpdateWhatsAppAccountRequest extends FormRequest
     {
         return [
             'access_token' => 'nullable|string',
-            'waba_id' => 'required|string',
-            'business_id' => 'required|string',
+            'waba_id' => 'sometimes|required|string',
+            'business_id' => 'sometimes|required|string',
+            'webhook_callback_url' => 'sometimes|nullable|url|max:2048',
+            'display_name' => 'sometimes|nullable|string|max:255',
         ];
     }
 }

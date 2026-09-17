@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\WhatsApp\Templates;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class UpdateWhatsAppTemplateRequest extends FormRequest
+class UpdateWhatsAppTemplateRequest extends BaseApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,7 +31,19 @@ class UpdateWhatsAppTemplateRequest extends FormRequest
             'buttons' => 'nullable|array|max:10',
             'buttons.*.type' => 'required|in:quick_reply,url,phone_number',
             'buttons.*.text' => 'required|string|max:25',
-            'buttons.*.url' => 'required_if:buttons.*.type,url|nullable|url|max:2000',
+            'buttons.*.url' => [
+                'required_if:buttons.*.type,url',
+                'nullable',
+                'max:2000',
+                function ($attribute, $value, $fail) {
+                    if (empty($value)) return;
+                    $sanitized = preg_replace('/\{\{\d+\}\}/', '1', $value);
+                    $sanitized = preg_replace('/%7B%7B\d+%7D%7D/i', '1', $sanitized);
+                    if (!filter_var($sanitized, FILTER_VALIDATE_URL)) {
+                        $fail("The {$attribute} must be a valid URL.");
+                    }
+                },
+            ],
             'buttons.*.phone_number' => 'required_if:buttons.*.type,phone_number|nullable|string|max:20',
             'buttons.*.example_value' => 'nullable|string',
             'example_payload' => 'nullable|array',

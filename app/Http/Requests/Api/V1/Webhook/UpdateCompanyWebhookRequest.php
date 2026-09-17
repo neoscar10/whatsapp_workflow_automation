@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Webhook;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class UpdateCompanyWebhookRequest extends FormRequest
+class UpdateCompanyWebhookRequest extends BaseApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.

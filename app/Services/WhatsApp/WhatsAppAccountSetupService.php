@@ -31,16 +31,33 @@ class WhatsAppAccountSetupService
     public function saveSetupForUser(User $user, array $data): array
     {
         $company = $user->company;
-        
-        $updateData = [
-            'waba_id' => $data['waba_id'],
-            'business_id' => $data['business_id'],
-            // Temporarily set to pending-sync until service verifies
-            'connection_status' => 'pending-sync',
-        ];
+        $existingAccount = WhatsAppAccount::where('company_id', $company->id)->first();
+
+        $updateData = [];
+
+        if (array_key_exists('waba_id', $data)) {
+            $updateData['waba_id'] = $data['waba_id'];
+        } elseif ($existingAccount) {
+            $updateData['waba_id'] = $existingAccount->waba_id;
+        }
+
+        if (array_key_exists('business_id', $data)) {
+            $updateData['business_id'] = $data['business_id'];
+        } elseif ($existingAccount) {
+            $updateData['business_id'] = $existingAccount->business_id;
+        }
 
         if (!empty($data['access_token'])) {
             $updateData['access_token'] = trim($data['access_token']);
+        }
+
+        if (array_key_exists('webhook_callback_url', $data)) {
+            $updateData['webhook_callback_url'] = $data['webhook_callback_url'];
+            $updateData['webhook_status'] = 'configured';
+        }
+
+        if (empty($existingAccount) || (isset($data['waba_id']) && $data['waba_id'] !== $existingAccount->waba_id)) {
+            $updateData['connection_status'] = 'pending-sync';
         }
 
         $account = WhatsAppAccount::updateOrCreate(
@@ -48,8 +65,10 @@ class WhatsAppAccountSetupService
             $updateData
         );
 
-        // Perform immediate sync
-        $syncResult = $this->syncService->syncForAccount($account);
+        // Perform immediate sync if token & waba_id are set
+        if (!empty($account->access_token) && !empty($account->waba_id)) {
+            $this->syncService->syncForAccount($account);
+        }
 
         return $this->getSetupDataForUser($user);
     }

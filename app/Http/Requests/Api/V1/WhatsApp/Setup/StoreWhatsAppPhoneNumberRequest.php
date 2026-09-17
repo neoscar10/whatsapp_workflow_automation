@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\WhatsApp\Setup;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\BaseApiRequest;
 
-class StoreWhatsAppPhoneNumberRequest extends FormRequest
+class StoreWhatsAppPhoneNumberRequest extends BaseApiRequest
 {
     public function authorize(): bool
     {
