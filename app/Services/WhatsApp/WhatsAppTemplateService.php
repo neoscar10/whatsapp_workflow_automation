@@ -108,7 +108,10 @@ class WhatsAppTemplateService
             }
 
             DB::commit();
-            return ['status' => "Successfully synced {$syncedCount} templates."];
+            if ($syncedCount === 0) {
+                return ['status' => 'No templates found on Meta for this WhatsApp account.'];
+            }
+            return ['status' => "Successfully synced {$syncedCount} template(s) from Meta."];
 
         } catch (\Exception $e) {
             DB::rollBack();

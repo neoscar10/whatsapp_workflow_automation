@@ -36,6 +36,34 @@ class WhatsAppTemplateServiceTest extends TestCase
 
         $this->assertEquals('pending', $template->status);
         $this->assertNotNull($template->meta_status);
-        $this->assertEquals('approved', $template->meta_status); // fake access token mock response in MetaTemplateApiService
+        $this->assertEquals('pending', $template->meta_status);
+    }
+
+    public function test_sync_templates_with_simulated_account_syncs_local_templates(): void
+    {
+        $company = Company::factory()->create();
+        $account = WhatsAppAccount::create([
+            'company_id' => $company->id,
+            'waba_id' => '123456789',
+            'phone_number_id' => '987654321',
+            'access_token' => 'fake_access_token',
+            'connection_status' => 'connected',
+        ]);
+
+        WhatsAppTemplate::create([
+            'company_id' => $company->id,
+            'whatsapp_account_id' => $account->id,
+            'remote_template_name' => 'simulated_template',
+            'category' => 'utility',
+            'language_code' => 'en_US',
+            'status' => 'pending',
+            'meta_status' => 'approved',
+            'body_text' => 'Sample body',
+        ]);
+
+        $service = app(WhatsAppTemplateService::class);
+        $result = $service->syncTemplatesFromMeta($account);
+
+        $this->assertStringContainsString('Successfully synced 1 template(s)', $result['status']);
     }
 }

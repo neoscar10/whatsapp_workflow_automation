@@ -18,11 +18,49 @@ class MetaTemplateApiService
     }
 
     /**
+     * Determines whether an account is using simulated/fake credentials.
+     */
+    protected function isSimulatedAccount(WhatsAppAccount $account): bool
+    {
+        if (empty($account->access_token) || str_starts_with($account->access_token, 'fake_') || $account->access_token === 'fake_access_token') {
+            return true;
+        }
+
+        if (config('services.whatsapp.simulator.enabled') && ($account->waba_id === 'fake_waba_id' || empty($account->waba_id))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Lists templates for a specific WABA ID.
      */
     public function listTemplates(WhatsAppAccount $account, array $params = []): array
     {
-        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+        if ($this->isSimulatedAccount($account)) {
+            // In simulated mode, mirror existing local templates or return mock items
+            $localTemplates = \App\Models\WhatsApp\WhatsAppTemplate::where('whatsapp_account_id', $account->id)->get();
+
+            if ($localTemplates->count() > 0) {
+                $mockData = $localTemplates->map(function ($tpl) {
+                    return [
+                        'id' => $tpl->remote_template_id ?: ('mock_' . $tpl->id),
+                        'name' => $tpl->remote_template_name,
+                        'language' => $tpl->language_code,
+                        'status' => strtoupper($tpl->meta_status ?: $tpl->status ?: 'APPROVED'),
+                        'category' => strtoupper($tpl->category),
+                        'components' => [
+                            ['type' => 'HEADER', 'format' => strtoupper($tpl->header_type ?: 'NONE'), 'text' => $tpl->header_text],
+                            ['type' => 'BODY', 'text' => $tpl->body_text],
+                            ['type' => 'FOOTER', 'text' => $tpl->footer_text],
+                        ],
+                    ];
+                })->toArray();
+
+                return ['data' => $mockData];
+            }
+
             return [
                 'data' => []
             ];
@@ -72,10 +110,10 @@ class MetaTemplateApiService
      */
     public function createTemplate(WhatsAppAccount $account, array $payload): array
     {
-        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+        if ($this->isSimulatedAccount($account)) {
             return [
                 'id' => 'mock_waba_template_' . rand(100000, 999999),
-                'status' => 'APPROVED',
+                'status' => 'PENDING',
             ];
         }
 
@@ -98,10 +136,10 @@ class MetaTemplateApiService
      */
     public function updateTemplate(WhatsAppAccount $account, string $remoteTemplateId, array $payload): array
     {
-        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+        if ($this->isSimulatedAccount($account)) {
             return [
                 'id' => $remoteTemplateId,
-                'status' => 'APPROVED',
+                'status' => 'PENDING',
             ];
         }
 
@@ -123,7 +161,7 @@ class MetaTemplateApiService
      */
     public function deleteTemplate(WhatsAppAccount $account, string $name): array
     {
-        if (app()->environment() === 'local' || config('services.whatsapp.simulator.enabled') || $account->access_token === 'fake_access_token') {
+        if ($this->isSimulatedAccount($account)) {
             return [
                 'success' => true,
             ];
@@ -163,7 +201,7 @@ class MetaTemplateApiService
             'waba_id' => $account->waba_id,
             'status' => $response->status(),
             'body' => $response->json(),
-            'context' => $context, // Strip sensitive data if making generic, but usually payload is safe here.
+            'context' => $context,
         ]);
     }
 }
