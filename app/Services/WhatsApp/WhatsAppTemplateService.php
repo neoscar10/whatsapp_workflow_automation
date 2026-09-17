@@ -135,22 +135,23 @@ class WhatsAppTemplateService
     }
 
     /**
-     * Resolves the Meta App ID from config, env, or directly from Meta API using access token.
+     * Resolves the Meta App ID dynamically from Meta API using the account's connected access token.
      */
     protected function resolveAppId(WhatsAppAccount $account): ?string
     {
-        $appId = config('services.whatsapp.app_id') ?: env('WHATSAPP_APP_ID');
-
-        if (!$appId && $account->access_token) {
+        if ($account->access_token) {
             $graphClient = app(WhatsAppGraphClient::class);
             $appId = $graphClient->getAppId($account->access_token);
+            if ($appId) {
+                return $appId;
+            }
         }
 
-        if (!$appId && ($account->access_token === 'fake_access_token' || $account->access_token === 'simulated_token' || config('services.whatsapp.simulator.enabled') || str_contains($account->waba_id ?? '', 'SIMULATED'))) {
-            $appId = 'simulated_app_id';
+        if ($account->access_token === 'fake_access_token' || $account->access_token === 'simulated_token' || config('services.whatsapp.simulator.enabled') || str_contains($account->waba_id ?? '', 'SIMULATED')) {
+            return 'simulated_app_id';
         }
 
-        return $appId;
+        return config('services.whatsapp.app_id') ?: env('WHATSAPP_APP_ID');
     }
 
     /**
