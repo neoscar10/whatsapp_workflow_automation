@@ -38,7 +38,12 @@ class ContactController extends Controller
             'has_opted_in', 'do_not_message', 'per_page'
         ]);
 
-        $contacts = $this->contactService->listForCompany($request->user()->company_id, $filters);
+        $companyId = $request->user()->company_id;
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        $contacts = $this->contactService->listForCompany($companyId, $filters);
 
         return $this->successResponse(
             ContactResource::collection($contacts)->response()->getData(true),
