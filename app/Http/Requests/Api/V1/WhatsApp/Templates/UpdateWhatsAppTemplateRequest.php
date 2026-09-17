@@ -37,6 +37,8 @@ class UpdateWhatsAppTemplateRequest extends FormRequest
             'example_payload' => 'nullable|array',
             'example_payload.header_text' => 'nullable|array',
             'example_payload.body_text' => 'nullable|array',
+            'example_header_values' => 'nullable|array',
+            'example_body_values' => 'nullable|array',
         ];
     }
 }

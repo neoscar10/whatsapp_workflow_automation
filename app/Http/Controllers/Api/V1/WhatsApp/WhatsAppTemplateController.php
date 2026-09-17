@@ -110,6 +110,14 @@ class WhatsAppTemplateController extends Controller
         $buttons = $data['buttons'] ?? [];
         $headerSampleFile = $request->file('header_sample_file');
 
+        $examplePayload = $data['example_payload'] ?? [];
+        if (!empty($data['example_header_values'])) {
+            $examplePayload['header_text'] = (array) $data['example_header_values'];
+        }
+        if (!empty($data['example_body_values'])) {
+            $examplePayload['body_text'] = (array) $data['example_body_values'];
+        }
+
         // Map request fields to service expected format
         $serviceData = [
             'remote_template_name' => $data['name'],
@@ -119,7 +127,7 @@ class WhatsAppTemplateController extends Controller
             'header_text' => $data['header_type'] === 'text' ? ($data['header_text'] ?? null) : null,
             'body_text' => $data['body_text'],
             'footer_text' => $data['footer_text'] ?? null,
-            'example_payload' => $data['example_payload'] ?? [],
+            'example_payload' => $examplePayload,
         ];
 
         try {
@@ -170,6 +178,14 @@ class WhatsAppTemplateController extends Controller
             $buttons = $data['buttons'] ?? $template->buttons->toArray();
             $headerSampleFile = $request->file('header_sample_file');
 
+            $examplePayload = $data['example_payload'] ?? [];
+            if (!empty($data['example_header_values'])) {
+                $examplePayload['header_text'] = (array) $data['example_header_values'];
+            }
+            if (!empty($data['example_body_values'])) {
+                $examplePayload['body_text'] = (array) $data['example_body_values'];
+            }
+
             // Map request fields to service expected format
             $serviceData = [
                 'category' => $data['category'] ?? $template->category,
@@ -177,7 +193,7 @@ class WhatsAppTemplateController extends Controller
                 'header_text' => isset($data['header_text']) ? $data['header_text'] : $template->header_text,
                 'body_text' => $data['body_text'] ?? $template->body_text,
                 'footer_text' => isset($data['footer_text']) ? $data['footer_text'] : $template->footer_text,
-                'example_payload' => $data['example_payload'] ?? [],
+                'example_payload' => $examplePayload,
             ];
 
             $updatedTemplate = $this->templateService->updateTemplateRecord(
