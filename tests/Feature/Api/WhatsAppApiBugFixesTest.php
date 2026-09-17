@@ -155,4 +155,53 @@ class WhatsAppApiBugFixesTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonStructure(['errors' => ['webhook_callback_url']]);
     }
+
+    /** @test */
+    public function super_admin_can_impersonate_and_manage_company_data_via_query_param_or_header()
+    {
+        $superAdmin = User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+            'company_id' => null,
+        ]);
+
+        // Query setup account via fallback/impersonation
+        $this->actingAs($superAdmin, 'sanctum')
+            ->getJson('/api/v1/whatsapp/setup/account')
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // Query setup phone numbers via fallback/impersonation
+        $this->actingAs($superAdmin, 'sanctum')
+            ->getJson('/api/v1/whatsapp/setup/phone-numbers')
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // Query templates via ?company_id=X
+        $this->actingAs($superAdmin, 'sanctum')
+            ->getJson("/api/v1/whatsapp/templates?company_id={$this->company->id}")
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // Query contacts via X-Company-ID header
+        $this->actingAs($superAdmin, 'sanctum')
+            ->withHeaders(['X-Company-ID' => (string) $this->company->id])
+            ->getJson('/api/v1/contacts')
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // Query chats via fallback/impersonation
+        $this->actingAs($superAdmin, 'sanctum')
+            ->getJson('/api/v1/chats')
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // Query webhooks via fallback/impersonation
+        $this->actingAs($superAdmin, 'sanctum')
+            ->getJson('/api/v1/webhooks')
+            ->assertStatus(200)
+            ->assertJsonPath('success', true);
+    }
 }

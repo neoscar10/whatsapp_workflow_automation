@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\WhatsApp;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\WhatsApp\Setup\StoreWhatsAppPhoneNumberRequest;
 use App\Http\Requests\Api\V1\WhatsApp\Setup\UpdateWhatsAppAccountRequest;
 use App\Http\Requests\Api\V1\WhatsApp\Setup\UpdateWhatsAppPhoneNumberRequest;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppSetupController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     public function __construct(
         protected WhatsAppAccountSetupService $accountSetupService,
@@ -30,8 +31,7 @@ class WhatsAppSetupController extends Controller
      */
     public function account(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -71,8 +71,7 @@ class WhatsAppSetupController extends Controller
      */
     public function updateAccount(UpdateWhatsAppAccountRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -84,7 +83,7 @@ class WhatsAppSetupController extends Controller
 
         try {
             $data = $request->validated();
-            $setupData = $this->accountSetupService->saveSetupForUser($user, $data);
+            $setupData = $this->accountSetupService->saveSetupForCompany($company, $data);
 
             return $this->successResponse(
                 $setupData,
@@ -101,15 +100,14 @@ class WhatsAppSetupController extends Controller
      */
     public function phoneNumbers(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
         }
 
         $filters = $request->only(['search', 'status', 'per_page']);
-        $phoneNumbers = $this->phoneNumberService->paginateForUser($user, $filters);
+        $phoneNumbers = $this->phoneNumberService->paginateForCompany($company, $filters);
 
         return $this->successResponse(
             WhatsAppPhoneNumberResource::collection($phoneNumbers)->response()->getData(true),
@@ -123,7 +121,7 @@ class WhatsAppSetupController extends Controller
     public function storePhoneNumber(StoreWhatsAppPhoneNumberRequest $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -135,7 +133,7 @@ class WhatsAppSetupController extends Controller
 
         try {
             $data = $request->validated();
-            $phoneNumber = $this->phoneNumberService->createNumberForUser($user, $data);
+            $phoneNumber = $this->phoneNumberService->createNumberForCompany($company, $data, $user);
 
             return $this->successResponse(
                 new WhatsAppPhoneNumberResource($phoneNumber),
@@ -153,8 +151,7 @@ class WhatsAppSetupController extends Controller
      */
     public function updatePhoneNumber(UpdateWhatsAppPhoneNumberRequest $request, int $id): JsonResponse
     {
-        $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -166,7 +163,7 @@ class WhatsAppSetupController extends Controller
 
         try {
             $data = $request->validated();
-            $phoneNumber = $this->phoneNumberService->updateNumberForUser($user, $id, $data);
+            $phoneNumber = $this->phoneNumberService->updateNumberForCompany($company, $id, $data);
 
             return $this->successResponse(
                 new WhatsAppPhoneNumberResource($phoneNumber),
@@ -185,8 +182,7 @@ class WhatsAppSetupController extends Controller
      */
     public function togglePhoneNumberStatus(Request $request, int $id): JsonResponse
     {
-        $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -197,7 +193,7 @@ class WhatsAppSetupController extends Controller
         }
 
         try {
-            $phoneNumber = $this->phoneNumberService->toggleStatusForUser($user, $id);
+            $phoneNumber = $this->phoneNumberService->toggleStatusForCompany($company, $id);
 
             return $this->successResponse(
                 new WhatsAppPhoneNumberResource($phoneNumber),

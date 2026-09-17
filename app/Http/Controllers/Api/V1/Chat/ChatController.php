@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Chat;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\Chat\ListChatsRequest;
 use App\Http\Resources\Api\V1\Chat\ChatConversationResource;
 use App\Models\Chat\Conversation;
@@ -16,7 +17,7 @@ use App\Http\Requests\Api\V1\Chat\StoreChatRequest;
 
 class ChatController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     public function __construct(
         protected ChatInboxService $inboxService,
@@ -32,11 +33,17 @@ class ChatController extends Controller
     public function index(ListChatsRequest $request): JsonResponse
     {
         $user = $request->user();
+        $companyId = $this->resolveCompanyId($request);
+
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         $filters = $request->validated();
         $perPage = $filters['per_page'] ?? 15;
 
         // We use the same filter logic as the web inbox but with pagination
-        $query = Conversation::where('company_id', $user->company_id)
+        $query = Conversation::where('company_id', $companyId)
             ->with(['assignee'])
             ->orderBy('last_message_at', 'desc');
 
@@ -96,7 +103,13 @@ class ChatController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $conversation = $this->inboxService->getActiveConversationForUser($user, $id);
+        $companyId = $this->resolveCompanyId($request);
+
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        $conversation = Conversation::where('company_id', $companyId)->find($id);
 
         if (!$conversation) {
             return $this->errorResponse('Conversation not found for your company.', [], 404);

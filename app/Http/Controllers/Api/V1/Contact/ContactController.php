@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Contact;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\Contact\StoreContactRequest;
 use App\Http\Requests\Api\V1\Contact\UpdateContactRequest;
 use App\Http\Resources\Api\V1\Contact\ContactResource;
@@ -19,7 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     public function __construct(
         protected ContactService $contactService,
@@ -38,7 +39,7 @@ class ContactController extends Controller
             'has_opted_in', 'do_not_message', 'per_page'
         ]);
 
-        $companyId = $request->user()->company_id;
+        $companyId = $this->resolveCompanyId($request);
         if (!$companyId) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
         }
@@ -56,8 +57,13 @@ class ContactController extends Controller
      */
     public function store(StoreContactRequest $request): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->create($request->user(), $request->validated());
+            $contact = $this->contactService->create($request->user(), $request->validated(), $companyId);
             return $this->successResponse(new ContactResource($contact), 'Contact created successfully.', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), [], 422);
@@ -69,8 +75,13 @@ class ContactController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->findForCompany($request->user()->company_id, $id);
+            $contact = $this->contactService->findForCompany($companyId, $id);
             return $this->successResponse(new ContactResource($contact->load(['tags', 'groups'])), 'Contact retrieved successfully.');
         } catch (\Exception $e) {
             return $this->errorResponse('Contact not found.', [], 404);
@@ -82,8 +93,13 @@ class ContactController extends Controller
      */
     public function update(UpdateContactRequest $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->findForCompany($request->user()->company_id, $id);
+            $contact = $this->contactService->findForCompany($companyId, $id);
             $contact = $this->contactService->update($request->user(), $contact, $request->validated());
             return $this->successResponse(new ContactResource($contact), 'Contact updated successfully.');
         } catch (\Exception $e) {
@@ -96,8 +112,13 @@ class ContactController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->findForCompany($request->user()->company_id, $id);
+            $contact = $this->contactService->findForCompany($companyId, $id);
             $this->contactService->delete($request->user(), $contact);
             return $this->successResponse(null, 'Contact deleted successfully.');
         } catch (\Exception $e) {
@@ -110,8 +131,13 @@ class ContactController extends Controller
      */
     public function optIn(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->findForCompany($request->user()->company_id, $id);
+            $contact = $this->contactService->findForCompany($companyId, $id);
             $this->contactService->markOptedIn($request->user(), $contact, $request->source);
             return $this->successResponse(new ContactResource($contact->refresh()), 'Contact marked as opted in.');
         } catch (\Exception $e) {
@@ -124,8 +150,13 @@ class ContactController extends Controller
      */
     public function optOut(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $contact = $this->contactService->findForCompany($request->user()->company_id, $id);
+            $contact = $this->contactService->findForCompany($companyId, $id);
             $this->contactService->markOptedOut($request->user(), $contact, $request->reason);
             return $this->successResponse(new ContactResource($contact->refresh()), 'Contact marked as opted out.');
         } catch (\Exception $e) {
@@ -138,12 +169,19 @@ class ContactController extends Controller
      */
     public function sync(Request $request): JsonResponse
     {
-        // Only allow company owners to trigger sync via API?
-        if (!$request->user()->is_company_owner) {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
+        $user = $request->user();
+        $isSuperAdmin = $user->role === 'super_admin' || ($user->is_super_admin ?? false);
+
+        if (!$isSuperAdmin && !$user->is_company_owner) {
             return $this->errorResponse('Unauthorized.', [], 403);
         }
 
-        $stats = $this->syncService->backfillFromConversations($request->user()->company_id);
+        $stats = $this->syncService->backfillFromConversations($companyId);
 
         return $this->successResponse($stats, 'Sync completed successfully.');
     }
@@ -166,8 +204,13 @@ class ContactController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            abort(403, 'User does not belong to a company.');
+        }
+
         return response()->streamDownload(
-            $this->exportService->exportToCsv($request->user()->company_id),
+            $this->exportService->exportToCsv($companyId),
             'contacts-export-' . now()->format('Y-m-d') . '.csv',
             [
                 'Content-Type' => 'text/csv',

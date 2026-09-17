@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\WhatsApp;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\WhatsApp\Templates\ListWhatsAppTemplatesRequest;
 use App\Http\Requests\Api\V1\WhatsApp\Templates\StoreWhatsAppTemplateRequest;
 use App\Http\Requests\Api\V1\WhatsApp\Templates\UpdateWhatsAppTemplateRequest;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppTemplateController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     protected WhatsAppTemplateService $templateService;
 
@@ -35,7 +36,7 @@ class WhatsAppTemplateController extends Controller
     public function index(ListWhatsAppTemplatesRequest $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -59,7 +60,7 @@ class WhatsAppTemplateController extends Controller
     public function sync(Request $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -95,7 +96,7 @@ class WhatsAppTemplateController extends Controller
     public function store(StoreWhatsAppTemplateRequest $request): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -160,7 +161,7 @@ class WhatsAppTemplateController extends Controller
     public function update(UpdateWhatsAppTemplateRequest $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -227,7 +228,7 @@ class WhatsAppTemplateController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -253,7 +254,7 @@ class WhatsAppTemplateController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $company = $user->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);

@@ -14,7 +14,16 @@ class WhatsAppAccountSetupService
 
     public function getSetupDataForUser(User $user): array
     {
-        $account = WhatsAppAccount::where('company_id', $user->company_id)->first();
+        if ($user->company) {
+            return $this->getSetupDataForCompany($user->company);
+        }
+
+        return $this->getSetupDataForCompany(new \App\Models\Company(['id' => 0]));
+    }
+
+    public function getSetupDataForCompany(\App\Models\Company $company): array
+    {
+        $account = WhatsAppAccount::where('company_id', $company->id)->first();
 
         return [
             'is_connected' => $account ? $account->connection_status === 'connected' : false,
@@ -30,7 +39,14 @@ class WhatsAppAccountSetupService
 
     public function saveSetupForUser(User $user, array $data): array
     {
-        $company = $user->company;
+        if ($user->company) {
+            return $this->saveSetupForCompany($user->company, $data);
+        }
+        throw new \Exception("User has no associated company.");
+    }
+
+    public function saveSetupForCompany(\App\Models\Company $company, array $data): array
+    {
         $existingAccount = WhatsAppAccount::where('company_id', $company->id)->first();
 
         $updateData = [];
@@ -70,7 +86,7 @@ class WhatsAppAccountSetupService
             $this->syncService->syncForAccount($account);
         }
 
-        return $this->getSetupDataForUser($user);
+        return $this->getSetupDataForCompany($company);
     }
 
     public function resetDataForUser(User $user): array

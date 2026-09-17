@@ -27,4 +27,14 @@ class StoreCompanyWebhookRequest extends BaseApiRequest
             'is_active' => 'boolean',
         ];
     }
+
+    /**
+     * Custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'events.*.in' => 'Selected event is invalid. Allowed events are: message.received, message.status_update, template.status_update.',
+        ];
+    }
 }

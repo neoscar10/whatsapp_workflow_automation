@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Webhook;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\Webhook\StoreCompanyWebhookRequest;
 use App\Http\Requests\Api\V1\Webhook\UpdateCompanyWebhookRequest;
 use App\Http\Resources\Api\V1\Webhook\CompanyWebhookResource;
@@ -17,14 +18,14 @@ use Illuminate\Support\Facades\Log;
 
 class CompanyWebhookController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     /**
      * Display a listing of the company's webhooks.
      */
     public function index(Request $request): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -46,7 +47,7 @@ class CompanyWebhookController extends Controller
      */
     public function store(StoreCompanyWebhookRequest $request): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -83,7 +84,7 @@ class CompanyWebhookController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -106,7 +107,7 @@ class CompanyWebhookController extends Controller
      */
     public function update(UpdateCompanyWebhookRequest $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -146,7 +147,7 @@ class CompanyWebhookController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -176,7 +177,7 @@ class CompanyWebhookController extends Controller
      */
     public function toggleStatus(Request $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -210,7 +211,7 @@ class CompanyWebhookController extends Controller
      */
     public function ping(Request $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);
@@ -276,7 +277,7 @@ class CompanyWebhookController extends Controller
      */
     public function logs(Request $request, int $id): JsonResponse
     {
-        $company = $request->user()->company;
+        $company = $this->resolveCompany($request);
 
         if (!$company) {
             return $this->errorResponse('User does not belong to a company.', [], 403);

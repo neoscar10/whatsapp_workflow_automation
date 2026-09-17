@@ -14,9 +14,10 @@ class CampaignService
     /**
      * List campaigns for a company.
      */
-    public function listForCompany(User $actor, array $filters = []): LengthAwarePaginator
+    public function listForCompany(User $actor, array $filters = [], ?int $companyId = null): LengthAwarePaginator
     {
-        $query = Campaign::forCompany($actor->company_id)
+        $targetCompanyId = $companyId ?: $actor->company_id;
+        $query = Campaign::forCompany($targetCompanyId)
             ->with(['creator', 'whatsappTemplate'])
             ->latest();
 
@@ -38,18 +39,19 @@ class CampaignService
     /**
      * Find a campaign for a company.
      */
-    public function findForCompany(User $actor, int $campaignId): Campaign
+    public function findForCompany(User $actor, int $campaignId, ?int $companyId = null): Campaign
     {
-        return Campaign::forCompany($actor->company_id)
+        $targetCompanyId = $companyId ?: $actor->company_id;
+        return Campaign::forCompany($targetCompanyId)
             ->findOrFail($campaignId);
     }
 
     /**
      * Create a draft campaign.
      */
-    public function createDraft(User $actor, array $data): Campaign
+    public function createDraft(User $actor, array $data, ?int $companyId = null): Campaign
     {
-        $data['company_id'] = $actor->company_id;
+        $data['company_id'] = $companyId ?: $actor->company_id;
         $data['created_by'] = $actor->id;
         $data['status'] = 'draft';
         $data['slug'] = Str::slug($data['name']) . '-' . Str::random(5);

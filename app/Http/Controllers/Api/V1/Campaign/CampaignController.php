@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Campaign;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\RespondsWithApiResponse;
+use App\Http\Controllers\Api\Concerns\ResolvesCompanyContext;
 use App\Http\Requests\Api\V1\Campaign\ListCampaignsRequest;
 use App\Http\Requests\Api\V1\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Api\V1\Campaign\UpdateCampaignRequest;
@@ -16,7 +17,7 @@ use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
-    use RespondsWithApiResponse;
+    use RespondsWithApiResponse, ResolvesCompanyContext;
 
     public function __construct(
         protected CampaignService $campaignService
@@ -27,9 +28,15 @@ class CampaignController extends Controller
      */
     public function index(ListCampaignsRequest $request): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         $campaigns = $this->campaignService->listForCompany(
             $request->user(), 
-            $request->validated()
+            $request->validated(),
+            $companyId
         );
 
         return $this->successResponse(
@@ -43,10 +50,16 @@ class CampaignController extends Controller
      */
     public function store(StoreCampaignRequest $request): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
             $campaign = $this->campaignService->createDraft(
                 $request->user(), 
-                $request->validated()
+                $request->validated(),
+                $companyId
             );
 
             return $this->successResponse(
@@ -64,8 +77,13 @@ class CampaignController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $campaign = $this->campaignService->findForCompany($request->user(), $id, $companyId);
             return $this->successResponse(new CampaignDetailResource($campaign));
         } catch (\Exception $e) {
             return $this->errorResponse('Campaign not found for your company.', [], 404);
@@ -77,8 +95,13 @@ class CampaignController extends Controller
      */
     public function update(UpdateCampaignRequest $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $campaign = $this->campaignService->findForCompany($request->user(), $id, $companyId);
             $this->campaignService->update($request->user(), $campaign, $request->validated());
 
             return $this->successResponse(
@@ -95,8 +118,13 @@ class CampaignController extends Controller
      */
     public function updateContent(UpdateCampaignContentRequest $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $campaign = $this->campaignService->findForCompany($request->user(), $id, $companyId);
             $this->campaignService->updateContent($request->user(), $campaign, $request->validated());
 
             return $this->successResponse(
@@ -113,8 +141,13 @@ class CampaignController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
+        $companyId = $this->resolveCompanyId($request);
+        if (!$companyId) {
+            return $this->errorResponse('User does not belong to a company.', [], 403);
+        }
+
         try {
-            $campaign = $this->campaignService->findForCompany($request->user(), $id);
+            $campaign = $this->campaignService->findForCompany($request->user(), $id, $companyId);
             $this->campaignService->deleteForCompany($request->user(), $campaign);
 
             return $this->successResponse(null, 'Campaign deleted successfully.');

@@ -11,8 +11,15 @@ class WhatsAppPhoneNumberService
 {
     public function paginateForUser(User $user, array $filters): LengthAwarePaginator
     {
-        $company = $user->company;
-        if ($company && $company->status === 'demo') {
+        if ($user->company) {
+            return $this->paginateForCompany($user->company, $filters);
+        }
+        return WhatsAppPhoneNumber::whereRaw('1 = 0')->paginate($filters['per_page'] ?? 10);
+    }
+
+    public function paginateForCompany(\App\Models\Company $company, array $filters): LengthAwarePaginator
+    {
+        if ($company->status === 'demo') {
             $demoNumberId = $this->resolveDemoPhoneNumberId($company);
             if ($demoNumberId) {
                 return WhatsAppPhoneNumber::where('id', $demoNumberId)
@@ -21,7 +28,7 @@ class WhatsAppPhoneNumberService
             return WhatsAppPhoneNumber::whereRaw('1 = 0')->paginate($filters['per_page'] ?? 10);
         }
 
-        $query = WhatsAppPhoneNumber::where('company_id', $user->company_id);
+        $query = WhatsAppPhoneNumber::where('company_id', $company->id);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -39,48 +46,16 @@ class WhatsAppPhoneNumberService
         return $query->latest()->paginate($filters['per_page'] ?? 10);
     }
 
-    public function getPageMetaForUser(User $user): array
-    {
-        $company = $user->company;
-        if ($company && $company->status === 'demo') {
-            $demoNumberId = $this->resolveDemoPhoneNumberId($company);
-            $hasDemoNumber = (bool)$demoNumberId;
-            return [
-                'all_count' => $hasDemoNumber ? 1 : 0,
-                'active_count' => $hasDemoNumber ? 1 : 0,
-                'inactive_count' => 0,
-                'has_connected_account' => $hasDemoNumber,
-                'connected_account_id' => null,
-                'account_status' => $hasDemoNumber ? 'connected' : 'not_connected',
-            ];
-        }
-
-        if (!$company) {
-            return [
-                'all_count' => 0,
-                'active_count' => 0,
-                'inactive_count' => 0,
-                'has_connected_account' => false,
-                'connected_account_id' => null,
-                'account_status' => 'not_connected',
-            ];
-        }
-
-        $account = $company->whatsappAccount;
-        
-        return [
-            'all_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->count(),
-            'active_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->where('status', 'active')->count(),
-            'inactive_count' => WhatsAppPhoneNumber::where('company_id', $company->id)->where('status', 'inactive')->count(),
-            'has_connected_account' => $account ? in_array($account->connection_status, ['connected', 'pending-sync', 'error']) : false,
-            'connected_account_id' => $account->id ?? null,
-            'account_status' => $account->connection_status ?? 'not_connected',
-        ];
-    }
-
     public function createNumberForUser(User $user, array $data): WhatsAppPhoneNumber
     {
-        $company = $user->company;
+        if ($user->company) {
+            return $this->createNumberForCompany($user->company, $data, $user);
+        }
+        throw new \Exception("User has no associated company.");
+    }
+
+    public function createNumberForCompany(\App\Models\Company $company, array $data, ?User $user = null): WhatsAppPhoneNumber
+    {
         $account = $company->whatsappAccount;
 
         if (!$account || $account->connection_status !== 'connected') {
@@ -94,14 +69,20 @@ class WhatsAppPhoneNumberService
             'phone_number_id' => $data['phone_number_id'],
             'phone_number' => $data['phone_number'] ?? null,
             'status' => 'active',
-            'created_by_user_id' => $user->id,
+            'created_by_user_id' => $user->id ?? null,
         ]);
     }
 
     public function updateNumberForUser(User $user, int $numberId, array $data): WhatsAppPhoneNumber
     {
         $number = $this->findForUser($user, $numberId);
-        
+        return $this->updateNumberForCompany($number->company, $numberId, $data);
+    }
+
+    public function updateNumberForCompany(\App\Models\Company $company, int $numberId, array $data): WhatsAppPhoneNumber
+    {
+        $number = WhatsAppPhoneNumber::where('company_id', $company->id)->findOrFail($numberId);
+
         $updateData = [];
         if (array_key_exists('display_name', $data)) {
             $updateData['display_name'] = $data['display_name'];
@@ -124,6 +105,17 @@ class WhatsAppPhoneNumberService
     {
         $number = $this->findForUser($user, $numberId);
         
+        $number->update([
+            'status' => $number->status === 'active' ? 'inactive' : 'active',
+        ]);
+
+        return $number;
+    }
+
+    public function toggleStatusForCompany(\App\Models\Company $company, int $numberId): WhatsAppPhoneNumber
+    {
+        $number = WhatsAppPhoneNumber::where('company_id', $company->id)->findOrFail($numberId);
+
         $number->update([
             'status' => $number->status === 'active' ? 'inactive' : 'active',
         ]);

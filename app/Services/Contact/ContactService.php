@@ -68,17 +68,22 @@ class ContactService
     /**
      * Create a new contact.
      */
-    public function create(User $actor, array $data): Contact
+    public function create(User $actor, array $data, ?int $companyId = null): Contact
     {
+        $targetCompanyId = $companyId ?: $actor->company_id;
+        if (!$targetCompanyId) {
+            throw new \Exception("Company context is required to create a contact.");
+        }
+
         $normalizedPhone = PhoneNumberNormalizer::normalize($data['phone']);
 
-        if (Contact::where('company_id', $actor->company_id)->where('normalized_phone', $normalizedPhone)->exists()) {
+        if (Contact::where('company_id', $targetCompanyId)->where('normalized_phone', $normalizedPhone)->exists()) {
             throw new \Exception("A contact with this phone number already exists.");
         }
 
-        return DB::transaction(function () use ($actor, $data, $normalizedPhone) {
+        return DB::transaction(function () use ($actor, $targetCompanyId, $data, $normalizedPhone) {
             $contact = Contact::create([
-                'company_id' => $actor->company_id,
+                'company_id' => $targetCompanyId,
                 'whatsapp_phone_number_id' => $data['whatsapp_phone_number_id'] ?? null,
                 'name' => $data['name'] ?? null,
                 'phone' => $data['phone'],
@@ -112,14 +117,15 @@ class ContactService
      */
     public function update(User $actor, Contact $contact, array $data): Contact
     {
-        if ($contact->company_id !== $actor->company_id) {
+        $isSuperAdmin = $actor->role === 'super_admin' || ($actor->is_super_admin ?? false);
+        if (!$isSuperAdmin && $contact->company_id !== $actor->company_id) {
             throw new \Exception("Unauthorized access to contact.");
         }
 
         $normalizedPhone = isset($data['phone']) ? PhoneNumberNormalizer::normalize($data['phone']) : $contact->normalized_phone;
 
         if (isset($data['phone']) && $normalizedPhone !== $contact->normalized_phone) {
-            if (Contact::where('company_id', $actor->company_id)->where('normalized_phone', $normalizedPhone)->where('id', '!=', $contact->id)->exists()) {
+            if (Contact::where('company_id', $contact->company_id)->where('normalized_phone', $normalizedPhone)->where('id', '!=', $contact->id)->exists()) {
                 throw new \Exception("A contact with this phone number already exists.");
             }
         }
@@ -172,7 +178,8 @@ class ContactService
      */
     public function delete(User $actor, Contact $contact): void
     {
-        if ($contact->company_id !== $actor->company_id) {
+        $isSuperAdmin = $actor->role === 'super_admin' || ($actor->is_super_admin ?? false);
+        if (!$isSuperAdmin && $contact->company_id !== $actor->company_id) {
             throw new \Exception("Unauthorized access to contact.");
         }
 
