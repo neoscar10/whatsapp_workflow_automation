@@ -26,12 +26,22 @@ class TemplatesIndexPage extends Component
 
     public ?int $templateToDelete = null;
 
-    public function mount()
+    public function mount(WhatsAppTemplateService $templateService)
     {
         // Require connection first
         $accountData = $this->getAccount();
         if (!$accountData || ($accountData['connection_status'] ?? '') !== 'connected') {
             return redirect()->route('whatsapp.setup.account');
+        }
+
+        // Auto-sync templates from Meta on page load to ensure fresh statuses
+        $accountModel = \App\Models\WhatsApp\WhatsAppAccount::where('company_id', auth()->user()->company_id)->first();
+        if ($accountModel) {
+            try {
+                $templateService->syncTemplatesFromMeta($accountModel);
+            } catch (\Exception $e) {
+                Log::warning('Auto-sync of WhatsApp templates failed on mount', ['error' => $e->getMessage()]);
+            }
         }
     }
 

@@ -24,6 +24,7 @@ class WhatsAppTemplate extends Model
         'category',
         'language_code',
         'status',
+        'meta_status',
         'quality_rating',
         'namespace',
         'rejection_reason',

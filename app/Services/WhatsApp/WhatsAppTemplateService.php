@@ -74,6 +74,7 @@ class WhatsAppTemplateService
             foreach ($remoteTemplates as $remoteData) {
                 // Parse components first to get required fields like body_text
                 $parsed = $this->parseMetaComponents($remoteData['components'] ?? []);
+                $remoteStatus = strtolower($remoteData['status'] ?? 'pending');
 
                 $template = WhatsAppTemplate::updateOrCreate(
                     [
@@ -86,7 +87,8 @@ class WhatsAppTemplateService
                         'remote_template_id' => $remoteData['id'],
                         'display_title' => $this->generateDisplayTitle($remoteData['name']),
                         'category' => strtolower($remoteData['category']),
-                        'status' => strtolower($remoteData['status']),
+                        'status' => $remoteStatus,
+                        'meta_status' => $remoteStatus,
                         'quality_rating' => $remoteData['quality_score']['score'] ?? null,
                         'rejection_reason' => $remoteData['reason'] ?? null,
                         'header_type' => $parsed['header_type'],
@@ -113,6 +115,20 @@ class WhatsAppTemplateService
             Log::error('Template Sync Failed', ['error' => $e->getMessage(), 'account_id' => $account->id]);
             throw $e;
         }
+    }
+
+    /**
+     * Refreshes a single template's status from Meta.
+     */
+    public function refreshTemplateStatusFromMeta(WhatsAppTemplate $template): WhatsAppTemplate
+    {
+        $account = $template->account;
+        if (!$account) {
+            return $template;
+        }
+
+        $this->syncTemplatesFromMeta($account);
+        return $template->fresh();
     }
 
     /**
@@ -146,7 +162,8 @@ class WhatsAppTemplateService
                 'display_title' => $data['display_title'] ?? $this->generateDisplayTitle($data['remote_template_name']),
                 'category' => strtolower($data['category']),
                 'language_code' => $data['language_code'],
-                'status' => 'draft',
+                'status' => 'pending',
+                'meta_status' => 'pending',
                 'header_type' => $data['header_type'] ?? 'none',
                 'header_text' => $data['header_text'] ?? null,
                 'body_text' => $data['body_text'],
@@ -165,11 +182,13 @@ class WhatsAppTemplateService
 
             // 4. Push to Meta
             $metaResponse = $this->apiService->createTemplate($account, $payload);
+            $rawMetaStatus = strtolower($metaResponse['status'] ?? 'pending');
 
-            // 5. Update local record with Meta ID and new status
+            // 5. Update local record with Meta ID, keeping initial status as pending
             $template->update([
-                'remote_template_id' => $metaResponse['id'],
-                'status' => strtolower($metaResponse['status'] ?? 'pending'), // usually pending after creation
+                'remote_template_id' => $metaResponse['id'] ?? null,
+                'status' => 'pending',
+                'meta_status' => $rawMetaStatus,
                 'submitted_at' => now(),
                 'last_synced_at' => now(),
             ]);
@@ -212,10 +231,13 @@ class WhatsAppTemplateService
                 $metaResponse = $this->apiService->createTemplate($account, $payload);
             }
             
+            $rawMetaStatus = strtolower($metaResponse['status'] ?? 'pending');
+
             // Update local DB
             $template->update([
                  'category' => strtolower($data['category']),
                  'status' => 'pending', // Reverts to pending when edited
+                 'meta_status' => $rawMetaStatus,
                  'header_type' => $data['header_type'] ?? 'none',
                  'header_text' => $data['header_text'] ?? null,
                  'body_text' => $data['body_text'],
