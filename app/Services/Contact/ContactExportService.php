@@ -31,10 +31,17 @@ class ContactExportService
 
             $query->chunk(100, function ($contacts) use ($file) {
                 foreach ($contacts as $contact) {
+                    $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($contact->phone ?? '');
+                    $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($contact->normalized_phone ?? $cleanPhone);
+                    
+                    // Prefix phone with + if it's purely numeric so CSV viewers keep text format
+                    $formattedPhone = preg_match('/^[0-9]+$/', $cleanPhone) ? '+' . $cleanPhone : $cleanPhone;
+                    $formattedNorm = '+' . $cleanNorm;
+
                     fputcsv($file, [
                         $contact->name,
-                        $contact->phone,
-                        $contact->normalized_phone,
+                        $formattedPhone,
+                        $formattedNorm,
                         $contact->status,
                         $contact->source,
                         $contact->has_opted_in ? 'Yes' : 'No',

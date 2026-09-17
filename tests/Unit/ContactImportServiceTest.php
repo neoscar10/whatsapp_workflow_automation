@@ -71,4 +71,29 @@ class ContactImportServiceTest extends TestCase
         $this->assertEquals(2, $result['total_rows']);
         $this->assertEquals(2, $result['created']);
     }
+
+    public function test_imports_csv_with_scientific_notation_phone_numbers()
+    {
+        $csvContent = "phone,name\n9.17058E+11,9.17058E+11\n9.17218E+11,Jane Sci";
+        $file = UploadedFile::fake()->createWithContent('scientific.csv', $csvContent);
+
+        $result = $this->service->importFromCsv($this->user, $file);
+
+        $this->assertEquals(2, $result['total_rows']);
+        $this->assertEquals(2, $result['created']);
+
+        $this->assertDatabaseHas('contacts', [
+            'company_id' => $this->user->company_id,
+            'phone' => '917058000000',
+            'normalized_phone' => '917058000000',
+            'name' => '917058000000',
+        ]);
+
+        $this->assertDatabaseHas('contacts', [
+            'company_id' => $this->user->company_id,
+            'phone' => '917218000000',
+            'normalized_phone' => '917218000000',
+            'name' => 'Jane Sci',
+        ]);
+    }
 }

@@ -136,13 +136,22 @@ class ContactImportService
                 return;
             }
 
-            if (!PhoneNumberNormalizer::isValid($data['phone'])) {
+            $rawPhone = $data['phone'];
+            $cleanPhone = PhoneNumberNormalizer::clean($rawPhone);
+
+            if (!PhoneNumberNormalizer::isValid($cleanPhone)) {
                 $stats['failed']++;
-                $stats['errors'][] = "Row {$rowNum}: Invalid phone number format [{$data['phone']}].";
+                $stats['errors'][] = "Row {$rowNum}: Invalid phone number format [{$rawPhone}].";
                 return;
             }
 
-            $normalizedPhone = PhoneNumberNormalizer::normalize($data['phone']);
+            $normalizedPhone = PhoneNumberNormalizer::normalize($cleanPhone);
+            $data['phone'] = $cleanPhone;
+
+            // If name is missing, matches raw phone, or contains scientific notation, default to cleaned phone
+            if (empty($data['name']) || $data['name'] === $rawPhone || (is_numeric($data['name']) && preg_match('/[eE]/', $data['name']))) {
+                $data['name'] = $cleanPhone;
+            }
 
             DB::transaction(function () use ($actor, $data, $normalizedPhone, &$stats) {
                 $contact = Contact::where('company_id', $actor->company_id)
@@ -153,7 +162,7 @@ class ContactImportService
 
                 $contactData = [
                     'company_id' => $actor->company_id,
-                    'name' => $data['name'] ?? ($contact->name ?? null),
+                    'name' => $data['name'] ?? ($contact->name ?? $data['phone']),
                     'phone' => $data['phone'],
                     'normalized_phone' => $normalizedPhone,
                     'notes' => $data['notes'] ?? ($contact->notes ?? null),
@@ -249,7 +258,6 @@ class ContactImportService
 
     protected function looksLikePhoneNumber(string $val): bool
     {
-        $cleaned = preg_replace('/[^\d+]/', '', $val);
-        return strlen($cleaned) >= 7 && preg_match('/^\+?[0-9]{7,16}$/', $cleaned) === 1;
+        return PhoneNumberNormalizer::isValid($val);
     }
 }

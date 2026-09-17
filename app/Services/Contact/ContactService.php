@@ -75,18 +75,19 @@ class ContactService
             throw new \Exception("Company context is required to create a contact.");
         }
 
-        $normalizedPhone = PhoneNumberNormalizer::normalize($data['phone']);
+        $cleanPhone = PhoneNumberNormalizer::clean($data['phone']);
+        $normalizedPhone = PhoneNumberNormalizer::normalize($cleanPhone);
 
         if (Contact::where('company_id', $targetCompanyId)->where('normalized_phone', $normalizedPhone)->exists()) {
             throw new \Exception("A contact with this phone number already exists.");
         }
 
-        return DB::transaction(function () use ($actor, $targetCompanyId, $data, $normalizedPhone) {
+        return DB::transaction(function () use ($actor, $targetCompanyId, $data, $cleanPhone, $normalizedPhone) {
             $contact = Contact::create([
                 'company_id' => $targetCompanyId,
                 'whatsapp_phone_number_id' => $data['whatsapp_phone_number_id'] ?? null,
                 'name' => $data['name'] ?? null,
-                'phone' => $data['phone'],
+                'phone' => $cleanPhone,
                 'normalized_phone' => $normalizedPhone,
                 'avatar_url' => $data['avatar_url'] ?? null,
                 'source' => $data['source'] ?? 'manual',
@@ -122,7 +123,8 @@ class ContactService
             throw new \Exception("Unauthorized access to contact.");
         }
 
-        $normalizedPhone = isset($data['phone']) ? PhoneNumberNormalizer::normalize($data['phone']) : $contact->normalized_phone;
+        $cleanPhone = isset($data['phone']) ? PhoneNumberNormalizer::clean($data['phone']) : $contact->phone;
+        $normalizedPhone = isset($data['phone']) ? PhoneNumberNormalizer::normalize($cleanPhone) : $contact->normalized_phone;
 
         if (isset($data['phone']) && $normalizedPhone !== $contact->normalized_phone) {
             if (Contact::where('company_id', $contact->company_id)->where('normalized_phone', $normalizedPhone)->where('id', '!=', $contact->id)->exists()) {
@@ -130,10 +132,10 @@ class ContactService
             }
         }
 
-        return DB::transaction(function () use ($actor, $contact, $data, $normalizedPhone) {
+        return DB::transaction(function () use ($actor, $contact, $data, $cleanPhone, $normalizedPhone) {
             $updateData = [
                 'name' => $data['name'] ?? $contact->name,
-                'phone' => $data['phone'] ?? $contact->phone,
+                'phone' => $cleanPhone,
                 'normalized_phone' => $normalizedPhone,
                 'avatar_url' => $data['avatar_url'] ?? $contact->avatar_url,
                 'status' => $data['status'] ?? $contact->status,

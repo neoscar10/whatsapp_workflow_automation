@@ -14,13 +14,21 @@ class ContactResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $rawPhone = $this->phone ?? '';
+        $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($rawPhone);
+        $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($cleanPhone ?: $this->normalized_phone);
+        $cleanName = $this->name;
+        if (empty($cleanName) || $cleanName === $rawPhone || (is_numeric($cleanName) && preg_match('/[eE]/', $cleanName))) {
+            $cleanName = $cleanPhone;
+        }
+
         return [
             'id' => $this->id,
             'company_id' => $this->company_id,
             'whatsapp_phone_number_id' => $this->whatsapp_phone_number_id,
-            'name' => $this->name,
-            'phone' => $this->phone,
-            'normalized_phone' => $this->normalized_phone,
+            'name' => $cleanName,
+            'phone' => $cleanPhone,
+            'normalized_phone' => $cleanNorm,
             'avatar_url' => $this->avatar_url,
             'source' => $this->source,
             'status' => $this->status,

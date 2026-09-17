@@ -53,13 +53,15 @@ class CampaignRecipientImportService
                 $summary['total']++;
                 
                 try {
-                    $phone = $row[$phoneIndex] ?? '';
-                    if (empty($phone)) {
+                    $rawPhone = $row[$phoneIndex] ?? '';
+                    if (empty($rawPhone)) {
                         $summary['skipped']++;
                         continue;
                     }
 
-                    $normalized = PhoneNumberNormalizer::normalize($phone);
+                    $cleanPhone = PhoneNumberNormalizer::clean($rawPhone);
+                    $normalized = PhoneNumberNormalizer::normalize($cleanPhone);
+
                     if (!PhoneNumberNormalizer::isValid($normalized)) {
                         $summary['failed']++;
                         $summary['errors'][] = "Row {$summary['total']}: Invalid phone number format.";
@@ -67,6 +69,9 @@ class CampaignRecipientImportService
                     }
 
                     $name = $nameIndex !== false ? ($row[$nameIndex] ?? '') : null;
+                    if (empty($name) || $name === $rawPhone || (is_numeric($name) && preg_match('/[eE]/', $name))) {
+                        $name = $cleanPhone;
+                    }
 
                     // Check if contact exists
                     $contact = Contact::forCompany($actor->company_id)
@@ -89,7 +94,7 @@ class CampaignRecipientImportService
                         [
                             'company_id' => $actor->company_id,
                             'contact_id' => $contact?->id,
-                            'phone' => $phone,
+                            'phone' => $cleanPhone,
                             'name' => $name ?? $contact?->name,
                             'source' => 'imported',
                             'status' => $isMessageable ? 'pending' : 'skipped',
@@ -143,10 +148,14 @@ class CampaignRecipientImportService
 
         while (($row = fgetcsv($file)) !== false) {
             $idx++;
-            $phone = $row[$phoneIndex] ?? '';
-            if (empty($phone)) continue;
+            $rawPhone = $row[$phoneIndex] ?? '';
+            if (empty($rawPhone)) continue;
 
+            $cleanPhone = PhoneNumberNormalizer::clean($rawPhone);
             $name = $nameIndex !== false ? ($row[$nameIndex] ?? '') : null;
+            if (empty($name) || $name === $rawPhone || (is_numeric($name) && preg_match('/[eE]/', $name))) {
+                $name = $cleanPhone;
+            }
 
             $personalization = [];
             foreach ($header as $hIdx => $colName) {
@@ -156,7 +165,7 @@ class CampaignRecipientImportService
 
             $rows[] = [
                 'id' => $idx,
-                'phone' => $phone,
+                'phone' => $cleanPhone,
                 'name' => $name,
                 'personalization_data' => $personalization,
             ];

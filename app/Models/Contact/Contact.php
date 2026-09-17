@@ -31,6 +31,22 @@ class Contact extends Model
         'meta' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Contact $contact) {
+            if (!empty($contact->phone)) {
+                $rawPhone = $contact->phone;
+                $cleanedPhone = \App\Support\PhoneNumberNormalizer::clean($rawPhone);
+                $contact->phone = $cleanedPhone;
+                $contact->normalized_phone = \App\Support\PhoneNumberNormalizer::normalize($cleanedPhone);
+
+                if (empty($contact->name) || $contact->name === $rawPhone || (is_numeric($contact->name) && preg_match('/[eE]/', $contact->name))) {
+                    $contact->name = $cleanedPhone;
+                }
+            }
+        });
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
