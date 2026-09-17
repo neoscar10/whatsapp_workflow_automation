@@ -360,18 +360,12 @@
                 {{-- Step 3: Audience Validation & Correction --}}
                 @if($step === 3)
                     <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div class="flex items-center justify-between flex-wrap gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-xl">fact_check</span>
-                                    Audience Validation &amp; Correction
-                                </h3>
-                                <p class="text-xs text-slate-500">Review recipient numbers, 24h active sessions, inspect pass/fail errors, and correct contacts inline.</p>
-                            </div>
-                            <button type="button" wire:click="loadValidationPreview" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors flex items-center gap-1">
-                                <span class="material-symbols-outlined text-sm">refresh</span>
-                                Re-Validate All
-                            </button>
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary text-xl">fact_check</span>
+                                Audience Validation &amp; Correction
+                            </h3>
+                            <p class="text-xs text-slate-500">Review recipient numbers, 24h active sessions, inspect pass/fail errors, and correct contacts inline.</p>
                         </div>
 
                         {{-- Text Campaign 24h Rule Notice --}}
