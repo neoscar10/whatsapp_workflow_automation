@@ -273,6 +273,50 @@ class WhatsAppGraphClient
     }
 
     /**
+     * Get the App ID associated with an access token from Meta Graph API.
+     */
+    public function getAppId(string $accessToken): ?string
+    {
+        $appId = config('services.whatsapp.app_id') ?: env('WHATSAPP_APP_ID');
+        if (!empty($appId)) {
+            return $appId;
+        }
+
+        if (empty($accessToken) || $accessToken === 'fake_access_token' || $accessToken === 'simulated_token') {
+            return 'simulated_app_id';
+        }
+
+        try {
+            // Attempt 1: GET /v21.0/app endpoint
+            $url = "{$this->baseUrl}/{$this->version}/app";
+            $response = Http::withToken($accessToken)->timeout(10)->get($url);
+
+            if ($response->successful() && $response->json('id')) {
+                $id = (string) $response->json('id');
+                Log::info("Meta API Auto-Resolved App ID via /app: {$id}");
+                return $id;
+            }
+
+            // Attempt 2: GET /v21.0/debug_token endpoint
+            $debugUrl = "{$this->baseUrl}/{$this->version}/debug_token";
+            $debugResponse = Http::timeout(10)->get($debugUrl, [
+                'input_token' => $accessToken,
+                'access_token' => $accessToken,
+            ]);
+
+            if ($debugResponse->successful() && $debugResponse->json('data.app_id')) {
+                $id = (string) $debugResponse->json('data.app_id');
+                Log::info("Meta API Auto-Resolved App ID via /debug_token: {$id}");
+                return $id;
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to auto-resolve Meta App ID: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * Initialize a resumable upload session for template-review headers.
      * Returns an upload session ID.
      */

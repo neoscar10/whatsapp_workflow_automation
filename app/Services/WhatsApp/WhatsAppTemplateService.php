@@ -135,6 +135,25 @@ class WhatsAppTemplateService
     }
 
     /**
+     * Resolves the Meta App ID from config, env, or directly from Meta API using access token.
+     */
+    protected function resolveAppId(WhatsAppAccount $account): ?string
+    {
+        $appId = config('services.whatsapp.app_id') ?: env('WHATSAPP_APP_ID');
+
+        if (!$appId && $account->access_token) {
+            $graphClient = app(WhatsAppGraphClient::class);
+            $appId = $graphClient->getAppId($account->access_token);
+        }
+
+        if (!$appId && ($account->access_token === 'fake_access_token' || $account->access_token === 'simulated_token' || config('services.whatsapp.simulator.enabled') || str_contains($account->waba_id ?? '', 'SIMULATED'))) {
+            $appId = 'simulated_app_id';
+        }
+
+        return $appId;
+    }
+
+    /**
      * Creates a new template locally and attempts to push to Meta.
      */
     public function createTemplate(WhatsAppAccount $account, array $data, array $buttons = [], int $userId = null, $headerSampleFile = null): WhatsAppTemplate
@@ -147,10 +166,10 @@ class WhatsAppTemplateService
             // Handle Media Header Upload to Meta if sample provided
             if ($headerSampleFile && in_array($data['header_type'] ?? '', ['image', 'video', 'document'])) {
                 $mediaService = app(MetaMediaUploadService::class);
-                $appId = config('services.whatsapp.app_id');
+                $appId = $this->resolveAppId($account);
                 
                 if (!$appId) {
-                    throw new \Exception("WhatsApp App ID is not configured in services.php. Required for media handles.");
+                    throw new \Exception("WhatsApp App ID is not configured in services.php and could not be auto-resolved from Meta API. Required for media handles.");
                 }
 
                 $handle = $mediaService->uploadTemplateSample($account->access_token, $appId, $headerSampleFile);
@@ -217,7 +236,12 @@ class WhatsAppTemplateService
             // Handle Media Header Upload if updated
             if ($headerSampleFile && in_array($data['header_type'] ?? '', ['image', 'video', 'document'])) {
                 $mediaService = app(MetaMediaUploadService::class);
-                $appId = config('services.whatsapp.app_id');
+                $appId = $this->resolveAppId($account);
+
+                if (!$appId) {
+                    throw new \Exception("WhatsApp App ID is not configured in services.php and could not be auto-resolved from Meta API. Required for media handles.");
+                }
+
                 $handle = $mediaService->uploadTemplateSample($account->access_token, $appId, $headerSampleFile);
                 $data['example_payload']['header_handle'] = [$handle];
             }

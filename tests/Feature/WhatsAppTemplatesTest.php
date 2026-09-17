@@ -219,7 +219,44 @@ class WhatsAppTemplatesTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertDatabaseMissing('whatsapp_templates', [
-            'id' => $template->id
+            'id' => $template->id,
+        ]);
+    }
+
+    public function test_media_header_template_creation_auto_resolves_meta_app_id()
+    {
+        config(['services.whatsapp.app_id' => null]);
+
+        $this->account->update([
+            'access_token' => 'real_user_token_123',
+            'waba_id' => 'waba_999888',
+        ]);
+
+        Http::fake([
+            'https://graph.facebook.com/v21.0/app' => Http::response(['id' => '1633116461337715', 'name' => 'App Name'], 200),
+            'https://graph.facebook.com/v21.0/1633116461337715/uploads' => Http::response(['id' => 'upload_session_777'], 200),
+            'https://graph.facebook.com/v21.0/upload_session_777' => Http::response(['h' => 'handle_xyz_123'], 200),
+            'https://graph.facebook.com/v21.0/waba_999888/message_templates*' => Http::response(['id' => 'template_meta_123', 'status' => 'PENDING'], 200),
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('sample.jpg', 600, 400);
+
+        Livewire::actingAs($this->user)
+            ->test(TemplateCreatePage::class)
+            ->set('name', 'media_promo_sale')
+            ->set('category', 'marketing')
+            ->set('language', 'en_US')
+            ->set('headerType', 'image')
+            ->set('headerSampleFile', $file)
+            ->set('bodyText', 'Special image promotion')
+            ->call('createTemplate')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('whatsapp.templates.index'));
+
+        $this->assertDatabaseHas('whatsapp_templates', [
+            'company_id' => $this->company->id,
+            'remote_template_name' => 'media_promo_sale',
+            'header_type' => 'image',
         ]);
     }
 
