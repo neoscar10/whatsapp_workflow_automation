@@ -138,14 +138,16 @@ class TemplatesIndexPage extends Component
                 'status' => $this->statusFilter,
             ];
             
-            $company = auth()->user()->company;
-            $templates = $templateService->listTemplatesForCompany($company, $filters);
+            $company = auth()->user()->company ?: \App\Models\Company::find(auth()->user()->company_id);
+            if ($company) {
+                $templates = $templateService->listTemplatesForCompany($company, $filters);
 
-            $baseQuery = \App\Models\WhatsApp\WhatsAppTemplate::where('company_id', $company->id);
-            $counts['all'] = (clone $baseQuery)->count();
-            $counts['approved'] = (clone $baseQuery)->where('status', 'approved')->count();
-            $counts['pending'] = (clone $baseQuery)->whereIn('status', ['pending', 'in_appeal'])->count();
-            $counts['rejected'] = (clone $baseQuery)->where('status', 'rejected')->count();
+                $baseQuery = \App\Models\WhatsApp\WhatsAppTemplate::where('company_id', $company->id);
+                $counts['all'] = (clone $baseQuery)->count();
+                $counts['approved'] = (clone $baseQuery)->where('status', 'approved')->count();
+                $counts['pending'] = (clone $baseQuery)->whereIn('status', ['pending', 'in_appeal'])->count();
+                $counts['rejected'] = (clone $baseQuery)->where('status', 'rejected')->count();
+            }
         }
 
         return view('livewire.web.whatsapp.templates-index-page', [

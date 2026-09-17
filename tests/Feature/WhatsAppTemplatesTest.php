@@ -63,6 +63,7 @@ class WhatsAppTemplatesTest extends TestCase
 
     public function test_index_page_loads_with_templates()
     {
+        Http::fake(['*' => Http::response(['data' => []])]);
         WhatsAppTemplate::create([
             'company_id' => $this->company->id,
             'whatsapp_account_id' => $this->account->id,
@@ -84,7 +85,7 @@ class WhatsAppTemplatesTest extends TestCase
     {
         // Mock the Meta Create API response
         Http::fake([
-            'https://graph.facebook.com/v21.0/123456789/message_templates' => Http::response([
+            'https://graph.facebook.com/v21.0/123456789/message_templates*' => Http::response([
                 'id' => '999888777',
                 'status' => 'PENDING',
                 'category' => 'MARKETING'
@@ -226,7 +227,7 @@ class WhatsAppTemplatesTest extends TestCase
     {
         // Mock Sync API with proper Meta graph payload structure
         Http::fake([
-            'https://graph.facebook.com/v21.0/123456789/message_templates*' => Http::response([
+            '*message_templates*' => Http::response([
                 'data' => [
                     [
                         'id' => 'abc123def',

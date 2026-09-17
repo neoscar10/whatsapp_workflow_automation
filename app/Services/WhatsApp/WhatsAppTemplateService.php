@@ -317,7 +317,7 @@ class WhatsAppTemplateService
         foreach ($components as $component) {
             switch ($component['type']) {
                 case 'HEADER':
-                    $data['header_type'] = strtolower($component['format']);
+                    $data['header_type'] = strtolower($component['format'] ?? 'none');
                     if ($data['header_type'] === 'text') {
                         $data['header_text'] = $component['text'] ?? null;
                     }
@@ -332,7 +332,7 @@ class WhatsAppTemplateService
                     if (isset($component['buttons'])) {
                         foreach ($component['buttons'] as $btn) {
                             $data['buttons'][] = [
-                                'type' => strtolower($btn['type']),
+                                'type' => strtolower($btn['type'] ?? 'quick_reply'),
                                 'text' => $btn['text'] ?? '',
                                 'url' => $btn['url'] ?? null,
                                 'phone_number' => $btn['phone_number'] ?? null,
