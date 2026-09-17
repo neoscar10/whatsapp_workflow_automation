@@ -1,10 +1,10 @@
 <div class="mx-auto w-full max-w-[1400px] space-y-8 p-8 md:p-10">
     @php
-        $total = $templates->total();
-        $from = $templates->firstItem() ?? 0;
-        $to = $templates->lastItem() ?? 0;
-        $currentPage = $templates->currentPage();
-        $lastPage = $templates->lastPage();
+        $total = method_exists($templates, 'total') ? $templates->total() : $templates->count();
+        $from = method_exists($templates, 'firstItem') ? ($templates->firstItem() ?? 0) : ($total > 0 ? 1 : 0);
+        $to = method_exists($templates, 'lastItem') ? ($templates->lastItem() ?? 0) : $total;
+        $currentPage = method_exists($templates, 'currentPage') ? $templates->currentPage() : 1;
+        $lastPage = method_exists($templates, 'lastPage') ? $templates->lastPage() : 1;
 
         $normalizedLanguageMap = [
             'en_US' => 'English (US)',
@@ -272,11 +272,11 @@
                     Showing {{ $from }} to {{ $to }} of {{ $total }} results
                 </span>
 
-                @if($templates->hasPages())
+                @if(method_exists($templates, 'hasPages') && $templates->hasPages())
                     <div class="flex flex-wrap items-center gap-2">
                         <button
                             wire:click="previousPage"
-                            @disabled($templates->onFirstPage())
+                            @disabled(method_exists($templates, 'onFirstPage') ? $templates->onFirstPage() : true)
                             type="button"
                             class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -295,7 +295,7 @@
 
                         <button
                             wire:click="nextPage"
-                            @disabled(!$templates->hasMorePages())
+                            @disabled(method_exists($templates, 'hasMorePages') ? !$templates->hasMorePages() : true)
                             type="button"
                             class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                         >
