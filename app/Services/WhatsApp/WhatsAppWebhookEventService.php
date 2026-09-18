@@ -31,7 +31,7 @@ class WhatsAppWebhookEventService
             // Entry structure according to Meta docs
             $entries = $payload['entry'] ?? [];
 
-            Log::info('WEBHOOK_STAGE_2: Parsing entries in EventService', ['entries_count' => count($entries)]);
+            Log::info('[META_WEBHOOK_PARSING_ENTRIES]', ['entries_count' => count($entries)]);
 
             foreach ($entries as $entry) {
                 // Meta sends the waba_id at the entry level sometimes, and id
@@ -42,13 +42,13 @@ class WhatsAppWebhookEventService
                     $field = $change['field'] ?? null;
                     $value = $change['value'] ?? [];
 
-                    Log::info('WEBHOOK_STAGE_3: Processing change field', ['field' => $field, 'waba_id' => $wabaId, 'phone_number_id' => $value['metadata']['phone_number_id'] ?? null]);
+                    Log::info('[META_WEBHOOK_PROCESSING_FIELD]', ['field' => $field, 'waba_id' => $wabaId, 'phone_number_id' => $value['metadata']['phone_number_id'] ?? null]);
 
                     // Identify account
                     $account = $this->identifyAccountFromPayload($wabaId, $value);
                     
                     if (!$account) {
-                        Log::warning('WEBHOOK_STAGE_3_FAIL: Could not identify local WhatsAppAccount from payload', [
+                        Log::warning('[META_WEBHOOK_ACCOUNT_NOT_FOUND]', [
                             'waba_id' => $wabaId,
                             'phone_number_id' => $value['metadata']['phone_number_id'] ?? null,
                         ]);

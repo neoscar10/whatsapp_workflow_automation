@@ -15,11 +15,18 @@ class WhatsAppWebhookController extends Controller
      */
     public function verify(Request $request, WhatsAppWebhookVerificationService $verificationService)
     {
+        \Illuminate\Support\Facades\Log::info('[META_WEBHOOK_VERIFY_REQUEST]', [
+            'query' => $request->query(),
+            'ip' => $request->ip(),
+        ]);
+
         if ($verificationService->isValidVerificationRequest($request)) {
             $challenge = $verificationService->resolveChallenge($request);
+            \Illuminate\Support\Facades\Log::info('[META_WEBHOOK_VERIFY_SUCCESS]', ['challenge' => $challenge]);
             return response((string) $challenge, 200)->header('Content-Type', 'text/plain');
         }
 
+        \Illuminate\Support\Facades\Log::warning('[META_WEBHOOK_VERIFY_FAILED]', ['query' => $request->query()]);
         return response()->json(['error' => 'Invalid verification request'], 403);
     }
 
@@ -30,7 +37,7 @@ class WhatsAppWebhookController extends Controller
     {
         $payload = $request->all();
         
-        \Illuminate\Support\Facades\Log::info('WEBHOOK_STAGE_1: Inbound Meta POST payload received', [
+        \Illuminate\Support\Facades\Log::info('[META_WEBHOOK_POST_RECEIVED]', [
             'payload' => $payload,
             'ip' => $request->ip(),
         ]);
