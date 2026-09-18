@@ -28,6 +28,9 @@ class ContactIndexPage extends Component
     // Modal State
     public $showFormModal = false;
     public $showImportModal = false;
+    public $showExportModal = false;
+    public $exportMode = 'contacts'; // 'contacts' or 'template'
+    public $exportFormat = 'xlsx';   // 'xlsx' or 'csv'
     
     // Form Fields
     public $contactId = null;
@@ -92,20 +95,57 @@ class ContactIndexPage extends Component
         $this->dispatch('notify', ['message' => 'Contact deleted successfully', 'type' => 'success']);
     }
 
+    public function openExportModal($mode = 'contacts')
+    {
+        $this->exportMode = $mode;
+        $this->exportFormat = 'xlsx';
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal()
+    {
+        $this->showExportModal = false;
+    }
+
+    public function downloadExport()
+    {
+        $this->showExportModal = false;
+        $service = app(ContactExportService::class);
+        $format = strtolower($this->exportFormat) === 'csv' ? 'csv' : 'xlsx';
+
+        if ($this->exportMode === 'template') {
+            $filename = 'contacts-import-template.' . $format;
+            $contentType = $format === 'xlsx' 
+                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                : 'text/csv; charset=UTF-8';
+
+            return response()->streamDownload(
+                $service->getImportTemplate($format),
+                $filename,
+                ['Content-Type' => $contentType]
+            );
+        }
+
+        $filename = 'contacts-export-' . now()->format('Y-m-d') . '.' . $format;
+        $contentType = $format === 'xlsx' 
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            : 'text/csv; charset=UTF-8';
+
+        return response()->streamDownload(
+            $service->exportContacts(auth()->user()->company_id, $format),
+            $filename,
+            ['Content-Type' => $contentType]
+        );
+    }
+
     public function exportContacts()
     {
-        return response()->streamDownload(
-            app(ContactExportService::class)->exportToCsv(auth()->user()->company_id),
-            'contacts-export-' . now()->format('Y-m-d') . '.csv'
-        );
+        return $this->openExportModal('contacts');
     }
 
     public function downloadImportTemplate()
     {
-        return response()->streamDownload(
-            app(ContactExportService::class)->getImportTemplate(),
-            'contacts-import-template.csv'
-        );
+        return $this->openExportModal('template');
     }
 
     // Modal Methods
@@ -144,6 +184,7 @@ class ContactIndexPage extends Component
     {
         $this->showFormModal = false;
         $this->showImportModal = false;
+        $this->showExportModal = false;
         $this->resetForm();
     }
 
@@ -180,6 +221,7 @@ class ContactIndexPage extends Component
             } else {
                 $service->create(auth()->user(), $data);
                 $message = 'Contact created successfully';
+                $this->resetPage();
             }
 
             $this->dispatch('notify', ['message' => $message, 'type' => 'success']);
@@ -192,7 +234,7 @@ class ContactIndexPage extends Component
     public function importContacts()
     {
         $this->validate([
-            'csvFile' => 'required|file|mimes:csv,txt|max:5120',
+            'csvFile' => 'required|file|mimes:csv,txt,xlsx,xls|max:10240',
         ]);
 
         $this->isProcessing = true;
@@ -200,6 +242,7 @@ class ContactIndexPage extends Component
         try {
             $service = app(\App\Services\Contact\ContactImportService::class);
             $this->importResults = $service->importFromCsv(auth()->user(), $this->csvFile);
+            $this->resetPage();
             
             $this->dispatch('notify', ['message' => 'Import completed', 'type' => 'success']);
         } catch (\Exception $e) {

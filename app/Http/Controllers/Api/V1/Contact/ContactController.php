@@ -243,7 +243,7 @@ class ContactController extends Controller
     }
 
     /**
-     * Export all contacts to a CSV file.
+     * Export all contacts to an Excel or CSV file.
      */
     public function export(Request $request): StreamedResponse
     {
@@ -252,25 +252,39 @@ class ContactController extends Controller
             abort(403, 'User does not belong to a company.');
         }
 
+        $format = strtolower($request->query('format', 'xlsx'));
+        $format = in_array($format, ['xlsx', 'csv']) ? $format : 'xlsx';
+        $filename = 'contacts-export-' . now()->format('Y-m-d') . '.' . $format;
+        $contentType = $format === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv; charset=UTF-8';
+
         return response()->streamDownload(
-            $this->exportService->exportToCsv($companyId),
-            'contacts-export-' . now()->format('Y-m-d') . '.csv',
+            $this->exportService->exportContacts($companyId, $format),
+            $filename,
             [
-                'Content-Type' => 'text/csv',
+                'Content-Type' => $contentType,
             ]
         );
     }
 
     /**
-     * Download CSV import template.
+     * Download Excel or CSV import template.
      */
-    public function importTemplate(): StreamedResponse
+    public function importTemplate(Request $request): StreamedResponse
     {
+        $format = strtolower($request->query('format', 'xlsx'));
+        $format = in_array($format, ['xlsx', 'csv']) ? $format : 'xlsx';
+        $filename = 'contacts-import-template.' . $format;
+        $contentType = $format === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv; charset=UTF-8';
+
         return response()->streamDownload(
-            $this->exportService->getImportTemplate(),
-            'contacts-import-template.csv',
+            $this->exportService->getImportTemplate($format),
+            $filename,
             [
-                'Content-Type' => 'text/csv',
+                'Content-Type' => $contentType,
             ]
         );
     }

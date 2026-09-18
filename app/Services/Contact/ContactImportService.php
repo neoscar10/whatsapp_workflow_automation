@@ -8,6 +8,7 @@ use App\Support\PhoneNumberNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ContactImportService
 {
@@ -38,9 +39,116 @@ class ContactImportService
     ];
 
     /**
-     * Import contacts from a CSV file.
+     * Import contacts from a CSV or Excel file.
      */
     public function importFromCsv(User $actor, UploadedFile $file): array
+    {
+        return $this->importFromFile($actor, $file);
+    }
+
+    /**
+     * Handle importing from CSV or Excel (.xlsx, .xls) files.
+     */
+    public function importFromFile(User $actor, UploadedFile $file): array
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            return $this->importFromExcel($actor, $file);
+        }
+
+        return $this->importFromCsvStream($actor, $file);
+    }
+
+    /**
+     * Import contacts from an Excel (.xlsx / .xls) spreadsheet.
+     */
+    protected function importFromExcel(User $actor, UploadedFile $file): array
+    {
+        $stats = [
+            'total_rows' => 0,
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, false);
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to read Excel file: " . $e->getMessage());
+        }
+
+        if (empty($rows)) {
+            throw new \Exception("Excel file is empty.");
+        }
+
+        // Filter out completely blank rows
+        $rows = array_values(array_filter($rows, function ($row) {
+            if (!is_array($row)) return false;
+            foreach ($row as $cell) {
+                if ($this->sanitizeCell($cell) !== '') {
+                    return true;
+                }
+            }
+            return false;
+        }));
+
+        if (empty($rows)) {
+            throw new \Exception("Excel file contains no data rows.");
+        }
+
+        $firstRow = array_map([$this, 'sanitizeCell'], $rows[0]);
+        $isFirstRowData = $this->looksLikePhoneNumber($firstRow[0] ?? '');
+        
+        $headerMap = [];
+        $hasHeader = !$isFirstRowData;
+
+        if ($hasHeader) {
+            $headerMap = $this->buildHeaderMap($firstRow);
+        }
+
+        if (!isset($headerMap['phone'])) {
+            if ($isFirstRowData) {
+                $headerMap['phone'] = 0;
+                if (isset($firstRow[1])) {
+                    $headerMap['name'] = 1;
+                }
+            } else {
+                if (isset($rows[1])) {
+                    $secondRow = array_map([$this, 'sanitizeCell'], $rows[1]);
+                    foreach ($secondRow as $colIdx => $val) {
+                        if ($this->looksLikePhoneNumber($val)) {
+                            $headerMap['phone'] = $colIdx;
+                            break;
+                        }
+                    }
+                }
+                if (!isset($headerMap['phone'])) {
+                    $headerMap['phone'] = 0;
+                }
+            }
+        }
+
+        $startIndex = $hasHeader ? 1 : 0;
+        $totalRows = count($rows);
+
+        for ($i = $startIndex; $i < $totalRows; $i++) {
+            $rowNum = $i + 1;
+            $row = array_map([$this, 'sanitizeCell'], $rows[$i]);
+            $this->processRow($row, $rowNum, $headerMap, $actor, $stats);
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Import contacts from a CSV stream.
+     */
+    protected function importFromCsvStream(User $actor, UploadedFile $file): array
     {
         $handle = fopen($file->getRealPath(), 'r');
         if (!$handle) {

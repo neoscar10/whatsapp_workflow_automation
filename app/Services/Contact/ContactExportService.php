@@ -3,38 +3,120 @@
 namespace App\Services\Contact;
 
 use App\Models\Contact\Contact;
-use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class ContactExportService
 {
     /**
-     * Export contacts to CSV format.
-     * Returns a generator to handle large datasets.
+     * Export contacts in specified format ('xlsx' or 'csv').
      */
-    public function exportToCsv(int $companyId, array $filters = [])
+    public function exportContacts(int $companyId, string $format = 'xlsx', array $filters = [])
+    {
+        return strtolower($format) === 'xlsx'
+            ? $this->exportToXlsx($companyId, $filters)
+            : $this->exportToCsv($companyId, $filters);
+    }
+
+    /**
+     * Export contacts to Excel (.xlsx) format.
+     */
+    public function exportToXlsx(int $companyId, array $filters = [])
     {
         $query = Contact::forCompany($companyId)
             ->with(['tags', 'groups'])
-            ->orderBy('name');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
-        // Apply same filters as listForCompany if needed
-        // For simplicity, we just export all company contacts for now
-        
         $headers = [
             'Name', 'Phone', 'Normalized Phone', 'Status', 'Source', 
             'Opted In', 'Do Not Message', 'Tags', 'Groups', 'Last Interaction', 'Created At'
         ];
 
-        $callback = function() use ($query, $headers) {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Contacts');
+
+        // Style Header Row
+        $colIndex = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($colIndex . '1', $header);
+            $colIndex++;
+        }
+
+        $headerRange = 'A1:K1';
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF4F46E5');
+        $sheet->getStyle($headerRange)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        $rowIdx = 2;
+        $query->chunk(200, function ($contacts) use ($sheet, &$rowIdx) {
+            foreach ($contacts as $contact) {
+                $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($contact->phone ?? '');
+                $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($cleanPhone);
+
+                $formattedPhone = preg_match('/^[0-9]+$/', $cleanPhone) ? '+' . $cleanPhone : $cleanPhone;
+                $formattedNorm = '+' . $cleanNorm;
+
+                $sheet->setCellValue('A' . $rowIdx, $contact->name ?? '');
+                // Explicitly set phone numbers as TYPE_STRING so Excel preserves exact text formatting
+                $sheet->setCellValueExplicit('B' . $rowIdx, $formattedPhone, DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('C' . $rowIdx, $formattedNorm, DataType::TYPE_STRING);
+                $sheet->setCellValue('D' . $rowIdx, ucfirst($contact->status ?? 'active'));
+                $sheet->setCellValue('E' . $rowIdx, ucfirst(str_replace('_', ' ', $contact->source ?? 'manual')));
+                $sheet->setCellValue('F' . $rowIdx, $contact->has_opted_in ? 'Yes' : 'No');
+                $sheet->setCellValue('G' . $rowIdx, $contact->do_not_message ? 'Yes' : 'No');
+                $sheet->setCellValue('H' . $rowIdx, $contact->tags->pluck('name')->implode(', '));
+                $sheet->setCellValue('I' . $rowIdx, $contact->groups->pluck('name')->implode(', '));
+                $sheet->setCellValue('J' . $rowIdx, $contact->last_interaction_at?->toDateTimeString() ?? 'Never');
+                $sheet->setCellValue('K' . $rowIdx, $contact->created_at->toDateTimeString());
+
+                $rowIdx++;
+            }
+        });
+
+        // Auto-fit column widths
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return function() use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        };
+    }
+
+    /**
+     * Export contacts to CSV format with UTF-8 BOM.
+     */
+    public function exportToCsv(int $companyId, array $filters = [])
+    {
+        $query = Contact::forCompany($companyId)
+            ->with(['tags', 'groups'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+
+        $headers = [
+            'Name', 'Phone', 'Normalized Phone', 'Status', 'Source', 
+            'Opted In', 'Do Not Message', 'Tags', 'Groups', 'Last Interaction', 'Created At'
+        ];
+
+        return function() use ($query, $headers) {
             $file = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Excel compatibility
+            fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, $headers);
 
-            $query->chunk(100, function ($contacts) use ($file) {
+            $query->chunk(200, function ($contacts) use ($file) {
                 foreach ($contacts as $contact) {
                     $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($contact->phone ?? '');
-                    $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($contact->normalized_phone ?? $cleanPhone);
+                    $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($cleanPhone);
                     
-                    // Prefix phone with + if it's purely numeric so CSV viewers keep text format
                     $formattedPhone = preg_match('/^[0-9]+$/', $cleanPhone) ? '+' . $cleanPhone : $cleanPhone;
                     $formattedNorm = '+' . $cleanNorm;
 
@@ -48,7 +130,7 @@ class ContactExportService
                         $contact->do_not_message ? 'Yes' : 'No',
                         $contact->tags->pluck('name')->implode(', '),
                         $contact->groups->pluck('name')->implode(', '),
-                        $contact->last_interaction_at?->toDateTimeString(),
+                        $contact->last_interaction_at?->toDateTimeString() ?? 'Never',
                         $contact->created_at->toDateTimeString(),
                     ]);
                 }
@@ -56,20 +138,82 @@ class ContactExportService
 
             fclose($file);
         };
-
-        return $callback;
     }
 
-    public function getImportTemplate()
+    /**
+     * Get contact import sample template in specified format ('xlsx' or 'csv').
+     */
+    public function getImportTemplate(string $format = 'xlsx')
+    {
+        return strtolower($format) === 'xlsx'
+            ? $this->getImportTemplateXlsx()
+            : $this->getImportTemplateCsv();
+    }
+
+    /**
+     * Get contact import sample template as Excel (.xlsx).
+     */
+    public function getImportTemplateXlsx()
     {
         $headers = ['phone', 'name', 'tags', 'groups', 'notes', 'has_opted_in'];
         $sampleData = [
-            ['+1234567890', 'John Doe', 'Customer,Vip', 'Newsletter', 'Sample note', 'true'],
-            ['+9876543210', 'Jane Smith', 'Lead', 'Promotions', 'Another sample note', 'false']
+            ['+12345678901', 'John Doe', 'Customer,VIP', 'Newsletter', 'Sample note for customer', 'true'],
+            ['+98765432100', 'Jane Smith', 'Lead', 'Promotions', 'Another sample note', 'false']
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template');
+
+        // Style Header
+        $colIndex = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($colIndex . '1', $header);
+            $colIndex++;
+        }
+
+        $headerRange = 'A1:F1';
+        $sheet->getStyle($headerRange)->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFF'));
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF2563EB'); // Royal Blue
+        $sheet->getStyle($headerRange)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(1)->setRowHeight(26);
+
+        // Fill Sample Data
+        $rowIdx = 2;
+        foreach ($sampleData as $row) {
+            $sheet->setCellValueExplicit('A' . $rowIdx, $row[0], DataType::TYPE_STRING); // Phone as text string
+            $sheet->setCellValue('B' . $rowIdx, $row[1]);
+            $sheet->setCellValue('C' . $rowIdx, $row[2]);
+            $sheet->setCellValue('D' . $rowIdx, $row[3]);
+            $sheet->setCellValue('E' . $rowIdx, $row[4]);
+            $sheet->setCellValue('F' . $rowIdx, $row[5]);
+            $rowIdx++;
+        }
+
+        foreach (range('A', 'F') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return function() use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        };
+    }
+
+    /**
+     * Get contact import sample template as CSV (.csv).
+     */
+    public function getImportTemplateCsv()
+    {
+        $headers = ['phone', 'name', 'tags', 'groups', 'notes', 'has_opted_in'];
+        $sampleData = [
+            ['+12345678901', 'John Doe', 'Customer,VIP', 'Newsletter', 'Sample note for customer', 'true'],
+            ['+98765432100', 'Jane Smith', 'Lead', 'Promotions', 'Another sample note', 'false']
         ];
 
         return function() use ($headers, $sampleData) {
             $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF");
             fputcsv($file, $headers);
 
             foreach ($sampleData as $row) {

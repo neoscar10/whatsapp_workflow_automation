@@ -13,7 +13,7 @@
             <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Import Contacts</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Upload a CSV file to bulk add or update contacts.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Upload an Excel (.xlsx) or CSV (.csv) file to bulk add or update contacts.</p>
                 </div>
                 <button wire:click="closeModals" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                     <span class="material-symbols-outlined">close</span>
@@ -24,23 +24,23 @@
             <div class="flex-1 overflow-y-auto p-8 no-scrollbar">
                 @if(!$importResults)
                     <div class="space-y-6">
-                        <!-- CSV Template Help -->
+                        <!-- Template Help -->
                         <div class="p-5 bg-primary rounded-2xl border border-primary/20 shadow-lg shadow-primary/10">
                             <div class="flex items-start justify-between mb-3">
                                 <p class="text-xs font-black text-white uppercase tracking-widest">Required Columns</p>
                                 <button wire:click="downloadImportTemplate" class="text-[10px] font-black uppercase text-white/90 hover:text-white hover:underline flex items-center gap-1 transition-colors">
                                     <span class="material-symbols-outlined text-[14px]">download</span>
-                                    Download Sample CSV
+                                    Download Sample Template
                                 </button>
                             </div>
                             <p class="text-[11px] text-white/80 leading-relaxed">
-                                Your CSV should include: <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">phone</code> (required), <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">name</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">tags</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">groups</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">notes</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">has_opted_in</code>.
+                                Your file should include: <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">phone</code> (required), <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">name</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">tags</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">groups</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">notes</code>, <code class="bg-white/20 px-1.5 py-0.5 rounded text-white font-bold">has_opted_in</code>.
                             </p>
                         </div>
 
                         <!-- File Upload -->
                         <div class="space-y-2">
-                            <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Select CSV File</label>
+                            <label class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Select File (Excel or CSV)</label>
                             <div class="relative group">
                                 <input type="file" wire:model="csvFile" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                 <div class="w-full px-8 py-10 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center gap-3 group-hover:border-primary/50 transition-all">
@@ -52,7 +52,7 @@
                                         </div>
                                     @else
                                         <p class="text-sm font-bold text-slate-900 dark:text-white">Click to upload or drag and drop</p>
-                                        <p class="text-xs text-slate-400 italic">CSV files up to 5MB</p>
+                                        <p class="text-xs text-slate-400 italic">Excel (.xlsx, .xls) or CSV (.csv, .txt) up to 10MB</p>
                                     @endif
                                 </div>
                             </div>

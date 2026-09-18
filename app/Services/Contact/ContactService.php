@@ -19,8 +19,8 @@ class ContactService
     {
         $query = Contact::forCompany($companyId)
             ->with(['tags', 'groups'])
-            ->orderByDesc('last_interaction_at')
-            ->orderByDesc('created_at');
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
         if (!empty($filters['search'])) {
             $query->search($filters['search']);
