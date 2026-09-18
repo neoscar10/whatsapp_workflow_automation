@@ -22,7 +22,7 @@ class ImportContactsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:csv,txt|max:10240', // 10MB CSV limit
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:10240', // 10MB limit for Excel (.xlsx, .xls) and CSV (.csv, .txt)
         ];
     }
 }
