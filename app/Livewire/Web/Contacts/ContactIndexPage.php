@@ -261,7 +261,7 @@ class ContactIndexPage extends Component
     // WhatsApp Inbound Simulator Methods
     public function openSimulatorModal(int $contactId): void
     {
-        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+        if (!config('services.whatsapp.simulator.enabled') || !app()->environment('local', 'testing')) {
             abort(403, "WhatsApp Simulator is disabled in this environment.");
         }
 
@@ -314,7 +314,7 @@ class ContactIndexPage extends Component
 
     public function sendSimulatedMessage(): void
     {
-        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+        if (!config('services.whatsapp.simulator.enabled') || !app()->environment('local', 'testing')) {
             abort(403, "WhatsApp Simulator is disabled in this environment.");
         }
 

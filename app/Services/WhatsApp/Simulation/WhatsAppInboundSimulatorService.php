@@ -22,7 +22,7 @@ class WhatsAppInboundSimulatorService
      */
     public function simulate(int $contactId, ?string $body = null, ?UploadedFile $file = null, int $userId): array
     {
-        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+        if (!config('services.whatsapp.simulator.enabled') || !app()->environment('local', 'testing')) {
             throw new Exception("WhatsApp Simulator is not enabled in this environment.");
         }
 

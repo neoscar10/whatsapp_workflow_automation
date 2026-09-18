@@ -15,7 +15,7 @@ class SimulatedWhatsAppMediaResolver
      */
     public function storeSimulatedUpload(UploadedFile $file, int $companyId, int $contactId, int $userId): string
     {
-        if (!config('services.whatsapp.simulator.enabled') && app()->environment() !== 'local') {
+        if (!config('services.whatsapp.simulator.enabled') || !app()->environment('local', 'testing')) {
             throw new Exception("WhatsApp Simulator is not enabled in this environment.");
         }
 

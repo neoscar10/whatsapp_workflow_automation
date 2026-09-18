@@ -193,7 +193,7 @@
                                                         <span class="material-symbols-outlined text-[18px]">chat</span>
                                                         Initiate Chat
                                                     </a>
-                                                    @if(config('services.whatsapp.simulator.enabled') || app()->environment() === 'local')
+                                                    @if(config('services.whatsapp.simulator.enabled') && app()->environment('local', 'testing'))
                                                         <button wire:click="openSimulatorModal({{ $contact->id }}); open = false" class="flex items-center gap-2 w-full px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all text-left">
                                                             <span class="material-symbols-outlined text-[18px]">smart_toy</span>
                                                             Simulate WhatsApp
@@ -245,7 +245,7 @@
     @include('partials.panel.contacts.export-modal')
 
     <!-- WhatsApp Inbound Simulator Modal -->
-    @if($showSimulatorModal && (config('services.whatsapp.simulator.enabled') || app()->environment() === 'local'))
+    @if($showSimulatorModal && config('services.whatsapp.simulator.enabled') && app()->environment('local', 'testing'))
         <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
             <div class="bg-[#efeae2] dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col" style="height: 80vh; max-height: 700px;">
                 <!-- Header -->
