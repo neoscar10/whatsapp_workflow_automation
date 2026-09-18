@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-5xl p-6 md:p-8 space-y-6 flex-1 overflow-y-auto no-scrollbar">
+<div class="p-6 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
     <!-- Header -->
     <div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Business Verification</h1>
@@ -101,7 +101,7 @@
                     <div class="p-4 text-xs font-bold text-rose-700 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl">{{ $message }}</div>
                 @enderror
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @php
                         $entities = [
                             'Sole proprietorship' => ['code' => 'SP', 'desc' => 'A business owned and operated by one individual.'],

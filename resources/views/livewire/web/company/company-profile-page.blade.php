@@ -2,9 +2,9 @@
     $previewLogoUrl = $logo ? $logo->temporaryUrl() : $logo_url;
 @endphp
 
-<div class="mx-auto w-full max-w-4xl p-8">
+<div class="p-6 md:p-8 space-y-8 max-w-7xl mx-auto w-full">
     @unless($isVerified)
-    <div class="mb-8">
+    <div>
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/60 px-5 py-4 dark:border-amber-800/40 dark:from-amber-950/20 dark:to-amber-900/10">
             <div class="flex items-center gap-3 flex-1">
                 <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 shrink-0">warning</span>
@@ -20,7 +20,7 @@
     </div>
     @endunless
 
-    <div class="mb-8">
+    <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Organization Settings</h1>
         <p class="mt-2 text-slate-500 dark:text-slate-400">
             Update your company details and how your brand appears on the platform.
@@ -208,7 +208,7 @@
         </form>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
             <div class="mb-4 flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30">
