@@ -87,10 +87,13 @@ class ConversationMessage extends Model
         $bodyParameters = [];
 
         foreach ($components as $component) {
-            if (($component['type'] ?? '') === 'body' && !empty($component['parameters'])) {
+            if (($component['type'] ?? '') === 'body' && !empty($component['parameters']) && is_array($component['parameters'])) {
                 foreach ($component['parameters'] as $param) {
-                    if (isset($param['text'])) {
-                        $bodyParameters[] = $param['text'];
+                    if (is_array($param)) {
+                        $val = $param['text'] ?? $param['value'] ?? '';
+                        $bodyParameters[] = is_scalar($val) ? (string)$val : '';
+                    } elseif (is_scalar($param)) {
+                        $bodyParameters[] = (string) $param;
                     }
                 }
             }

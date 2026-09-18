@@ -189,4 +189,71 @@ class ChatsApiTest extends TestCase
             ->assertJsonCount(1, 'data.data')
             ->assertJsonPath('data.data.0.contact_name', 'Inactive Customer');
     }
+
+    public function test_user_can_send_template_message_with_array_and_object_parameters()
+    {
+        $conversation = Conversation::create([
+            'company_id' => $this->company->id,
+            'contact_name' => 'John Doe',
+            'contact_phone' => '+1234567890',
+            'status' => 'open',
+        ]);
+
+        $account = \App\Models\WhatsApp\WhatsAppAccount::create([
+            'company_id' => $this->company->id,
+            'waba_id' => 'waba_test_123',
+            'name' => 'Test Account',
+            'access_token' => 'fake_token',
+            'status' => 'APPROVED',
+        ]);
+
+        $template = \App\Models\WhatsApp\WhatsAppTemplate::create([
+            'company_id' => $this->company->id,
+            'whatsapp_account_id' => $account->id,
+            'name' => 'Test Order Template',
+            'remote_template_name' => 'test_order_template',
+            'language_code' => 'en',
+            'category' => 'UTILITY',
+            'body_text' => 'Hi {{1}}, your order #{{2}} is confirmed!',
+            'status' => 'APPROVED',
+        ]);
+
+        // Mock billing service to return true for balance check
+        $billingService = $this->mock(\App\Services\Payment\BillingService::class);
+        $billingService->shouldReceive('canAffordActivity')->andReturn(true);
+        $billingService->shouldReceive('debitForActivity')->andReturn(true);
+
+        $payload = [
+            'template_id' => $template->id,
+            'components' => [
+                [
+                    'type' => 'body',
+                    'parameters' => [
+                        ['type' => 'text', 'value' => 'Neoscar'], // Object with 'value' key
+                        ['type' => 'text', 'text' => '10023'],    // Object with 'text' key
+                    ]
+                ],
+                [
+                    'type' => 'button',
+                    'sub_type' => 'url',
+                    'index' => '0',
+                    'parameters' => [
+                        ['text' => 'orders/10023']
+                    ]
+                ]
+            ]
+        ];
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->postJson(route('api.v1.chats.messages.template', ['conversation' => $conversation->id]), $payload);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('conversation_messages', [
+            'conversation_id' => $conversation->id,
+            'message_type' => 'template',
+            'body' => 'Hi Neoscar, your order #10023 is confirmed!',
+        ]);
+    }
 }

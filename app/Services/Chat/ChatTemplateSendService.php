@@ -87,6 +87,73 @@ class ChatTemplateSendService
     }
 
     /**
+     * Safely extract a scalar string representation from any parameter payload to prevent PHP conversion errors.
+     */
+    protected function stringifyParam(mixed $param): string
+    {
+        if ($param === null) {
+            return '';
+        }
+
+        if (is_scalar($param)) {
+            return (string) $param;
+        }
+
+        if (is_array($param)) {
+            if (isset($param['text'])) {
+                return $this->stringifyParam($param['text']);
+            }
+            if (isset($param['value'])) {
+                return $this->stringifyParam($param['value']);
+            }
+            if (isset($param['payload'])) {
+                return $this->stringifyParam($param['payload']);
+            }
+
+            $scalars = [];
+            foreach ($param as $v) {
+                if (is_scalar($v)) {
+                    $scalars[] = (string) $v;
+                }
+            }
+            if (!empty($scalars)) {
+                return implode(' ', $scalars);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Format a single parameter item into standard Meta Cloud API structure.
+     */
+    protected function formatParameter(mixed $param): array
+    {
+        if (is_array($param)) {
+            if (isset($param['type'])) {
+                $type = strtolower((string) $param['type']);
+                if (in_array($type, ['image', 'video', 'document', 'location', 'payload'])) {
+                    return $param;
+                }
+                if ($type === 'text') {
+                    $textVal = $param['text'] ?? $param['value'] ?? '';
+                    return ['type' => 'text', 'text' => $this->stringifyParam($textVal)];
+                }
+            }
+
+            if (isset($param['text'])) {
+                return ['type' => 'text', 'text' => $this->stringifyParam($param['text'])];
+            }
+
+            if (isset($param['value'])) {
+                return ['type' => 'text', 'text' => $this->stringifyParam($param['value'])];
+            }
+        }
+
+        return ['type' => 'text', 'text' => $this->stringifyParam($param)];
+    }
+
+    /**
      * Normalize components payload to ensure Meta API compliance for body, header, and URL buttons.
      */
     protected function normalizeComponents(WhatsAppTemplate $template, array $components): array
@@ -98,13 +165,12 @@ class ChatTemplateSendService
             
             if ($type === 'body' || $type === 'header') {
                 $rawParams = $comp['parameters'] ?? [];
+                if (!is_array($rawParams)) {
+                    $rawParams = [$rawParams];
+                }
                 $formattedParams = [];
                 foreach ($rawParams as $param) {
-                    if (is_array($param) && isset($param['text'])) {
-                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param['text']];
-                    } else {
-                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param];
-                    }
+                    $formattedParams[] = $this->formatParameter($param);
                 }
                 if (!empty($formattedParams)) {
                     $normalized[] = [
@@ -116,13 +182,12 @@ class ChatTemplateSendService
                 $btnIndex = (string) ($comp['index'] ?? '0');
                 $subType = strtolower($comp['sub_type'] ?? 'url');
                 $rawParams = $comp['parameters'] ?? [];
+                if (!is_array($rawParams)) {
+                    $rawParams = [$rawParams];
+                }
                 $formattedParams = [];
                 foreach ($rawParams as $param) {
-                    if (is_array($param) && isset($param['text'])) {
-                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param['text']];
-                    } else {
-                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param];
-                    }
+                    $formattedParams[] = $this->formatParameter($param);
                 }
                 if (!empty($formattedParams)) {
                     $normalized[] = [
@@ -143,13 +208,13 @@ class ChatTemplateSendService
      */
     protected function resolveTemplateBody(WhatsAppTemplate $template, array $components): string
     {
-        $body = $template->body_text;
+        $body = $template->body_text ?? '';
         
         foreach ($components as $component) {
-            if (($component['type'] ?? '') === 'body' && isset($component['parameters'])) {
+            if (($component['type'] ?? '') === 'body' && isset($component['parameters']) && is_array($component['parameters'])) {
                 foreach ($component['parameters'] as $index => $param) {
                     $placeholder = '{{' . ($index + 1) . '}}';
-                    $val = is_array($param) ? ($param['text'] ?? '') : (string)$param;
+                    $val = $this->stringifyParam($param);
                     $body = str_replace($placeholder, $val ?: $placeholder, $body);
                 }
             }

@@ -289,10 +289,15 @@ class CampaignDispatchService
         $body = $template?->body_text ?? $campaign->template_name;
 
         foreach ($components as $component) {
-            if (($component['type'] ?? '') === 'body' && isset($component['parameters'])) {
+            if (($component['type'] ?? '') === 'body' && isset($component['parameters']) && is_array($component['parameters'])) {
                 foreach ($component['parameters'] as $index => $param) {
                     $placeholder = '{{' . ($index + 1) . '}}';
-                    $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
+                    if (is_array($param)) {
+                        $val = $param['text'] ?? $param['value'] ?? $placeholder;
+                    } else {
+                        $val = is_scalar($param) ? (string)$param : $placeholder;
+                    }
+                    $body = str_replace($placeholder, $val, $body);
                 }
             }
         }
