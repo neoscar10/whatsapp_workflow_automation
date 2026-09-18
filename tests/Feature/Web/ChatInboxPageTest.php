@@ -37,23 +37,29 @@ class ChatInboxPageTest extends TestCase
 
     private function setupWhatsAppAccount($company)
     {
-        $account = \App\Models\WhatsApp\WhatsAppAccount::forceCreate([
-            'company_id' => $company->id,
-            'access_token' => 'dummy-token',
-            'waba_id' => '12345',
-            'business_id' => '67890',
-            'connection_status' => 'connected',
-        ]);
+        $account = \App\Models\WhatsApp\WhatsAppAccount::firstOrCreate(
+            ['company_id' => $company->id],
+            [
+                'access_token' => 'dummy-token',
+                'waba_id' => '12345',
+                'business_id' => '67890',
+                'connection_status' => 'connected',
+            ]
+        );
         
-        $phone = \App\Models\WhatsApp\WhatsAppPhoneNumber::forceCreate([
-            'company_id' => $company->id,
-            'whatsapp_account_id' => $account->id,
-            'phone_number_id' => '123456789',
-            'phone_number' => '+123456789',
-            'display_name' => 'Test Phone',
-            'verified_name' => 'Test Phone',
-            'status' => 'active',
-        ]);
+        $phone = \App\Models\WhatsApp\WhatsAppPhoneNumber::firstOrCreate(
+            [
+                'company_id' => $company->id,
+                'phone_number_id' => '123456789',
+            ],
+            [
+                'whatsapp_account_id' => $account->id,
+                'phone_number' => '+123456789',
+                'display_name' => 'Test Phone',
+                'verified_name' => 'Test Phone',
+                'status' => 'active',
+            ]
+        );
         
         return $phone;
     }
