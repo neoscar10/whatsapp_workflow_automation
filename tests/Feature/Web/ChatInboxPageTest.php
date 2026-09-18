@@ -41,7 +41,7 @@ class ChatInboxPageTest extends TestCase
             'company_id' => $company->id,
             'whatsapp_account_id' => $account->id,
             'phone_number_id' => '123456789',
-            'display_phone_number' => '+123456789',
+            'phone_number' => '+123456789',
             'display_name' => 'Test Phone',
             'verified_name' => 'Test Phone',
         ]);
