@@ -37,16 +37,17 @@ class ChatInboxPageTest extends TestCase
             'connection_status' => 'connected',
         ]);
         
-        \App\Models\WhatsApp\WhatsAppPhoneNumber::forceCreate([
+        $phone = \App\Models\WhatsApp\WhatsAppPhoneNumber::forceCreate([
             'company_id' => $company->id,
             'whatsapp_account_id' => $account->id,
             'phone_number_id' => '123456789',
             'phone_number' => '+123456789',
             'display_name' => 'Test Phone',
             'verified_name' => 'Test Phone',
+            'status' => 'approved',
         ]);
         
-        return $account;
+        return $phone;
     }
 
     public function test_guest_cannot_access_chats_page()
