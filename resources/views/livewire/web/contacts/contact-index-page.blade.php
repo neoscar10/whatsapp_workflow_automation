@@ -17,7 +17,7 @@
                 </button>
                 <button wire:click="downloadImportTemplate" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700 whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">file_download</span>
-                    Download Template
+                    Download Sample Template
                 </button>
                 <button wire:click="openCreateModal" class="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-primary rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all whitespace-nowrap">
                     <span class="material-symbols-outlined text-[20px]">person_add</span>
