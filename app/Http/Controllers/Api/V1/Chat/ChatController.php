@@ -42,10 +42,10 @@ class ChatController extends Controller
         $filters = $request->validated();
         $perPage = $filters['per_page'] ?? 15;
 
-        // We use the same filter logic as the web inbox but with pagination
+        // We use the same filter logic as the web inbox with COALESCE ordering
         $query = Conversation::where('company_id', $companyId)
             ->with(['assignee'])
-            ->orderBy('last_message_at', 'desc');
+            ->orderByRaw('COALESCE(last_message_at, updated_at, created_at) DESC');
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {

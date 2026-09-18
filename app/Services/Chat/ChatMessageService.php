@@ -40,7 +40,10 @@ class ChatMessageService
 
         // Update conversation summary
         $conversation->update([
-            'unread_count' => 0, // usually we clear unread if we reply
+            'unread_count' => 0,
+            'last_message_at' => now(),
+            'last_message_preview' => $msg->generatePreviewText(),
+            'updated_at' => now(),
         ]);
 
         // Dispatch the WhatsApp outbound sending logic
@@ -126,6 +129,9 @@ class ChatMessageService
         // Update conversation summary
         $conversation->update([
             'unread_count' => 0,
+            'last_message_at' => now(),
+            'last_message_preview' => $msg->generatePreviewText(),
+            'updated_at' => now(),
         ]);
 
         // Broadcast early "pending" message

@@ -83,6 +83,7 @@ class ChatConversationActionService
                 'contact_phone' => '+' . $cleanPhone,
                 'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
                 'status' => 'open',
+                'updated_at' => now(),
             ]);
         } else {
             $conversation = Conversation::create([
@@ -93,6 +94,7 @@ class ChatConversationActionService
                 'contact_phone' => '+' . $cleanPhone,
                 'status' => 'open',
                 'assignment_status' => 'unassigned',
+                'updated_at' => now(),
             ]);
         }
 
