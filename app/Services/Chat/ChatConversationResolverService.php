@@ -320,26 +320,43 @@ class ChatConversationResolverService
         }
 
         // 4. Create the message
-        $msg = $conversation->messages()->create([
-            'external_message_id' => $messageId,
-            'direction' => 'inbound',
-            'message_type' => in_array($type, ['text', 'image', 'video', 'audio', 'document']) ? $type : 'other',
-            'body' => $body,
-            'status' => 'received',
-            'media_url' => $mediaUrl,
-            'media_meta' => $mediaMeta,
-            'meta_payload' => $messageData,
-            'sent_at' => now(), // Meta timestamp is in seconds, for now we use 'now'
-        ]);
+        try {
+            $msg = $conversation->messages()->create([
+                'external_message_id' => $messageId,
+                'direction' => 'inbound',
+                'message_type' => in_array($type, ['text', 'image', 'video', 'audio', 'document']) ? $type : 'other',
+                'body' => $body,
+                'status' => 'received',
+                'media_url' => $mediaUrl,
+                'media_meta' => $mediaMeta,
+                'meta_payload' => $messageData,
+                'sent_at' => now(), // Meta timestamp is in seconds, for now we use 'now'
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('INBOUND_CREATE_FAILED: Could not persist inbound message', [
+                'conversation_id' => $conversation->id,
+                'external_message_id' => $messageId,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
 
         // 5. Update conversation summary
-        $conversation->update([
-            'last_customer_message_at' => now(),
-            'last_message_at' => now(),
-            'last_message_preview' => $msg->generatePreviewText(),
-            'unread_count' => ($conversation->unread_count ?? 0) + 1,
-            'updated_at' => now(),
-        ]);
+        try {
+            $conversation->update([
+                'last_customer_message_at' => now(),
+                'last_message_at' => now(),
+                'last_message_preview' => $msg->generatePreviewText(),
+                'unread_count' => ($conversation->unread_count ?? 0) + 1,
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('INBOUND_CONVERSATION_UPDATE_FAILED: Non-fatal error updating conversation summary', [
+                'conversation_id' => $conversation->id,
+                'message_id' => $msg->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Sync Contact logic
         try {

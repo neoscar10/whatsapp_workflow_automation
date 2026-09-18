@@ -129,10 +129,19 @@ class ConversationMessage extends Model
     protected static function booted(): void
     {
         static::created(function (ConversationMessage $message) {
-            $message->conversation->update([
-                'last_message_preview' => $message->generatePreviewText(),
-                'last_message_at' => $message->sent_at ?? $message->created_at,
-            ]);
+            try {
+                if ($message->conversation) {
+                    $message->conversation->update([
+                        'last_message_preview' => $message->generatePreviewText(),
+                        'last_message_at' => $message->sent_at ?? $message->created_at,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('ConversationMessage booted: failed to update conversation summary', [
+                    'message_id' => $message->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
     }
 }

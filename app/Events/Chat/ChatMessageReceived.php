@@ -22,6 +22,7 @@ class ChatMessageReceived implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel("company.{$this->message->conversation->company_id}.conversation.{$this->message->conversation_id}"),
+            new PrivateChannel("company.{$this->message->conversation->company_id}.chats"),
         ];
     }
 

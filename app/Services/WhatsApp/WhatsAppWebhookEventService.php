@@ -52,7 +52,7 @@ class WhatsAppWebhookEventService
                             'waba_id' => $wabaId,
                             'phone_number_id' => $value['metadata']['phone_number_id'] ?? null,
                         ]);
-                        return;
+                        continue;
                     }
 
                     // Dispatch specific processing based on field
