@@ -74,11 +74,19 @@ class ChatTemplateSendService
         // Conversation summary is automatically updated by the ConversationMessage model observer
 
         // Dispatch the WhatsApp outbound sending logic
-        $this->outboundService->sendConversationMessage($message);
+        $sentSuccessfully = $this->outboundService->sendConversationMessage($message);
+
+        // Refresh message state from database after outbound dispatch
+        $message->refresh();
 
         // Broadcast events
         broadcast(new ChatMessageReceived($message));
         broadcast(new ChatConversationUpdated($conversation));
+
+        if (!$sentSuccessfully || $message->status === 'failed') {
+            $errorMsg = $message->meta_payload['error'] ?? 'WhatsApp API rejected template message delivery.';
+            throw new Exception($errorMsg);
+        }
 
         return [
             'success' => true,
@@ -127,7 +135,7 @@ class ChatTemplateSendService
     /**
      * Format a single parameter item into standard Meta Cloud API structure.
      */
-    protected function formatParameter(mixed $param): array
+    protected function formatParameter(mixed $param, string $expectedType = 'text'): array
     {
         if (is_array($param)) {
             if (isset($param['type'])) {
@@ -141,16 +149,20 @@ class ChatTemplateSendService
                 }
             }
 
+            if (isset($param['payload'])) {
+                return ['type' => 'payload', 'payload' => $this->stringifyParam($param['payload'])];
+            }
+
             if (isset($param['text'])) {
-                return ['type' => 'text', 'text' => $this->stringifyParam($param['text'])];
+                return ['type' => $expectedType, $expectedType => $this->stringifyParam($param['text'])];
             }
 
             if (isset($param['value'])) {
-                return ['type' => 'text', 'text' => $this->stringifyParam($param['value'])];
+                return ['type' => $expectedType, $expectedType => $this->stringifyParam($param['value'])];
             }
         }
 
-        return ['type' => 'text', 'text' => $this->stringifyParam($param)];
+        return ['type' => $expectedType, $expectedType => $this->stringifyParam($param)];
     }
 
     /**
@@ -164,13 +176,13 @@ class ChatTemplateSendService
             $type = strtolower($comp['type'] ?? 'body');
             
             if ($type === 'body' || $type === 'header') {
-                $rawParams = $comp['parameters'] ?? [];
+                $rawParams = $comp['parameters'] ?? $comp['parameter'] ?? [];
                 if (!is_array($rawParams)) {
                     $rawParams = [$rawParams];
                 }
                 $formattedParams = [];
                 foreach ($rawParams as $param) {
-                    $formattedParams[] = $this->formatParameter($param);
+                    $formattedParams[] = $this->formatParameter($param, 'text');
                 }
                 if (!empty($formattedParams)) {
                     $normalized[] = [
@@ -178,16 +190,17 @@ class ChatTemplateSendService
                         'parameters' => $formattedParams,
                     ];
                 }
-            } elseif ($type === 'button') {
+            } elseif ($type === 'button' || $type === 'url' || $type === 'quick_reply') {
                 $btnIndex = (string) ($comp['index'] ?? '0');
-                $subType = strtolower($comp['sub_type'] ?? 'url');
-                $rawParams = $comp['parameters'] ?? [];
+                $subType = strtolower($comp['sub_type'] ?? ($type === 'url' ? 'url' : ($type === 'quick_reply' ? 'quick_reply' : 'url')));
+                $rawParams = $comp['parameters'] ?? $comp['parameter'] ?? $comp['value'] ?? $comp['text'] ?? [];
                 if (!is_array($rawParams)) {
                     $rawParams = [$rawParams];
                 }
+                $paramType = ($subType === 'quick_reply') ? 'payload' : 'text';
                 $formattedParams = [];
                 foreach ($rawParams as $param) {
-                    $formattedParams[] = $this->formatParameter($param);
+                    $formattedParams[] = $this->formatParameter($param, $paramType);
                 }
                 if (!empty($formattedParams)) {
                     $normalized[] = [
@@ -195,6 +208,33 @@ class ChatTemplateSendService
                         'sub_type' => $subType,
                         'index' => $btnIndex,
                         'parameters' => $formattedParams,
+                    ];
+                }
+            }
+        }
+
+        // Auto-check if template has dynamic URL buttons requiring parameters that were missing in payload
+        $existingButtonIndices = array_map(
+            fn($c) => (string)($c['index'] ?? '0'),
+            array_filter($normalized, fn($c) => ($c['type'] ?? '') === 'button')
+        );
+
+        $templateButtons = $template->buttons;
+        if ($templateButtons && $templateButtons->count() > 0) {
+            foreach ($templateButtons as $idx => $btn) {
+                $btnIndexStr = (string)$idx;
+                $isUrlButton = strtoupper($btn->type) === 'URL';
+                $hasPlaceholder = str_contains($btn->url ?? '', '{{');
+                
+                if ($isUrlButton && $hasPlaceholder && !in_array($btnIndexStr, $existingButtonIndices)) {
+                    $exampleVal = $btn->example_value ?: '1';
+                    $normalized[] = [
+                        'type' => 'button',
+                        'sub_type' => 'url',
+                        'index' => $btnIndexStr,
+                        'parameters' => [
+                            ['type' => 'text', 'text' => (string) $exampleVal]
+                        ]
                     ];
                 }
             }
