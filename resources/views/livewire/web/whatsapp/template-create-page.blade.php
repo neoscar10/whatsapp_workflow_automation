@@ -329,10 +329,55 @@
                             <div class="font-bold text-slate-900 text-sm px-1 pt-1">
                                 @if($headerType === 'text')
                                     {{ $headerText ?: 'Your Header Here' }}
-                                @else
-                                    <div class="w-full h-32 bg-slate-200 rounded animate-pulse flex items-center justify-center text-slate-400">
-                                        [{{ strtoupper($headerType) }}]
-                                    </div>
+                                @elseif($headerType === 'image')
+                                    @if($headerSampleFile)
+                                        <div class="w-full overflow-hidden rounded-lg mb-2 shadow-sm border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                                            <img 
+                                                src="{{ !is_string($headerSampleFile) && method_exists($headerSampleFile, 'temporaryUrl') ? $headerSampleFile->temporaryUrl() : (is_string($headerSampleFile) && str_starts_with($headerSampleFile, 'http') ? $headerSampleFile : Storage::url($headerSampleFile)) }}" 
+                                                alt="Header image preview" 
+                                                class="w-full max-h-48 object-cover rounded-lg"
+                                            />
+                                        </div>
+                                    @else
+                                        <div class="w-full h-32 bg-slate-100 dark:bg-slate-800 rounded-lg flex flex-col items-center justify-center text-slate-400 gap-1 border border-dashed border-slate-300 dark:border-slate-700 mb-2">
+                                            <span class="material-symbols-outlined text-3xl">image</span>
+                                            <span class="text-xs font-semibold">Sample Image Preview</span>
+                                        </div>
+                                    @endif
+                                @elseif($headerType === 'video')
+                                    @if($headerSampleFile)
+                                        <div class="w-full overflow-hidden rounded-lg mb-2 shadow-sm border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                                            <video 
+                                                src="{{ !is_string($headerSampleFile) && method_exists($headerSampleFile, 'temporaryUrl') ? $headerSampleFile->temporaryUrl() : (is_string($headerSampleFile) && str_starts_with($headerSampleFile, 'http') ? $headerSampleFile : Storage::url($headerSampleFile)) }}" 
+                                                class="w-full max-h-48 object-cover rounded-lg" 
+                                                controls
+                                            ></video>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-32 bg-slate-100 dark:bg-slate-800 rounded-lg flex flex-col items-center justify-center text-slate-400 gap-1 border border-dashed border-slate-300 dark:border-slate-700 mb-2">
+                                            <span class="material-symbols-outlined text-3xl">movie</span>
+                                            <span class="text-xs font-semibold">Sample Video Preview</span>
+                                        </div>
+                                    @endif
+                                @elseif($headerType === 'document')
+                                    @if($headerSampleFile)
+                                        <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center gap-3 border border-slate-200 dark:border-slate-700 mb-2">
+                                            <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400">
+                                                <span class="material-symbols-outlined text-xl">description</span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                                                    {{ !is_string($headerSampleFile) ? $headerSampleFile->getClientOriginalName() : basename($headerSampleFile) }}
+                                                </p>
+                                                <p class="text-[10px] text-slate-500 uppercase">Document Attachment</p>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-20 bg-slate-100 dark:bg-slate-800 rounded-lg flex flex-col items-center justify-center text-slate-400 gap-1 border border-dashed border-slate-300 dark:border-slate-700 mb-2">
+                                            <span class="material-symbols-outlined text-2xl">description</span>
+                                            <span class="text-xs font-semibold">Sample Document Preview</span>
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         @endif

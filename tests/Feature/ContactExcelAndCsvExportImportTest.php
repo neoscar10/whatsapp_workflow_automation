@@ -83,4 +83,45 @@ class ContactExcelAndCsvExportImportTest extends TestCase
 
         @unlink($tempPath);
     }
+
+    public function test_export_formats_numeric_phone_names_explicitly_as_string(): void
+    {
+        $company = Company::factory()->create();
+        Contact::create([
+            'company_id' => $company->id,
+            'name' => '919211999874',
+            'phone' => '+919211999874',
+            'normalized_phone' => '919211999874',
+            'status' => 'active',
+        ]);
+
+        $exportService = app(ContactExportService::class);
+
+        // CSV Test
+        $csvCallback = $exportService->exportContacts($company->id, 'csv');
+        ob_start();
+        $csvCallback();
+        $csvOutput = ob_get_clean();
+
+        $this->assertStringContainsString('+919211999874', $csvOutput);
+
+        // XLSX Test
+        $xlsxCallback = $exportService->exportContacts($company->id, 'xlsx');
+        ob_start();
+        $xlsxCallback();
+        $xlsxOutput = ob_get_clean();
+
+        $tempPath = sys_get_temp_dir() . '/test_export_' . uniqid() . '.xlsx';
+        file_put_contents($tempPath, $xlsxOutput);
+
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($tempPath);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Row 2 is the data row, Column A is Name
+        $nameCell = $sheet->getCell('A2');
+        $this->assertEquals('+919211999874', $nameCell->getValue());
+        $this->assertEquals(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $nameCell->getDataType());
+
+        @unlink($tempPath);
+    }
 }

@@ -299,4 +299,16 @@ class WhatsAppTemplatesTest extends TestCase
             'body_text' => 'Remote body text',
         ]);
     }
+
+    public function test_image_header_file_displays_in_live_preview()
+    {
+        $file = \Illuminate\Http\UploadedFile::fake()->image('preview_banner.png', 800, 600);
+
+        Livewire::actingAs($this->user)
+            ->test(TemplateCreatePage::class)
+            ->set('headerType', 'image')
+            ->set('headerSampleFile', $file)
+            ->assertSee('alt="Header image preview"', false)
+            ->assertSee('preview_banner.png');
+    }
 }

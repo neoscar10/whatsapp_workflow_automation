@@ -10,9 +10,13 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+use Livewire\WithFileUploads;
+
 #[Title('Edit Template')]
 class TemplateEditPage extends Component
 {
+    use WithFileUploads;
+
     public WhatsAppTemplate $template;
 
     public string $name = '';
@@ -21,6 +25,7 @@ class TemplateEditPage extends Component
     
     public string $headerType = 'none';
     public ?string $headerText = null;
+    public $headerSampleFile;
     
     public string $bodyText = '';
     public ?string $footerText = null;
@@ -194,7 +199,7 @@ class TemplateEditPage extends Component
                 return;
             }
 
-            $templateService->updateTemplateRecord($this->template, $accountModel, $data, $this->buttons, auth()->id());
+            $templateService->updateTemplateRecord($this->template, $accountModel, $data, $this->buttons, auth()->id(), $this->headerSampleFile);
             
             session()->flash('status', 'Template updated successfully and submitted for review.');
             return redirect()->route('whatsapp.templates.show', $this->template->id);
