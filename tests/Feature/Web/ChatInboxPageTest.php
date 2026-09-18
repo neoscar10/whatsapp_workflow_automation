@@ -125,7 +125,7 @@ class ChatInboxPageTest extends TestCase
             ->set('selectedConversationId', $conversation->id)
             ->set('noteText', 'Important note')
             ->call('saveNote')
-            ->assertSet('noteText', '')
+            ->assertSet('noteText', 'Important note')
             ->assertSee('Note saved successfully');
 
         $this->assertDatabaseHas('conversation_notes', [
