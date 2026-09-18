@@ -86,17 +86,40 @@ class TemplatePayloadBuilder
                         'text' => $button['text'],
                     ];
                 } elseif ($button['type'] === 'url') {
-                     $btn = [
+                    $btn = [
                         'type' => 'URL',
                         'text' => $button['text'],
                         'url' => $button['url'],
                     ];
-                     // Check if URL has a variable (e.g., https://example.com/{{1}})
-                     if (str_contains($button['url'], '{{1}}')) {
-                          $btn['example'] = [
-                              $button['example_value'] ?? 'example_path'
-                          ];
-                     }
+
+                    // Check for variable placeholders in URL (e.g. https://example.com/{{1}} or {{2}})
+                    $varMatches = [];
+                    preg_match_all('/\{\{(\d+)\}\}/', $button['url'], $varMatches);
+                    $varCount = count($varMatches[0] ?? []);
+
+                    if ($varCount > 0) {
+                        $examples = [];
+
+                        // 1. Check if an array of examples was passed in $button['example'] or $button['example_values']
+                        $rawExamples = $button['example'] ?? $button['example_values'] ?? $button['example_value'] ?? null;
+
+                        if (is_array($rawExamples)) {
+                            $examples = array_values($rawExamples);
+                        } elseif (is_string($rawExamples) && strlen(trim($rawExamples)) > 0) {
+                            $examples = str_contains($rawExamples, ',') 
+                                ? array_map('trim', explode(',', $rawExamples)) 
+                                : [trim($rawExamples)];
+                        }
+
+                        // Fill in missing variable examples if count doesn't match
+                        $finalExamples = [];
+                        for ($i = 0; $i < $varCount; $i++) {
+                            $finalExamples[] = (string)($examples[$i] ?? "sample_param_" . ($i + 1));
+                        }
+
+                        $btn['example'] = $finalExamples;
+                    }
+
                     $buttonComponent['buttons'][] = $btn;
                 } elseif ($button['type'] === 'phone_number') {
                     $buttonComponent['buttons'][] = [

@@ -57,24 +57,43 @@ class ChatConversationActionService
             throw new \Exception('No active WhatsApp phone number is connected or configured for your company.');
         }
 
-        // Find or create the conversation record
-        $conversation = Conversation::firstOrCreate(
-            [
+        // Find existing conversation by contact_id or phone number variants
+        $fromPhone = $contact->phone ?? '';
+        $cleanPhone = preg_replace('/[^0-9]/', '', $fromPhone);
+        $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
+
+        $conversation = Conversation::where('company_id', $user->company_id)
+            ->where(function ($q) use ($contact, $fromPhone, $cleanPhone, $last10) {
+                $q->where('contact_id', $contact->id)
+                  ->orWhere('contact_phone', $fromPhone)
+                  ->orWhere('contact_phone', '+' . $cleanPhone)
+                  ->orWhere('contact_phone', $cleanPhone);
+
+                if (strlen($last10) >= 7) {
+                    $q->orWhere('contact_phone', 'like', '%' . $last10);
+                }
+            })
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($conversation) {
+            $conversation->update([
+                'contact_id' => $contact->id,
+                'contact_name' => $contact->name ?? $conversation->contact_name ?? ('+' . $cleanPhone),
+                'contact_phone' => '+' . $cleanPhone,
+                'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
+                'status' => 'open',
+            ]);
+        } else {
+            $conversation = Conversation::create([
                 'company_id' => $user->company_id,
                 'contact_id' => $contact->id,
                 'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
-            ],
-            [
-                'contact_name' => $contact->name ?? $contact->phone,
-                'contact_phone' => $contact->phone,
+                'contact_name' => $contact->name ?? ('+' . $cleanPhone),
+                'contact_phone' => '+' . $cleanPhone,
                 'status' => 'open',
                 'assignment_status' => 'unassigned',
-            ]
-        );
-
-        // Ensure the conversation is open if it was closed
-        if ($conversation->status !== 'open') {
-            $conversation->update(['status' => 'open']);
+            ]);
         }
 
         return $conversation;

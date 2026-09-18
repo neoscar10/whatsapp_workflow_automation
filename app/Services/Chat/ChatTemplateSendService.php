@@ -52,7 +52,8 @@ class ChatTemplateSendService
         }
 
         // Resolve body with actual values for local persistence/preview
-        $components = $payload['components'] ?? [];
+        $rawComponents = $payload['components'] ?? [];
+        $components = $this->normalizeComponents($template, $rawComponents);
         $messageBody = $this->resolveTemplateBody($template, $components);
 
         $message = $conversation->messages()->create([
@@ -86,6 +87,58 @@ class ChatTemplateSendService
     }
 
     /**
+     * Normalize components payload to ensure Meta API compliance for body, header, and URL buttons.
+     */
+    protected function normalizeComponents(WhatsAppTemplate $template, array $components): array
+    {
+        $normalized = [];
+
+        foreach ($components as $comp) {
+            $type = strtolower($comp['type'] ?? 'body');
+            
+            if ($type === 'body' || $type === 'header') {
+                $rawParams = $comp['parameters'] ?? [];
+                $formattedParams = [];
+                foreach ($rawParams as $param) {
+                    if (is_array($param) && isset($param['text'])) {
+                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param['text']];
+                    } else {
+                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param];
+                    }
+                }
+                if (!empty($formattedParams)) {
+                    $normalized[] = [
+                        'type' => $type,
+                        'parameters' => $formattedParams,
+                    ];
+                }
+            } elseif ($type === 'button') {
+                $btnIndex = (string) ($comp['index'] ?? '0');
+                $subType = strtolower($comp['sub_type'] ?? 'url');
+                $rawParams = $comp['parameters'] ?? [];
+                $formattedParams = [];
+                foreach ($rawParams as $param) {
+                    if (is_array($param) && isset($param['text'])) {
+                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param['text']];
+                    } else {
+                        $formattedParams[] = ['type' => 'text', 'text' => (string) $param];
+                    }
+                }
+                if (!empty($formattedParams)) {
+                    $normalized[] = [
+                        'type' => 'button',
+                        'sub_type' => $subType,
+                        'index' => $btnIndex,
+                        'parameters' => $formattedParams,
+                    ];
+                }
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
      * Resolve template variable placeholders in body for local storage.
      */
     protected function resolveTemplateBody(WhatsAppTemplate $template, array $components): string
@@ -93,10 +146,11 @@ class ChatTemplateSendService
         $body = $template->body_text;
         
         foreach ($components as $component) {
-            if ($component['type'] === 'body' && isset($component['parameters'])) {
+            if (($component['type'] ?? '') === 'body' && isset($component['parameters'])) {
                 foreach ($component['parameters'] as $index => $param) {
                     $placeholder = '{{' . ($index + 1) . '}}';
-                    $body = str_replace($placeholder, $param['text'] ?? $placeholder, $body);
+                    $val = is_array($param) ? ($param['text'] ?? '') : (string)$param;
+                    $body = str_replace($placeholder, $val ?: $placeholder, $body);
                 }
             }
         }
