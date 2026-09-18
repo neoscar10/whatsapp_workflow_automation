@@ -9,6 +9,29 @@ use Illuminate\Database\Eloquent\Builder;
 
 class WhatsAppPhoneNumberService
 {
+    public function getPageMetaForUser(User $user): array
+    {
+        if ($user->company) {
+            return $this->getPageMetaForCompany($user->company);
+        }
+
+        return [
+            'has_connected_account' => false,
+            'account_status' => 'not_connected',
+            'company_status' => 'demo',
+        ];
+    }
+
+    public function getPageMetaForCompany(\App\Models\Company $company): array
+    {
+        $account = $company->whatsappAccount;
+        return [
+            'has_connected_account' => $account && $account->connection_status === 'connected',
+            'account_status' => $account?->connection_status ?? 'not_connected',
+            'company_status' => $company->status ?? 'demo',
+        ];
+    }
+
     public function paginateForUser(User $user, array $filters): LengthAwarePaginator
     {
         if ($user->company) {

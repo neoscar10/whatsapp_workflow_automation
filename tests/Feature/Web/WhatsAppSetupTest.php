@@ -57,6 +57,13 @@ class WhatsAppSetupTest extends TestCase
     /** @test */
     public function account_setup_can_be_saved()
     {
+        $this->mock(\App\Services\WhatsApp\WhatsAppPhoneNumberSyncService::class, function ($mock) {
+            $mock->shouldReceive('syncForAccount')->andReturnUsing(function ($account) {
+                $account->update(['connection_status' => 'connected']);
+                return ['success' => true];
+            });
+        });
+
         Livewire::actingAs($this->user)
             ->test(AccountSetupPage::class)
             ->set('access_token', 'test-token')

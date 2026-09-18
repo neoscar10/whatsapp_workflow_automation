@@ -109,7 +109,9 @@ class WhatsAppSimulatorTest extends TestCase
             ->assertHasNoErrors();
 
         // Verify conversation is created
-        $conversation = Conversation::where('contact_phone', $this->contact->phone)->first();
+        $conversation = Conversation::where('contact_id', $this->contact->id)
+            ->orWhere('contact_phone', $this->contact->fresh()->phone)
+            ->first();
         $this->assertNotNull($conversation);
         $this->assertEquals($this->company->id, $conversation->company_id);
 
