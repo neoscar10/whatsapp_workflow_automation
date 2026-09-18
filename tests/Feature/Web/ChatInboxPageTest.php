@@ -44,7 +44,7 @@ class ChatInboxPageTest extends TestCase
             'phone_number' => '+123456789',
             'display_name' => 'Test Phone',
             'verified_name' => 'Test Phone',
-            'status' => 'approved',
+            'status' => 'active',
         ]);
         
         return $phone;
