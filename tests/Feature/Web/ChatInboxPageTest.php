@@ -117,7 +117,6 @@ class ChatInboxPageTest extends TestCase
     public function test_save_note_feature()
     {
         [$user, $company] = $this->setupUserAndCompany();
-        $this->setupWhatsAppAccount($company);
         $conversation = Conversation::create(['company_id' => $company->id, 'contact_name' => 'John', 'contact_phone' => '123']);
 
         Livewire::actingAs($user)
