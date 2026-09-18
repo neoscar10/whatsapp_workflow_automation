@@ -24,6 +24,14 @@ class ChatInboxPageTest extends TestCase
             'password' => bcrypt('password'),
             'company_id' => $company->id,
         ]);
+
+        $this->mock(\App\Services\Payment\BillingService::class, function ($mock) {
+            $mock->shouldReceive('canAffordActivity')->andReturn(true);
+            $mock->shouldReceive('debitForActivity')->andReturn(true);
+        });
+
+        $this->setupWhatsAppAccount($company);
+
         return [$user, $company];
     }
 
