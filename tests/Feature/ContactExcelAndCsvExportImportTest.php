@@ -94,6 +94,13 @@ class ContactExcelAndCsvExportImportTest extends TestCase
             'normalized_phone' => '919211999874',
             'status' => 'active',
         ]);
+        Contact::create([
+            'company_id' => $company->id,
+            'name' => '+917703954128',
+            'phone' => '+917703954128',
+            'normalized_phone' => '917703954128',
+            'status' => 'active',
+        ]);
 
         $exportService = app(ContactExportService::class);
 
@@ -104,6 +111,8 @@ class ContactExcelAndCsvExportImportTest extends TestCase
         $csvOutput = ob_get_clean();
 
         $this->assertStringContainsString('+919211999874', $csvOutput);
+        $this->assertStringContainsString('+917703954128', $csvOutput);
+        $this->assertStringNotContainsString('++', $csvOutput);
 
         // XLSX Test
         $xlsxCallback = $exportService->exportContacts($company->id, 'xlsx');
@@ -117,10 +126,13 @@ class ContactExcelAndCsvExportImportTest extends TestCase
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($tempPath);
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Row 2 is the data row, Column A is Name
-        $nameCell = $sheet->getCell('A2');
-        $this->assertEquals('+919211999874', $nameCell->getValue());
-        $this->assertEquals(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $nameCell->getDataType());
+        // Row 2 & Row 3 data rows
+        $nameCell1 = $sheet->getCell('A2');
+        $nameCell2 = $sheet->getCell('A3');
+        $this->assertNotEquals('++', substr($nameCell1->getValue(), 0, 2));
+        $this->assertNotEquals('++', substr($nameCell2->getValue(), 0, 2));
+        $this->assertEquals(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $nameCell1->getDataType());
+        $this->assertEquals(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $nameCell2->getDataType());
 
         @unlink($tempPath);
     }

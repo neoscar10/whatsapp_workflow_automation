@@ -58,19 +58,19 @@ class ContactExportService
         $query->chunk(200, function ($contacts) use ($sheet, &$rowIdx) {
             foreach ($contacts as $contact) {
                 $rawName = trim((string)($contact->name ?? ''));
-                $cleanNamePhone = \App\Support\PhoneNumberNormalizer::clean($rawName);
+                $digitsName = \App\Support\PhoneNumberNormalizer::normalize($rawName);
 
-                if ($cleanNamePhone !== '' && (preg_match('/^\+?[0-9]{7,15}$/', $rawName) || preg_match('/^[0-9]{7,15}$/', $rawName))) {
-                    $formattedName = '+' . $cleanNamePhone;
+                if ($digitsName !== '' && (preg_match('/^\+?[0-9]{7,15}$/', $rawName) || preg_match('/^[0-9]{7,15}$/', $rawName))) {
+                    $formattedName = '+' . $digitsName;
                 } else {
                     $formattedName = $rawName;
                 }
 
-                $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($contact->phone ?? '');
-                $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($cleanPhone);
+                $digitsPhone = \App\Support\PhoneNumberNormalizer::normalize($contact->phone ?? '');
+                $digitsNorm = \App\Support\PhoneNumberNormalizer::normalize($contact->normalized_phone ?? $contact->phone ?? '');
 
-                $formattedPhone = preg_match('/^[0-9]+$/', $cleanPhone) ? '+' . $cleanPhone : $cleanPhone;
-                $formattedNorm = '+' . $cleanNorm;
+                $formattedPhone = $digitsPhone !== '' ? '+' . $digitsPhone : ($contact->phone ?? '');
+                $formattedNorm = $digitsNorm !== '' ? '+' . $digitsNorm : ($contact->normalized_phone ?? '');
 
                 // Explicitly set Name, Phone, and Normalized Phone as TYPE_STRING so Excel preserves exact text formatting
                 $sheet->setCellValueExplicit('A' . $rowIdx, $formattedName, DataType::TYPE_STRING);
@@ -124,19 +124,19 @@ class ContactExportService
             $query->chunk(200, function ($contacts) use ($file) {
                 foreach ($contacts as $contact) {
                     $rawName = trim((string)($contact->name ?? ''));
-                    $cleanNamePhone = \App\Support\PhoneNumberNormalizer::clean($rawName);
+                    $digitsName = \App\Support\PhoneNumberNormalizer::normalize($rawName);
 
-                    if ($cleanNamePhone !== '' && (preg_match('/^\+?[0-9]{7,15}$/', $rawName) || preg_match('/^[0-9]{7,15}$/', $rawName))) {
-                        $formattedName = '+' . $cleanNamePhone;
+                    if ($digitsName !== '' && (preg_match('/^\+?[0-9]{7,15}$/', $rawName) || preg_match('/^[0-9]{7,15}$/', $rawName))) {
+                        $formattedName = '+' . $digitsName;
                     } else {
                         $formattedName = $rawName;
                     }
 
-                    $cleanPhone = \App\Support\PhoneNumberNormalizer::clean($contact->phone ?? '');
-                    $cleanNorm = \App\Support\PhoneNumberNormalizer::normalize($cleanPhone);
-                    
-                    $formattedPhone = preg_match('/^[0-9]+$/', $cleanPhone) ? '+' . $cleanPhone : $cleanPhone;
-                    $formattedNorm = '+' . $cleanNorm;
+                    $digitsPhone = \App\Support\PhoneNumberNormalizer::normalize($contact->phone ?? '');
+                    $digitsNorm = \App\Support\PhoneNumberNormalizer::normalize($contact->normalized_phone ?? $contact->phone ?? '');
+
+                    $formattedPhone = $digitsPhone !== '' ? '+' . $digitsPhone : ($contact->phone ?? '');
+                    $formattedNorm = $digitsNorm !== '' ? '+' . $digitsNorm : ($contact->normalized_phone ?? '');
 
                     fputcsv($file, [
                         $formattedName,
