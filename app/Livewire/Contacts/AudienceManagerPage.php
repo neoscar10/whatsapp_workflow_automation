@@ -17,6 +17,13 @@ class AudienceManagerPage extends Component
     // Modal State
     public $showStaticGroupModal = false;
     public $showMembershipModal = false;
+    public $showDeleteGroupModal = false;
+    public $deletingGroupId = null;
+    public $deletingGroupName = '';
+
+    public $showRemoveMemberModal = false;
+    public $removingContactId = null;
+    public $removingContactName = '';
 
     // Form Data
     public $selectedId = null;
@@ -92,6 +99,29 @@ class AudienceManagerPage extends Component
         $this->dispatch('notify', ['type' => 'success', 'message' => 'Group deleted.']);
     }
 
+    public function openDeleteGroupModal($id)
+    {
+        $group = ContactGroup::where('company_id', Auth::user()->company_id)->findOrFail($id);
+        $this->deletingGroupId = $group->id;
+        $this->deletingGroupName = $group->name;
+        $this->showDeleteGroupModal = true;
+    }
+
+    public function closeDeleteGroupModal()
+    {
+        $this->showDeleteGroupModal = false;
+        $this->deletingGroupId = null;
+        $this->deletingGroupName = '';
+    }
+
+    public function confirmDeleteGroup()
+    {
+        if ($this->deletingGroupId) {
+            $this->deleteGroup($this->deletingGroupId);
+        }
+        $this->closeDeleteGroupModal();
+    }
+
     // Membership Methods
     public function openMembershipModal($id)
     {
@@ -124,6 +154,29 @@ class AudienceManagerPage extends Component
         app(ContactGroupService::class)->removeContactsFromGroup(Auth::user(), $group, [$contactId]);
 
         $this->dispatch('notify', ['type' => 'success', 'message' => 'Member removed from group.']);
+    }
+
+    public function openRemoveMemberModal($contactId)
+    {
+        $contact = \App\Models\Contact\Contact::where('company_id', Auth::user()->company_id)->find($contactId);
+        $this->removingContactId = $contactId;
+        $this->removingContactName = $contact ? ($contact->name ?: $contact->phone) : 'this contact';
+        $this->showRemoveMemberModal = true;
+    }
+
+    public function closeRemoveMemberModal()
+    {
+        $this->showRemoveMemberModal = false;
+        $this->removingContactId = null;
+        $this->removingContactName = '';
+    }
+
+    public function confirmRemoveMember()
+    {
+        if ($this->removingContactId) {
+            $this->removeMember($this->removingContactId);
+        }
+        $this->closeRemoveMemberModal();
     }
 
     protected function resetForm()
