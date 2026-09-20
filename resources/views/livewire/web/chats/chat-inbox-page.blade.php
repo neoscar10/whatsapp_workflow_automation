@@ -116,6 +116,7 @@
                     >
                         Inactive
                     </button>
+                    {{-- 
                     <button
                         type="button"
                         wire:click="$set('tab', 'assigned')"
@@ -130,6 +131,7 @@
                     >
                         Unassigned
                     </button>
+                    --}}
                 </div>
 
                 <div class="no-scrollbar flex-1 overflow-y-auto">
@@ -562,6 +564,7 @@
                     </div>
 
                     <div class="flex flex-1 flex-col gap-8 p-8">
+                        {{-- 
                         <div>
                             <h4 class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Management</h4>
                             <div class="flex flex-col gap-3">
@@ -612,6 +615,7 @@
                                 </div>
                             </div>
                         </div>
+                        --}}
 
                         <div>
                             <h4 class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Team Notes</h4>
