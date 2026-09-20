@@ -14,7 +14,7 @@ class ChatInboxPresenter
     {
         return $conversations->map(fn($c) => [
             'id' => $c->id,
-            'name' => $c->contact_name,
+            'name' => $c->contact?->name ?: $c->contact_name,
             'phone' => $c->contact_phone,
             'avatar_url' => $c->contact_avatar_url,
             'preview' => $c->last_message_preview ?? 'No messages yet',
@@ -36,7 +36,7 @@ class ChatInboxPresenter
 
         return [
             'id' => $conversation->id,
-            'name' => $conversation->contact_name,
+            'name' => $conversation->contact?->name ?: $conversation->contact_name,
             'phone' => $conversation->contact_phone,
             'avatar_url' => $conversation->contact_avatar_url,
             'location' => $conversation->contact_location,

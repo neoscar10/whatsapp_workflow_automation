@@ -41,13 +41,18 @@ class ChatConversationResolverService
             'company_id' => $localNumber->company_id,
         ]);
 
+        $normalizedPhone = \App\Support\PhoneNumberNormalizer::normalize($fromPhone);
+
         // Look up associated Contact record in company by phone number
         $matchedContact = Contact::where('company_id', $localNumber->company_id)
-            ->where(function ($q) use ($fromPhone, $cleanPhone, $last10) {
+            ->where(function ($q) use ($fromPhone, $cleanPhone, $last10, $normalizedPhone) {
                 $q->where('phone', $fromPhone)
                   ->orWhere('phone', '+' . $cleanPhone)
                   ->orWhere('phone', $cleanPhone)
                   ->orWhere('phone', 'like', '%' . $last10);
+                if (!empty($normalizedPhone)) {
+                    $q->orWhere('normalized_phone', $normalizedPhone);
+                }
             })
             ->first();
 
@@ -100,6 +105,14 @@ class ChatConversationResolverService
             ->orderBy('id', 'asc') // Pick earliest primary conversation (e.g. ID 14)
             ->first();
 
+        // Fallback: If matched contact wasn't found by raw phone, check if conversation already links to a contact
+        if (!$matchedContact && $conversation?->contact_id) {
+            $matchedContact = $conversation->contact;
+            if ($matchedContact?->name) {
+                $resolvedName = $matchedContact->name;
+            }
+        }
+
         if (!$conversation) {
             $conversation = Conversation::create([
                 'company_id' => $localNumber->company_id,
@@ -118,7 +131,10 @@ class ChatConversationResolverService
             if ($matchedContact) {
                 $updateData['contact_id'] = $matchedContact->id;
                 $updateData['contact_name'] = $matchedContact->name;
-            } elseif (!empty($contactData['profile']['name'])) {
+            } elseif (!empty($conversation->contact?->name)) {
+                $updateData['contact_id'] = $conversation->contact_id;
+                $updateData['contact_name'] = $conversation->contact->name;
+            } elseif (!empty($contactData['profile']['name']) && empty($conversation->contact_name)) {
                 $updateData['contact_name'] = $contactData['profile']['name'];
             }
             $conversation->update($updateData);

@@ -45,6 +45,38 @@ class Contact extends Model
                 }
             }
         });
+
+        static::saved(function (Contact $contact) {
+            if (!empty($contact->name) && !empty($contact->company_id)) {
+                try {
+                    $clean = preg_replace('/[^0-9]/', '', $contact->phone ?? '');
+                    $last10 = strlen($clean) >= 10 ? substr($clean, -10) : $clean;
+                    $normalized = $contact->normalized_phone ?? \App\Support\PhoneNumberNormalizer::normalize($clean);
+
+                    \App\Models\Chat\Conversation::where('company_id', $contact->company_id)
+                        ->where(function ($q) use ($contact, $clean, $last10, $normalized) {
+                            $q->where('contact_id', $contact->id);
+                            if (!empty($clean)) {
+                                $q->orWhere('contact_phone', $contact->phone)
+                                  ->orWhere('contact_phone', '+' . $clean)
+                                  ->orWhere('contact_phone', $clean);
+                                if (strlen($last10) >= 7) {
+                                    $q->orWhere('contact_phone', 'like', '%' . $last10);
+                                }
+                                if (!empty($normalized)) {
+                                    $q->orWhere('contact_phone', $normalized);
+                                }
+                            }
+                        })
+                        ->update([
+                            'contact_id' => $contact->id,
+                            'contact_name' => $contact->name,
+                        ]);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to sync contact name to conversations: " . $e->getMessage());
+                }
+            }
+        });
     }
 
     public function company(): BelongsTo

@@ -112,22 +112,29 @@ class ContactSyncService
             
             if (empty($normalizedPhone)) return null;
 
+            $existingContact = Contact::where('company_id', $conversation->company_id)
+                ->where('normalized_phone', $normalizedPhone)
+                ->first();
+
             $contact = Contact::updateOrCreate(
                 [
                     'company_id' => $conversation->company_id,
                     'normalized_phone' => $normalizedPhone,
                 ],
                 [
-                    'name' => $contact->name ?? $conversation->contact_name, // Keep existing name if set
+                    'name' => $existingContact?->name ?: $conversation->contact_name,
                     'phone' => $conversation->contact_phone,
-                    'avatar_url' => $contact->avatar_url ?? $conversation->contact_avatar_url,
+                    'avatar_url' => $existingContact?->avatar_url ?: $conversation->contact_avatar_url,
                     'last_interaction_at' => now(),
                     'last_inbound_at' => $conversation->last_customer_message_at ?? now(),
                 ]
             );
 
-            if ($conversation->contact_id !== $contact->id) {
-                $conversation->update(['contact_id' => $contact->id]);
+            if ($conversation->contact_id !== $contact->id || ($contact->name && $conversation->contact_name !== $contact->name)) {
+                $conversation->update([
+                    'contact_id' => $contact->id,
+                    'contact_name' => $contact->name,
+                ]);
             }
 
             return $contact;

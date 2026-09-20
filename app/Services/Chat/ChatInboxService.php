@@ -115,6 +115,7 @@ class ChatInboxService
         }
 
         $query = Conversation::where('company_id', $user->company_id)
+            ->with('contact')
             ->orderByRaw('COALESCE(last_message_at, updated_at) DESC');
 
         if (!empty($filters['whatsapp_phone_number_id'])) {
@@ -124,7 +125,10 @@ class ChatInboxService
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('contact_name', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('contact_phone', 'like', '%' . $filters['search'] . '%');
+                  ->orWhere('contact_phone', 'like', '%' . $filters['search'] . '%')
+                  ->orWhereHas('contact', function ($cq) use ($filters) {
+                      $cq->where('name', 'like', '%' . $filters['search'] . '%');
+                  });
             });
         }
 
@@ -157,6 +161,7 @@ class ChatInboxService
         }
 
         $conversation = Conversation::where('company_id', $user->company_id)
+            ->with('contact')
             ->where('id', $conversationId)
             ->first();
 
