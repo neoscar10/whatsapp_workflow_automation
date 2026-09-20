@@ -63,7 +63,7 @@ class CompanyIndex extends Component
         $this->editCompanyCountry = $company->country ?? 'IN';
         $this->editSelectedModules = \App\Models\CompanyModule::where('company_id', $company->id)
             ->pluck('module_id')
-            ->map(fn($val) => (int) $val)
+            ->map(fn($val) => (string) $val)
             ->toArray();
 
         $this->showEditModal = true;
@@ -98,19 +98,23 @@ class CompanyIndex extends Component
         // Sync assigned modules (attach/detach)
         $existingModuleIds = \App\Models\CompanyModule::where('company_id', $company->id)
             ->pluck('module_id')
-            ->map(fn($val) => (int) $val)
+            ->map(fn($val) => (string) $val)
             ->toArray();
 
-        $newSelectedModuleIds = array_map('intval', $this->editSelectedModules ?? []);
+        $newSelectedModuleIds = array_values(array_map('strval', $this->editSelectedModules ?? []));
 
         $toAttach = array_diff($newSelectedModuleIds, $existingModuleIds);
         foreach ($toAttach as $moduleId) {
-            \App\Models\CompanyModule::create([
-                'company_id' => $company->id,
-                'module_id' => $moduleId,
-                'status' => 'active',
-                'enabled_at' => now(),
-            ]);
+            \App\Models\CompanyModule::updateOrCreate(
+                [
+                    'company_id' => $company->id,
+                    'module_id' => $moduleId,
+                ],
+                [
+                    'status' => 'active',
+                    'enabled_at' => now(),
+                ]
+            );
         }
 
         $toDetach = array_diff($existingModuleIds, $newSelectedModuleIds);
@@ -286,12 +290,16 @@ class CompanyIndex extends Component
         // Assign modules
         if (!empty($this->selectedModules)) {
             foreach ($this->selectedModules as $moduleId) {
-                \App\Models\CompanyModule::create([
-                    'company_id' => $company->id,
-                    'module_id' => $moduleId,
-                    'status' => 'active',
-                    'enabled_at' => now(),
-                ]);
+                \App\Models\CompanyModule::updateOrCreate(
+                    [
+                        'company_id' => $company->id,
+                        'module_id' => (string) $moduleId,
+                    ],
+                    [
+                        'status' => 'active',
+                        'enabled_at' => now(),
+                    ]
+                );
             }
         }
 
