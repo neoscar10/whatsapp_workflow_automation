@@ -124,4 +124,16 @@ class Company extends Model
     {
         return $this->hasMany(\App\Models\Webhooks\CompanyWebhook::class);
     }
+
+    public function companyModules(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CompanyModule::class);
+    }
+
+    public function modules(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Module::class, 'company_modules', 'company_id', 'module_id')
+            ->withPivot(['status', 'enabled_at', 'expires_at'])
+            ->withTimestamps();
+    }
 }

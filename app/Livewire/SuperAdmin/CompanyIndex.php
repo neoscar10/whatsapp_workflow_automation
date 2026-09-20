@@ -33,13 +33,95 @@ class CompanyIndex extends Component
     public $createCompanyCountry = 'IN';
     public $selectedModules = [];
 
+    // Edit Company Modal Properties
+    public $showEditModal = false;
+    public $editCompanyId = null;
+    public $editCompanyName = '';
+    public $editCompanyEmail = '';
+    public $editCompanyCountry = 'IN';
+    public $editSelectedModules = [];
+
     public function viewCompany($id)
     {
         $this->selectedCompany = Company::with(['users' => function($query) {
             $query->where('is_company_owner', true);
-        }, 'demoPhoneNumber'])->withCount('users')->findOrFail($id);
+        }, 'demoPhoneNumber', 'companyModules.module'])->withCount('users')->findOrFail($id);
 
         $this->showViewModal = true;
+    }
+
+    public function openEditModal($id)
+    {
+        $this->closeModals();
+        $company = Company::with(['users' => function($query) {
+            $query->where('is_company_owner', true);
+        }, 'companyModules'])->findOrFail($id);
+
+        $this->editCompanyId = $company->id;
+        $this->editCompanyName = $company->name;
+        $this->editCompanyEmail = $company->primary_email ?? ($company->users->first()?->email ?? '');
+        $this->editCompanyCountry = $company->country ?? 'IN';
+        $this->editSelectedModules = \App\Models\CompanyModule::where('company_id', $company->id)
+            ->pluck('module_id')
+            ->map(fn($val) => (int) $val)
+            ->toArray();
+
+        $this->showEditModal = true;
+    }
+
+    public function updateCompany()
+    {
+        $this->validate([
+            'editCompanyName' => 'required|string|max:255',
+            'editCompanyEmail' => 'required|email|max:255',
+            'editCompanyCountry' => 'nullable|string|max:2',
+            'editSelectedModules' => 'array',
+            'editSelectedModules.*' => 'exists:modules,id',
+        ]);
+
+        $company = Company::findOrFail($this->editCompanyId);
+        $company->update([
+            'name' => $this->editCompanyName,
+            'primary_email' => $this->editCompanyEmail,
+            'country' => $this->editCompanyCountry,
+        ]);
+
+        // Update owner email if present and valid
+        $owner = $company->users()->where('is_company_owner', true)->first();
+        if ($owner && $owner->email !== $this->editCompanyEmail) {
+            $emailExists = \App\Models\User::where('email', $this->editCompanyEmail)->where('id', '!=', $owner->id)->exists();
+            if (!$emailExists) {
+                $owner->update(['email' => $this->editCompanyEmail]);
+            }
+        }
+
+        // Sync assigned modules (attach/detach)
+        $existingModuleIds = \App\Models\CompanyModule::where('company_id', $company->id)
+            ->pluck('module_id')
+            ->map(fn($val) => (int) $val)
+            ->toArray();
+
+        $newSelectedModuleIds = array_map('intval', $this->editSelectedModules ?? []);
+
+        $toAttach = array_diff($newSelectedModuleIds, $existingModuleIds);
+        foreach ($toAttach as $moduleId) {
+            \App\Models\CompanyModule::create([
+                'company_id' => $company->id,
+                'module_id' => $moduleId,
+                'status' => 'active',
+                'enabled_at' => now(),
+            ]);
+        }
+
+        $toDetach = array_diff($existingModuleIds, $newSelectedModuleIds);
+        if (!empty($toDetach)) {
+            \App\Models\CompanyModule::where('company_id', $company->id)
+                ->whereIn('module_id', $toDetach)
+                ->delete();
+        }
+
+        session()->flash('success', "Company '{$company->name}' updated successfully.");
+        $this->closeModals();
     }
 
     public function openStatusModal($id)
@@ -164,6 +246,13 @@ class CompanyIndex extends Component
         $this->createCompanyPassword = '';
         $this->createCompanyCountry = 'IN';
         $this->selectedModules = [];
+
+        $this->showEditModal = false;
+        $this->editCompanyId = null;
+        $this->editCompanyName = '';
+        $this->editCompanyEmail = '';
+        $this->editCompanyCountry = 'IN';
+        $this->editSelectedModules = [];
     }
 
     public function openCreateModal()
