@@ -3,32 +3,79 @@
         showLeftSidebar: true, 
         showRightSidebar: true,
         showScrollButton: false,
+        companyChannel: null,
+        activeChannel: null,
+        selectedId: @entangle('selectedConversationId'),
         scrollToBottom() {
             const container = this.$refs.messageContainer;
             if (container) {
                 container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
             }
+        },
+        initEcho() {
+            const companyId = {{ (int) auth()->user()->company_id }};
+            
+            const setupListeners = () => {
+                if (!window.Echo) {
+                    console.warn('[WebSockets] window.Echo is not ready yet, retrying...');
+                    setTimeout(setupListeners, 500);
+                    return;
+                }
+
+                console.log('[WebSockets] Initializing Echo for company ' + companyId);
+
+                // Subscribe to company-wide chats channel
+                if (!this.companyChannel) {
+                    this.companyChannel = window.Echo.private(`company.${companyId}.chats`);
+                    this.companyChannel
+                        .subscribed(() => console.log('[WebSockets] Subscribed to company.' + companyId + '.chats'))
+                        .listen('.chat.inbound.received', (e) => {
+                            console.log('[WebSockets] Inbound message received:', e);
+                            $wire.$refresh();
+                        })
+                        .listen('.message.received', (e) => {
+                            console.log('[WebSockets] Message received on company channel:', e);
+                            $wire.$refresh().then(() => this.scrollToBottom());
+                        })
+                        .listen('.conversation.updated', (e) => {
+                            console.log('[WebSockets] Conversation updated on company channel:', e);
+                            $wire.$refresh();
+                        });
+                }
+
+                // Subscribe to active conversation channel dynamically
+                this.$watch('selectedId', (newId, oldId) => {
+                    this.subscribeToConversation(companyId, newId, oldId);
+                });
+
+                if (this.selectedId) {
+                    this.subscribeToConversation(companyId, this.selectedId, null);
+                }
+            };
+
+            setupListeners();
+        },
+        subscribeToConversation(companyId, newId, oldId) {
+            if (oldId && oldId !== newId) {
+                console.log('[WebSockets] Leaving conversation channel: company.' + companyId + '.conversation.' + oldId);
+                window.Echo.leave(`company.${companyId}.conversation.${oldId}`);
+            }
+
+            if (newId) {
+                console.log('[WebSockets] Subscribing to conversation channel: company.' + companyId + '.conversation.' + newId);
+                window.Echo.private(`company.${companyId}.conversation.${newId}`)
+                    .listen('.message.received', (e) => {
+                        console.log('[WebSockets] Message received on active conversation:', e);
+                        $wire.$refresh().then(() => this.scrollToBottom());
+                    })
+                    .listen('.conversation.updated', (e) => {
+                        console.log('[WebSockets] Active conversation updated:', e);
+                        $wire.$refresh();
+                    });
+            }
         }
     }" 
-    x-init="
-        console.log('ChatInbox initialized. Listening for company {{ auth()->user()->company_id }} chats...');
-        if (window.Echo) {
-            window.Echo.private('company.{{ auth()->user()->company_id }}.chats')
-                .subscribed(() => {
-                    console.log('Successfully subscribed to company chats channel');
-                })
-                .listen('.chat.inbound.received', (e) => {
-                    console.log('Realtime INBOUND message received:', e);
-                    $wire.$refresh();
-                })
-                .listen('.conversation.updated', (e) => {
-                    console.log('Realtime CONVERSATION update received:', e);
-                    $wire.$refresh();
-                });
-        } else {
-            console.error('Laravel Echo is NOT initialized on this page!');
-        }
-    "
+    x-init="initEcho()"
     class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
 >
     <div class="flex min-w-0 flex-1 flex-col">

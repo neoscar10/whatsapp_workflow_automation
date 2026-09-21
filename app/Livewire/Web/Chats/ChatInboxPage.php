@@ -655,17 +655,23 @@ class ChatInboxPage extends Component
 
     public function getListeners()
     {
-        $userId = auth()->id();
+        $companyId = $this->companyId ?? auth()->user()?->company_id;
         $listeners = [
-            "echo-private:company.{$this->companyId}.chats,.chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',
-            "echo-private:company.{$this->companyId}.chats,.conversation.updated" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,.chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,.message.received" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,message.received" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,.conversation.updated" => 'refreshChatDataAfterRealtimeEvent',
+            "echo-private:company.{$companyId}.chats,conversation.updated" => 'refreshChatDataAfterRealtimeEvent',
             "refresh-chat-data" => 'refreshChatDataAfterRealtimeEvent',
             "realtime-conversation-updated" => 'handleRealtimeConversationUpdate',
         ];
 
         if ($this->selectedConversationId) {
-            $listeners["echo-private:company.{$this->companyId}.conversation.{$this->selectedConversationId},message.received"] = 'refreshChatDataAfterRealtimeEvent';
-            $listeners["echo-private:conversations.{$this->selectedConversationId},WhatsApp\\MessageStatusUpdated"] = 'onMessageStatusUpdated';
+            $listeners["echo-private:company.{$companyId}.conversation.{$this->selectedConversationId},.message.received"] = 'refreshChatDataAfterRealtimeEvent';
+            $listeners["echo-private:company.{$companyId}.conversation.{$this->selectedConversationId},message.received"] = 'refreshChatDataAfterRealtimeEvent';
+            $listeners["echo-private:company.{$companyId}.conversation.{$this->selectedConversationId},.conversation.updated"] = 'refreshChatDataAfterRealtimeEvent';
+            $listeners["echo-private:company.{$companyId}.conversation.{$this->selectedConversationId},conversation.updated"] = 'refreshChatDataAfterRealtimeEvent';
         }
 
         return $listeners;
