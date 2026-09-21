@@ -77,20 +77,28 @@ class WhatsAppWebhookEventService
     protected function identifyAccountFromPayload(?string $wabaId, array $value): ?WhatsAppAccount
     {
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
-
-        $query = WhatsAppAccount::query();
+        $account = null;
 
         if ($phoneNumberId) {
-            // Find account that natively owns this phone number ID (assuming relationships)
-            // Or look up via waba_id
-            $query->whereHas('phoneNumbers', function ($q) use ($phoneNumberId) {
+            $account = WhatsAppAccount::whereHas('phoneNumbers', function ($q) use ($phoneNumberId) {
                 $q->where('phone_number_id', $phoneNumberId);
-            });
-        } elseif ($wabaId) {
-            $query->where('waba_id', $wabaId);
+            })->orderBy('id', 'desc')->first();
         }
 
-        $account = $query->orderBy('id', 'desc')->first();
+        if (!$account && $wabaId) {
+            $account = WhatsAppAccount::where('waba_id', $wabaId)->orderBy('id', 'desc')->first();
+        }
+
+        if (!$account && $phoneNumberId) {
+            $companyId = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)->value('company_id');
+            if ($companyId) {
+                $account = WhatsAppAccount::where('company_id', $companyId)->first();
+            }
+        }
+
+        if (!$account) {
+            $account = WhatsAppAccount::orderBy('id', 'desc')->first();
+        }
         
         Log::info('WEBHOOK_ACCOUNT_LOOKUP', [
             'phone_number_id' => $phoneNumberId,
@@ -104,29 +112,43 @@ class WhatsAppWebhookEventService
     protected function processMessagesEvent(WhatsAppAccount $account, array $value): void
     {
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
-        if (!$phoneNumberId) {
-            Log::error("WhatsApp Webhook: Missing phone_number_id in metadata", ['value' => $value]);
-            return;
-        }
 
         // 1. Try to find local number for this specific account first
-        $localNumber = WhatsAppPhoneNumber::with('account')
-            ->where('whatsapp_account_id', $account->id)
-            ->where('phone_number_id', $phoneNumberId)
-            ->first();
+        $localNumber = null;
+        if ($phoneNumberId) {
+            $localNumber = WhatsAppPhoneNumber::with('account')
+                ->where('whatsapp_account_id', $account->id)
+                ->where('phone_number_id', $phoneNumberId)
+                ->first();
 
-        // 2. Fallback: find by company_id and phone_number_id
+            // 2. Fallback: find by company_id and phone_number_id
+            if (!$localNumber) {
+                $localNumber = WhatsAppPhoneNumber::with('account')
+                    ->where('company_id', $account->company_id)
+                    ->where('phone_number_id', $phoneNumberId)
+                    ->first();
+            }
+
+            // 3. Last fallback: global search by phone_number_id
+            if (!$localNumber) {
+                $localNumber = WhatsAppPhoneNumber::with('account')
+                    ->where('phone_number_id', $phoneNumberId)
+                    ->first();
+            }
+        }
+
+        // 4. Ultimate Failsafe Fallback: Find active phone number for the matched account or company
         if (!$localNumber) {
             $localNumber = WhatsAppPhoneNumber::with('account')
-                ->where('company_id', $account->company_id)
-                ->where('phone_number_id', $phoneNumberId)
+                ->where('whatsapp_account_id', $account->id)
+                ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
                 ->first();
         }
 
-        // 3. Last fallback: global search by phone_number_id
         if (!$localNumber) {
             $localNumber = WhatsAppPhoneNumber::with('account')
-                ->where('phone_number_id', $phoneNumberId)
+                ->where('company_id', $account->company_id)
+                ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
                 ->first();
         }
 

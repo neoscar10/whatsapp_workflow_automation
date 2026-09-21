@@ -26,7 +26,7 @@ $payload = [
                         'messaging_product' => 'whatsapp',
                         'metadata' => [
                             'display_phone_number' => '+919818923734',
-                            'phone_number_id' => '100492813083162',
+                            'phone_number_id' => '1060469103825419',
                         ],
                         'contacts' => [
                             [
@@ -39,7 +39,7 @@ $payload = [
                         'messages' => [
                             [
                                 'from' => '2347010894583',
-                                'id' => 'wamid.HBgNMjM0NzAxMDg5NDU4M1UCMRggOUI1QzRFNUY3QjM0',
+                                'id' => 'wamid.LIVE_TEST_' . time() . '_' . rand(1000, 9999),
                                 'timestamp' => (string)time(),
                                 'type' => 'text',
                                 'text' => [

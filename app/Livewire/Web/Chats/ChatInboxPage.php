@@ -66,6 +66,27 @@ class ChatInboxPage extends Component
 
     public ?int $initiateContactId = null;
 
+    public function getEffectiveCompanyIdProperty(): int
+    {
+        if (!empty($this->companyId)) {
+            return (int) $this->companyId;
+        }
+
+        $user = auth()->user();
+        if (!empty($user?->company_id)) {
+            return (int) $user->company_id;
+        }
+
+        if ($this->selectedConversationId) {
+            $conv = \App\Models\Chat\Conversation::find($this->selectedConversationId);
+            if ($conv?->company_id) {
+                return (int) $conv->company_id;
+            }
+        }
+
+        return (int) (\App\Models\Company::where('status', 'active')->value('id') ?? 1);
+    }
+
     public function mount(ChatInboxService $inboxService)
     {
         // Don't auto-select the first conversation anymore to support empty states.
@@ -98,11 +119,11 @@ class ChatInboxPage extends Component
             $this->syncNoteText();
             $this->dispatch('conversation-selected', [
                 'conversation_id' => $this->selectedConversationId,
-                'company_id' => $user->company_id,
+                'company_id' => $user->company_id ?? $this->effectiveCompanyId,
             ]);
         }
 
-        $this->companyId = $user->company_id;
+        $this->companyId = $user->company_id ?? $this->effectiveCompanyId;
     }
 
     public function updatedSelectedPhoneNumberId()
@@ -655,7 +676,7 @@ class ChatInboxPage extends Component
 
     public function getListeners()
     {
-        $companyId = $this->companyId ?? auth()->user()?->company_id;
+        $companyId = $this->effectiveCompanyId;
         $listeners = [
             "echo-private:company.{$companyId}.chats,.chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',
             "echo-private:company.{$companyId}.chats,chat.inbound.received" => 'refreshChatDataAfterRealtimeEvent',

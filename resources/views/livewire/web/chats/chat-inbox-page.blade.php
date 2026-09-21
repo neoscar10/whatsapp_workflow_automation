@@ -13,7 +13,7 @@
             }
         },
         initEcho() {
-            const companyId = {{ (int) auth()->user()->company_id }};
+            const companyId = {{ (int) $this->effectiveCompanyId }};
             
             const setupListeners = () => {
                 if (!window.Echo) {

@@ -5,7 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use GuzzleHttp\Client;
 
 $baseUrl = 'https://whatsapp-automate.empoweredtechinnovations.org';
-$email = 'ca@ca.com';
+$email = 'admin@platform.local';
 $password = 'password';
 
 $client = new Client([
@@ -22,8 +22,19 @@ $loginRes = $client->post('/api/v1/auth/login', [
 $json = json_decode((string)$loginRes->getBody(), true);
 $token = $json['data']['token'];
 
-echo "=== REMOTE API CHECK ===\n";
-echo "Token acquired.\n\n";
+// 1. Check Auth User
+try {
+    $meRes = $client->get('/api/v1/auth/me', [
+        'headers' => [
+            'Authorization' => "Bearer $token",
+            'Accept' => 'application/json',
+        ]
+    ]);
+    echo "--- AUTH USER --- \n";
+    echo (string)$meRes->getBody() . "\n\n";
+} catch (\Exception $e) {
+    echo "Error auth me: " . $e->getMessage() . "\n\n";
+}
 
 // 2. Fetch Connected Phone Numbers
 echo "--- 1. CONNECTED PHONE NUMBERS --- \n";
@@ -40,10 +51,10 @@ try {
     echo "Error fetching phone numbers: " . $e->getMessage() . "\n\n";
 }
 
-// 3. Fetch Recent Conversations
-echo "--- 2. RECENT CONVERSATIONS --- \n";
+// 3. Search for test conversation
+echo "--- 2. SEARCH FOR PHONE 2347010894583 --- \n";
 try {
-    $chatsRes = $client->get('/api/v1/chats', [
+    $chatsRes = $client->get('/api/v1/chats?search=2347010894583', [
         'headers' => [
             'Authorization' => "Bearer $token",
             'Accept' => 'application/json',
@@ -54,3 +65,4 @@ try {
 } catch (\Exception $e) {
     echo "Error fetching chats: " . $e->getMessage() . "\n\n";
 }
+
