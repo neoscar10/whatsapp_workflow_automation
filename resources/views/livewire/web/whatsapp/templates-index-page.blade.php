@@ -42,7 +42,7 @@
 
             <a
                 href="{{ route('whatsapp.templates.create') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-[#2463eb] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#2463eb]/20 transition hover:bg-[#1f57cf]"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-[#1fbd5a]"
             >
                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
@@ -71,10 +71,10 @@
                     <button
                         wire:click="$set('statusFilter', '')"
                         type="button"
-                        class="pb-4 text-sm {{ $statusFilter === '' ? 'border-b-2 border-[#2463eb] font-bold text-[#2463eb]' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
+                        class="pb-4 text-sm {{ $statusFilter === '' ? 'border-b-2 border-primary font-bold text-primary' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
                     >
                         All Templates
-                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === '' ? 'bg-[#2463eb]/10 text-[#2463eb]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
+                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === '' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
                             {{ $counts['all'] ?? 0 }}
                         </span>
                     </button>
@@ -82,10 +82,10 @@
                     <button
                         wire:click="$set('statusFilter', 'approved')"
                         type="button"
-                        class="pb-4 text-sm {{ $statusFilter === 'approved' ? 'border-b-2 border-[#2463eb] font-bold text-[#2463eb]' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
+                        class="pb-4 text-sm {{ $statusFilter === 'approved' ? 'border-b-2 border-primary font-bold text-primary' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
                     >
                         Approved
-                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'approved' ? 'bg-[#2463eb]/10 text-[#2463eb]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
+                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'approved' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
                             {{ $counts['approved'] ?? 0 }}
                         </span>
                     </button>
@@ -93,10 +93,10 @@
                     <button
                         wire:click="$set('statusFilter', 'pending')"
                         type="button"
-                        class="pb-4 text-sm {{ $statusFilter === 'pending' ? 'border-b-2 border-[#2463eb] font-bold text-[#2463eb]' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
+                        class="pb-4 text-sm {{ $statusFilter === 'pending' ? 'border-b-2 border-primary font-bold text-primary' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
                     >
                         Pending
-                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'pending' ? 'bg-[#2463eb]/10 text-[#2463eb]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
+                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'pending' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
                             {{ $counts['pending'] ?? 0 }}
                         </span>
                     </button>
@@ -104,10 +104,10 @@
                     <button
                         wire:click="$set('statusFilter', 'rejected')"
                         type="button"
-                        class="pb-4 text-sm {{ $statusFilter === 'rejected' ? 'border-b-2 border-[#2463eb] font-bold text-[#2463eb]' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
+                        class="pb-4 text-sm {{ $statusFilter === 'rejected' ? 'border-b-2 border-primary font-bold text-primary' : 'font-medium text-slate-500 dark:text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-300' }}"
                     >
                         Rejected
-                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'rejected' ? 'bg-[#2463eb]/10 text-[#2463eb]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
+                        <span class="ml-2 rounded px-2 py-0.5 text-[10px] {{ $statusFilter === 'rejected' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' }}">
                             {{ $counts['rejected'] ?? 0 }}
                         </span>
                     </button>
@@ -123,14 +123,14 @@
                         wire:model.live.debounce.300ms="search"
                         type="search"
                         placeholder="Search templates..."
-                        class="h-11 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-4 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-[#2463eb] dark:focus:border-[#2463eb] focus:ring-2 focus:ring-[#2463eb]/20"
+                        class="h-11 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-4 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
                 </div>
 
                 <div class="w-full sm:w-[200px]">
                     <select
                         wire:model.live="categoryFilter"
-                        class="h-11 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pr-10 text-sm text-slate-700 dark:text-slate-300 shadow-sm outline-none transition focus:border-[#2463eb] dark:focus:border-[#2463eb] focus:ring-2 focus:ring-[#2463eb]/20"
+                        class="h-11 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pr-10 text-sm text-slate-700 dark:text-slate-300 shadow-sm outline-none transition focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
                         <option value="">All Categories</option>
                         <option value="marketing">Marketing</option>
@@ -220,14 +220,14 @@
 
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('whatsapp.templates.show', $template->id) }}" class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-[#2463eb] dark:hover:text-[#2463eb]" title="View">
+                                        <a href="{{ route('whatsapp.templates.show', $template->id) }}" class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-primary dark:hover:text-primary" title="View">
                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                         </a>
 
-                                        <a href="{{ route('whatsapp.templates.edit', $template->id) }}" class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-[#2463eb] dark:hover:text-[#2463eb]" title="Edit">
+                                        <a href="{{ route('whatsapp.templates.edit', $template->id) }}" class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-primary dark:hover:text-primary" title="Edit">
                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                             </svg>
@@ -287,7 +287,7 @@
                             <button
                                 wire:click="gotoPage({{ $page }})"
                                 type="button"
-                                class="rounded-lg px-3 py-1.5 text-sm font-medium transition {{ $currentPage === $page ? 'bg-[#2463eb] text-white shadow-sm border border-[#2463eb]' : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}"
+                                class="rounded-lg px-3 py-1.5 text-sm font-medium transition {{ $currentPage === $page ? 'bg-primary text-white shadow-sm border border-primary' : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}"
                             >
                                 {{ $page }}
                             </button>
@@ -311,7 +311,7 @@
         <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div class="mb-4 flex items-center justify-between">
                 <span class="text-sm font-bold text-slate-500 dark:text-slate-400">Template Usage</span>
-                <svg class="h-5 w-5 text-[#2463eb]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <svg class="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 14l3-3 3 3 5-6" />
                 </svg>
             </div>

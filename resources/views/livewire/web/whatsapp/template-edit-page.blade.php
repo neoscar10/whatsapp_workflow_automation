@@ -84,7 +84,7 @@
                             <div class="md:col-span-2">
                                 <label for="category" class="block text-sm font-semibold text-slate-900 dark:text-white">Category</label>
                                 <div class="mt-2">
-                                    <select wire:model="category" id="category" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm sm:leading-6 cursor-pointer">
+                                    <select wire:model="category" id="category" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 cursor-pointer">
                                         <option value="marketing">Marketing</option>
                                         <option value="utility">Utility</option>
                                         <option value="authentication">Authentication</option>
@@ -108,7 +108,7 @@
                         <div class="p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-4">
                             <div class="flex items-center justify-between">
                                 <label class="block text-sm font-semibold text-slate-900 dark:text-white">Header <span class="text-slate-400 dark:text-slate-500 font-normal">(Optional)</span></label>
-                                <select wire:model.live="headerType" class="rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm cursor-pointer">
+                                <select wire:model.live="headerType" class="rounded-lg border-0 py-1.5 pl-3 pr-8 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm cursor-pointer">
                                     <option value="none">None</option>
                                     <option value="text">Text</option>
                                     <option value="image">Image Media</option>
@@ -119,13 +119,13 @@
 
                             @if($headerType === 'text')
                                 <div>
-                                    <input wire:model.live.debounce.300ms="headerText" type="text" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm sm:leading-6" placeholder="Enter header text (Max 60 chars)">
+                                    <input wire:model.live.debounce.300ms="headerText" type="text" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6" placeholder="Enter header text (Max 60 chars)">
                                     @error('headerText') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                                     
                                     @if(str_contains($headerText ?? '', '{' . '{1}}'))
                                         <div class="mt-3">
                                             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Sample for @{{1}}</label>
-                                            <input wire:model="exampleHeaderValues.0" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] text-sm" placeholder="e.g. John">
+                                            <input wire:model="exampleHeaderValues.0" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary text-sm" placeholder="e.g. John">
                                         </div>
                                     @endif
                                 </div>
@@ -179,7 +179,7 @@
                         <div class="p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-4">
                             <label class="block text-sm font-semibold text-slate-900 dark:text-white">Body <span class="text-red-500">*</span></label>
                             <div class="mt-2">
-                                <textarea wire:model.live.debounce.500ms="bodyText" rows="6" class="block w-full rounded-xl border-0 px-4 py-3 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm sm:leading-6" placeholder="Hi @{{1}}, your order @{{2}} is ready!"></textarea>
+                                <textarea wire:model.live.debounce.500ms="bodyText" rows="6" class="block w-full rounded-xl border-0 px-4 py-3 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6" placeholder="Hi @{{1}}, your order @{{2}} is ready!"></textarea>
                             </div>
                             @error('bodyText') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
 
@@ -190,7 +190,7 @@
                                         @foreach($exampleBodyValues as $index => $val)
                                             <div wire:key="body-val-{{ $index }}">
                                                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Sample for @{{ {{ $index + 1 }} }}</label>
-                                                <input wire:model="exampleBodyValues.{{ $index }}" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] text-sm">
+                                                <input wire:model="exampleBodyValues.{{ $index }}" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary text-sm">
                                             </div>
                                         @endforeach
                                     </div>
@@ -201,7 +201,7 @@
                         {{-- Footer --}}
                         <div class="p-5 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-4">
                             <label class="block text-sm font-semibold text-slate-900 dark:text-white">Footer <span class="text-slate-400 dark:text-slate-500 font-normal">(Optional)</span></label>
-                            <input wire:model.live.debounce.300ms="footerText" type="text" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm sm:leading-6" placeholder="Enter short footer text (Max 60 chars)">
+                            <input wire:model.live.debounce.300ms="footerText" type="text" class="block w-full rounded-xl border-0 px-4 py-2.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6" placeholder="Enter short footer text (Max 60 chars)">
                             @error('footerText') <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                         </div>
 
@@ -249,27 +249,27 @@
                                         <div class="flex-1 space-y-4">
                                             <div>
                                                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Button Text</label>
-                                                <input wire:model.live.debounce.300ms="buttons.{{ $index }}.text" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm">
+                                                <input wire:model.live.debounce.300ms="buttons.{{ $index }}.text" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm">
                                                 @error("buttons.{$index}.text") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                                             </div>
                                             
                                             @if($button['type'] === 'url')
                                                 <div>
                                                     <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Website URL</label>
-                                                    <input wire:model.live.debounce.300ms="buttons.{{ $index }}.url" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm" placeholder="https://example.com/order/@{{1}}">
+                                                    <input wire:model.live.debounce.300ms="buttons.{{ $index }}.url" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm" placeholder="https://example.com/order/@{{1}}">
                                                     @error("buttons.{$index}.url") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                                                     
                                                     @if(str_contains($button['url'] ?? '', '{' . '{1}}'))
                                                         <div class="mt-2">
                                                             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Sample URL Path</label>
-                                                            <input wire:model="buttons.{{ $index }}.example_value" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm">
+                                                            <input wire:model="buttons.{{ $index }}.example_value" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm">
                                                         </div>
                                                     @endif
                                                 </div>
                                             @elseif($button['type'] === 'phone_number')
                                                 <div>
                                                     <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">Phone Number</label>
-                                                    <input wire:model="buttons.{{ $index }}.phone_number" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-[#2463eb] sm:text-sm">
+                                                    <input wire:model="buttons.{{ $index }}.phone_number" type="text" class="mt-1 block w-full rounded-lg border-0 px-3 py-1.5 text-slate-900 dark:text-white bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm">
                                                     @error("buttons.{$index}.phone_number") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                                                 </div>
                                             @endif
@@ -295,7 +295,7 @@
                         Cancel
                     </a>
 
-                    <button wire:click="updateTemplate" wire:loading.attr="disabled" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2463eb] hover:bg-[#1f57cf] active:bg-[#1b4cb8] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#2463eb]/20 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button wire:click="updateTemplate" wire:loading.attr="disabled" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-[#1fbd5a] active:bg-[#1ea951] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg wire:loading wire:target="updateTemplate" class="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

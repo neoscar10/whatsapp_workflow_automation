@@ -67,12 +67,12 @@
             <svg class="h-full w-full" preserveAspectRatio="none" viewBox="0 0 472 150">
                 <defs>
                     <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#2463eb" stop-opacity="0.25"></stop>
-                        <stop offset="100%" stop-color="#2463eb" stop-opacity="0"></stop>
+                        <stop offset="0%" stop-color="#25D366" stop-opacity="0.25"></stop>
+                        <stop offset="100%" stop-color="#25D366" stop-opacity="0"></stop>
                     </linearGradient>
                 </defs>
                 <path x-bind:d="fillPath" fill="url(#chartGradient)"></path>
-                <path x-bind:d="curvedPath" fill="none" stroke="#2463eb" stroke-linecap="round" stroke-width="4" filter="drop-shadow(0 4px 6px rgba(36,99,235,0.2))"></path>
+                <path x-bind:d="curvedPath" fill="none" stroke="#25D366" stroke-linecap="round" stroke-width="4" filter="drop-shadow(0 4px 6px rgba(37,211,102,0.2))"></path>
             </svg>
         </div>
 

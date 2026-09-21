@@ -80,6 +80,7 @@ class CampaignActionController extends Controller
 
     /**
      * Resume a paused campaign.
+     * php artisan config tes............
      */
     public function resume(Request $request, int $id): JsonResponse
     {
@@ -147,6 +148,7 @@ class CampaignActionController extends Controller
             );
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
+            #php artisan config test
         }
     }
 }
