@@ -8,6 +8,19 @@ use Illuminate\Support\Collection;
 
 class ChatChannelAvailabilityService
 {
+    protected function resolveCompanyId(User $user): int
+    {
+        if ($user->company_id) {
+            return (int) $user->company_id;
+        }
+
+        if ($user->role === 'super_admin' || ($user->is_super_admin ?? false) || !$user->company_id) {
+            return (int) (\App\Models\Company::where('status', 'active')->value('id') ?? 1);
+        }
+
+        return 1;
+    }
+
     /**
      * Get all active and usable WhatsApp numbers for the user's company.
      *
@@ -16,7 +29,9 @@ class ChatChannelAvailabilityService
      */
     public function getAvailableWhatsAppNumbersForUser(User $user): Collection
     {
-        return WhatsAppPhoneNumber::where('company_id', $user->company_id)
+        $companyId = $this->resolveCompanyId($user);
+
+        return WhatsAppPhoneNumber::where('company_id', $companyId)
             ->where('status', 'active')
             ->whereNotNull('phone_number_id')
             ->with('account')

@@ -1,12 +1,24 @@
 <?php
 
+require __DIR__ . '/../vendor/autoload.php';
+
 // Live WebSocket Listener for Pusher events on Remote Server
+
+$baseUrl = 'https://whatsapp-automate.empoweredtechinnovations.org';
+$email = 'admin@platform.local';
+$password = 'password';
+
+$guzzleClient = new \GuzzleHttp\Client(['base_uri' => $baseUrl, 'verify' => false]);
+$loginRes = $guzzleClient->post('/api/v1/auth/login', [
+    'json' => ['email' => $email, 'password' => $password],
+    'headers' => ['Accept' => 'application/json']
+]);
+$loginJson = json_decode((string)$loginRes->getBody(), true);
+$authToken = $loginJson['data']['token'];
+$companyId = 6;
 
 $appKey = '093079a2a87c59e12c7a';
 $cluster = 'ap2';
-$companyId = 6;
-$authToken = '124|5YD0DFGtq8WnZV5wKoYfr76FwPJf4INM1IwZYhrz2275f664';
-$baseUrl = 'https://whatsapp-automate.empoweredtechinnovations.org';
 
 echo "=== REMOTE SERVER LIVE WEBSOCKET EVENT CAPTURE ===\n";
 echo "Server URL: $baseUrl\n";
@@ -121,16 +133,13 @@ if (!$socketId) {
 
 echo "Assigned Socket ID: $socketId\n\n";
 
-require __DIR__ . '/../vendor/autoload.php';
-$client = new \GuzzleHttp\Client(['base_uri' => $baseUrl, 'verify' => false]);
-
 $channels = [
     "private-company.{$companyId}.chats",
 ];
 
 foreach ($channels as $chan) {
     echo "Authenticating '$chan' with Bearer token...\n";
-    $res = $client->post('/api/v1/broadcasting/auth', [
+    $res = $guzzleClient->post('/api/v1/broadcasting/auth', [
         'headers' => [
             'Authorization' => "Bearer $authToken",
             'Accept' => 'application/json',
@@ -155,12 +164,11 @@ foreach ($channels as $chan) {
 }
 
 echo "\n=============================================================\n";
-echo "LIVE CAPTURE ACTIVE (10 MINUTE WINDOW).\n";
-echo "READY FOR INBOUND WHATSAPP MESSAGE TO +91 9818923734!\n";
+echo "LIVE CAPTURE ACTIVE (20 SECOND TEST WINDOW).\n";
 echo "=============================================================\n\n";
 
 $startTime = time();
-$timeoutSeconds = 600; // 10 minutes
+$timeoutSeconds = 20; // 20 seconds for automated test
 
 stream_set_timeout($socket, 1);
 

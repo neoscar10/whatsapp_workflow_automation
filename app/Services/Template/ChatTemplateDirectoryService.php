@@ -8,6 +8,19 @@ use Illuminate\Support\Collection;
 
 class ChatTemplateDirectoryService
 {
+    protected function resolveCompanyId(User $user): int
+    {
+        if ($user->company_id) {
+            return (int) $user->company_id;
+        }
+
+        if ($user->role === 'super_admin' || ($user->is_super_admin ?? false) || !$user->company_id) {
+            return (int) (\App\Models\Company::where('status', 'active')->value('id') ?? 1);
+        }
+
+        return 1;
+    }
+
     /**
      * Get templates eligible for sending in chat for a user's company.
      */
@@ -16,7 +29,9 @@ class ChatTemplateDirectoryService
         $search = $filters['search'] ?? '';
         $filter = $filters['filter'] ?? 'all';
 
-        $query = WhatsAppTemplate::where('company_id', $user->company_id)
+        $companyId = $this->resolveCompanyId($user);
+
+        $query = WhatsAppTemplate::where('company_id', $companyId)
             ->whereNotIn('status', ['rejected', 'REJECTED']);
 
         // Filter by search

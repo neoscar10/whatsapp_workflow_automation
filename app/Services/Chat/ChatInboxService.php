@@ -49,30 +49,45 @@ class ChatInboxService
         ];
     }
 
+    protected function resolveCompanyId(User $user): int
+    {
+        if ($user->company_id) {
+            return (int) $user->company_id;
+        }
+
+        if ($user->role === 'super_admin' || ($user->is_super_admin ?? false) || !$user->company_id) {
+            return (int) (\App\Models\Company::where('status', 'active')->value('id') ?? 1);
+        }
+
+        return 1;
+    }
+
     /**
      * Fetch conversations list for user's company.
      */
     public function getConversationListForUser(User $user, array $filters = []): Collection
     {
-        // Failsafe Alignment: Ensure any conversations associated with user's company contacts or phone numbers match $user->company_id
+        $companyId = $this->resolveCompanyId($user);
+
+        // Failsafe Alignment: Ensure any conversations associated with user's company contacts or phone numbers match $companyId
         try {
-            $userAccountIds = \App\Models\WhatsApp\WhatsAppAccount::where('company_id', $user->company_id)->pluck('id');
+            $userAccountIds = \App\Models\WhatsApp\WhatsAppAccount::where('company_id', $companyId)->pluck('id');
             if ($userAccountIds->isNotEmpty()) {
                 $phoneIds = \App\Models\WhatsApp\WhatsAppPhoneNumber::whereIn('whatsapp_account_id', $userAccountIds)->pluck('id');
                 if ($phoneIds->isNotEmpty()) {
                     Conversation::whereIn('whatsapp_phone_number_id', $phoneIds)
-                        ->where('company_id', '!=', $user->company_id)
-                        ->update(['company_id' => $user->company_id]);
+                        ->where('company_id', '!=', $companyId)
+                        ->update(['company_id' => $companyId]);
                 }
             }
 
-            $userContactPhones = \App\Models\Contact\Contact::where('company_id', $user->company_id)->pluck('phone')->filter()->toArray();
+            $userContactPhones = \App\Models\Contact\Contact::where('company_id', $companyId)->pluck('phone')->filter()->toArray();
             if (!empty($userContactPhones)) {
                 $cleanContactPhones = array_map(fn($p) => preg_replace('/[^0-9]/', '', $p), $userContactPhones);
                 $last10Phones = array_map(fn($p) => strlen($p) >= 10 ? substr($p, -10) : $p, $cleanContactPhones);
 
                 $defaultPhone = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
-                $alignmentPayload = ['company_id' => $user->company_id];
+                $alignmentPayload = ['company_id' => $companyId];
                 if ($defaultPhone) {
                     $alignmentPayload['whatsapp_phone_number_id'] = $defaultPhone->id;
                 }
@@ -84,7 +99,7 @@ class ChatInboxService
                             $q->orWhere('contact_phone', 'like', '%' . $last10);
                         }
                     }
-                })->where('company_id', '!=', $user->company_id)
+                })->where('company_id', '!=', $companyId)
                   ->update($alignmentPayload);
             }
         } catch (\Exception $e) {
@@ -96,11 +111,11 @@ class ChatInboxService
         try {
             $defaultPhone = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
             if ($defaultPhone) {
-                $mismatchedIds = Conversation::where('company_id', $user->company_id)
-                    ->where(function($q) use ($user) {
+                $mismatchedIds = Conversation::where('company_id', $companyId)
+                    ->where(function($q) use ($companyId) {
                         $q->whereNull('whatsapp_phone_number_id')
-                          ->orWhereHas('whatsappPhoneNumber', function($sub) use ($user) {
-                              $sub->where('company_id', '!=', $user->company_id);
+                          ->orWhereHas('whatsappPhoneNumber', function($sub) use ($companyId) {
+                              $sub->where('company_id', '!=', $companyId);
                           });
                     })
                     ->pluck('id');
@@ -114,7 +129,7 @@ class ChatInboxService
             // Ignore
         }
 
-        $query = Conversation::where('company_id', $user->company_id)
+        $query = Conversation::where('company_id', $companyId)
             ->with('contact')
             ->orderByRaw('COALESCE(last_message_at, updated_at) DESC');
 
@@ -160,7 +175,9 @@ class ChatInboxService
             return null;
         }
 
-        $conversation = Conversation::where('company_id', $user->company_id)
+        $companyId = $this->resolveCompanyId($user);
+
+        $conversation = Conversation::where('company_id', $companyId)
             ->with('contact')
             ->where('id', $conversationId)
             ->first();
@@ -168,7 +185,7 @@ class ChatInboxService
         // Fallback: If requested conversation ID no longer exists (e.g. merged or invalid URL query param),
         // fallback to the most recent active conversation for the user's company so inbox is never stuck on dead ID
         if (!$conversation) {
-            $conversation = Conversation::where('company_id', $user->company_id)
+            $conversation = Conversation::where('company_id', $companyId)
                 ->orderByRaw('COALESCE(last_message_at, updated_at) DESC')
                 ->first();
         }
@@ -180,7 +197,7 @@ class ChatInboxService
                 $hasMismatch = true;
             } else {
                 $phone = $conversation->whatsappPhoneNumber;
-                if (!$phone || $phone->company_id !== $user->company_id) {
+                if (!$phone || $phone->company_id !== $companyId) {
                     $hasMismatch = true;
                 }
             }
