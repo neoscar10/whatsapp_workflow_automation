@@ -288,7 +288,7 @@ class ComplianceWorkspace extends Component
             'ca_client_id' => $this->client->id,
             'ca_client_compliance_id' => $this->clientCompliance->id,
             'ca_client_compliance_requirement_id' => $requirement->id,
-            'document_name' => clone $requirement->name,
+            'document_name' => $requirement->name,
         ]);
 
         $requirement->update([

@@ -18,7 +18,19 @@ class DocumentService
         $companyId = $uploader->company_id;
         $clientId = $data['ca_client_id'] ?? 'general';
         
-        // Private storage path: ca_documents/{company_id}/{client_id}/{random_hash}
+        // Extract metadata BEFORE store() moves/deletes the temporary Livewire file
+        $originalFilename = method_exists($file, 'getClientOriginalName') ? $file->getClientOriginalName() : $file->getFilename();
+        $mimeType = method_exists($file, 'getClientMimeType') ? $file->getClientMimeType() : null;
+        $extension = method_exists($file, 'getClientOriginalExtension') ? $file->getClientOriginalExtension() : $file->getExtension();
+        
+        $fileSize = 0;
+        try {
+            $fileSize = $file->getSize();
+        } catch (\Throwable $e) {
+            $fileSize = 0;
+        }
+
+        // Private storage path: ca_documents/{company_id}/{client_id}
         $directory = "ca_documents/{$companyId}/{$clientId}";
         
         $path = $file->store($directory, 'local');
@@ -27,20 +39,29 @@ class DocumentService
             throw new Exception("Failed to store file.");
         }
 
+        // If file_size wasn't retrieved prior to move, get it from the stored path on disk
+        if (!$fileSize && Storage::disk('local')->exists($path)) {
+            try {
+                $fileSize = Storage::disk('local')->size($path);
+            } catch (\Throwable $e) {
+                $fileSize = 0;
+            }
+        }
+
         return CADocument::create([
             'company_id' => $companyId,
             'ca_client_id' => $data['ca_client_id'] ?? null,
             'ca_client_compliance_id' => $data['ca_client_compliance_id'] ?? null,
             'ca_client_compliance_requirement_id' => $data['ca_client_compliance_requirement_id'] ?? null,
             'ca_document_type_id' => $data['ca_document_type_id'] ?? null,
-            'document_name' => $data['document_name'] ?? $file->getClientOriginalName(),
+            'document_name' => $data['document_name'] ?? $originalFilename,
             'document_type' => $data['document_type'] ?? null,
-            'mime_type' => $file->getClientMimeType(),
-            'extension' => $file->getClientOriginalExtension(),
+            'mime_type' => $mimeType,
+            'extension' => $extension,
             'storage_disk' => 'local',
             'storage_path' => $path,
-            'original_filename' => $file->getClientOriginalName(),
-            'file_size' => $file->getSize(),
+            'original_filename' => $originalFilename,
+            'file_size' => $fileSize,
             'status' => 'uploaded',
             'uploaded_by' => $uploader->id,
         ]);

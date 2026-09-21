@@ -34,8 +34,11 @@ class CAComplianceEngineTest extends TestCase
         $user = User::factory()->create(['company_id' => $company->id]);
         $businessType = CABusinessType::first();
 
-        // Ensure there is at least one master requirement
-        $compliance = CACompliance::first();
+        $category = \Modules\CA\Models\CAServiceCategory::firstOrCreate(['slug' => 'tax-compliance'], ['name' => 'Tax Compliance', 'sort_order' => 1]);
+        $compliance = CACompliance::firstOrCreate(['slug' => 'gst-registration'], [
+            'ca_service_category_id' => $category->id,
+            'name' => 'GST Registration',
+        ]);
         CAComplianceRequirement::create([
             'ca_compliance_id' => $compliance->id,
             'name' => 'Test Master Requirement',
@@ -76,6 +79,7 @@ class CAComplianceEngineTest extends TestCase
         $this->assertDatabaseHas('ca_documents', [
             'company_id' => $company->id,
             'document_name' => 'Test Document',
+            'file_size' => 102400,
         ]);
 
         Storage::disk('local')->assertExists($document->storage_path);
