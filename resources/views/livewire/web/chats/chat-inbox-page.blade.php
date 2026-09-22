@@ -76,6 +76,7 @@
         }
     }" 
     x-init="initEcho()"
+    wire:poll.3s="refreshChatDataAfterRealtimeEvent"
     class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
 >
     <div class="flex min-w-0 flex-1 flex-col">
