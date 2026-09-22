@@ -14,6 +14,19 @@ class ChatConversationActionService
         protected ChatChannelAvailabilityService $availabilityService
     ) {}
 
+    protected function resolveCompanyId(User $user): int
+    {
+        if ($user->company_id) {
+            return (int) $user->company_id;
+        }
+
+        if ($user->role === 'super_admin' || ($user->is_super_admin ?? false) || !$user->company_id) {
+            return (int) (\App\Models\Company::where('status', 'active')->value('id') ?? 1);
+        }
+
+        return 1;
+    }
+
     /**
      * Start/Initiate a conversation with a contact.
      *
@@ -24,7 +37,8 @@ class ChatConversationActionService
      */
     public function startConversation(User $user, int $contactId, ?int $phoneNumberId = null): Conversation
     {
-        $contact = \App\Models\Contact\Contact::where('company_id', $user->company_id)->findOrFail($contactId);
+        $companyId = $this->resolveCompanyId($user);
+        $contact = \App\Models\Contact\Contact::where('company_id', $companyId)->findOrFail($contactId);
 
         if (!$contact->isMessageable()) {
             throw new \Exception('This contact is blocked or has opted out of messaging.');
@@ -48,7 +62,7 @@ class ChatConversationActionService
             }
         }
 
-        // 2. Otherwise, fall back to the default available number for the user's company.
+        // 3. Otherwise, fall back to the default available number for the user's company.
         if (!$whatsappPhoneNumber) {
             $whatsappPhoneNumber = $this->availabilityService->getDefaultWhatsAppNumberForUser($user);
         }
@@ -62,7 +76,7 @@ class ChatConversationActionService
         $cleanPhone = preg_replace('/[^0-9]/', '', $fromPhone);
         $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
 
-        $conversation = Conversation::where('company_id', $user->company_id)
+        $conversation = Conversation::where('company_id', $companyId)
             ->where(function ($q) use ($contact, $fromPhone, $cleanPhone, $last10) {
                 $q->where('contact_id', $contact->id)
                   ->orWhere('contact_phone', $fromPhone)
@@ -87,7 +101,7 @@ class ChatConversationActionService
             ]);
         } else {
             $conversation = Conversation::create([
-                'company_id' => $user->company_id,
+                'company_id' => $companyId,
                 'contact_id' => $contact->id,
                 'whatsapp_phone_number_id' => $whatsappPhoneNumber->id,
                 'contact_name' => $contact->name ?? ('+' . $cleanPhone),
@@ -149,10 +163,20 @@ class ChatConversationActionService
             throw new \Exception('Conversation not found or access denied.');
         }
 
-        $agent = User::where('company_id', $actor->company_id)->find($agentId);
+        $companyId = $this->resolveCompanyId($actor);
+        $agent = User::where('company_id', $companyId)->find($agentId);
         if (!$agent) {
             throw new \Exception('Invalid agent selected or out of scope.');
         }
+
+        $conversation->update([
+            'assigned_user_id' => $agent->id,
+            'assigned_at' => now(),
+            'assignment_status' => 'assigned',
+        ]);
+
+        return $this->getAssignmentSummary($actor, $conversationId);
+    }
 
         $conversation->update([
             'assigned_user_id' => $agent->id,

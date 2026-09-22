@@ -69,11 +69,13 @@
                 <p class="text-sm font-bold">Verification Queue</p>
             </a>
 
+            {{-- 
             <a href="#"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'users' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'users' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">group</span>
                 <p class="text-sm font-bold">Users</p>
             </a>
+            --}}
 
             <a href="{{ route('superadmin.modules') }}"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'modules' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
@@ -81,6 +83,7 @@
                 <p class="text-sm font-bold">Modules</p>
             </a>
 
+            {{-- 
             <a href="#"
                class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all {{ ($activeNav ?? '') === 'deployments' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800' }}">
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'deployments' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">cloud_sync</span>
@@ -106,6 +109,7 @@
                 <span class="material-symbols-outlined text-[22px] {{ ($activeNav ?? '') === 'settings' ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors' }}">settings</span>
                 <p class="text-sm font-bold">Platform Settings</p>
             </a>
+            --}}
         </nav>
 
         {{-- Logout --}}

@@ -97,21 +97,14 @@ class ChatInboxPage extends Component
         // Leave selectedPhoneNumberId null by default so it shows all company numbers in the inbox
 
         if ($this->initiateContactId) {
-            $conversation = \App\Models\Chat\Conversation::where('contact_id', $this->initiateContactId)
-                ->where('company_id', $user->company_id)
-                ->latest()
-                ->first();
-
-            if ($conversation) {
-                $this->selectedConversationId = $conversation->id;
-            } else if ($this->selectedPhoneNumberId) {
-                try {
-                    $actionService = app(\App\Services\Chat\ChatConversationActionService::class);
-                    $conversation = $actionService->startConversation($user, $this->initiateContactId, $this->selectedPhoneNumberId);
+            try {
+                $actionService = app(\App\Services\Chat\ChatConversationActionService::class);
+                $conversation = $actionService->startConversation($user, $this->initiateContactId, $this->selectedPhoneNumberId);
+                if ($conversation) {
                     $this->selectedConversationId = $conversation->id;
-                } catch (\Exception $e) {
-                    $this->errorMessage = 'Failed to initiate conversation: ' . $e->getMessage();
                 }
+            } catch (\Exception $e) {
+                $this->errorMessage = 'Failed to initiate conversation: ' . $e->getMessage();
             }
         }
 
