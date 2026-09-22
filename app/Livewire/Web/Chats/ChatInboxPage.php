@@ -6,6 +6,7 @@ use App\Services\Chat\ChatConversationActionService;
 use App\Services\Chat\ChatInboxService;
 use App\Services\Chat\ChatMessageService;
 use Exception;
+use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -16,7 +17,10 @@ class ChatInboxPage extends Component
     use WithFileUploads;
     public string $search = '';
     public string $tab = 'all';
+
+    #[Url(as: 'conversation')]
     public ?int $selectedConversationId = null;
+
     public ?int $selectedPhoneNumberId = null;
     public int $companyId;
     
@@ -64,7 +68,26 @@ class ChatInboxPage extends Component
         'initiateContactId' => ['except' => null, 'as' => 'contact'],
     ];
 
+    #[Url(as: 'contact')]
     public ?int $initiateContactId = null;
+
+    public function updatedInitiateContactId($value)
+    {
+        if ($value) {
+            try {
+                $user = auth()->user();
+                $actionService = app(\App\Services\Chat\ChatConversationActionService::class);
+                $conversation = $actionService->startConversation($user, (int)$value, $this->selectedPhoneNumberId);
+                if ($conversation) {
+                    $this->selectedConversationId = $conversation->id;
+                    $this->syncNoteText();
+                    $this->resetMessages();
+                }
+            } catch (\Exception $e) {
+                $this->errorMessage = 'Failed to initiate conversation: ' . $e->getMessage();
+            }
+        }
+    }
 
     public function getEffectiveCompanyIdProperty(): int
     {
@@ -94,12 +117,11 @@ class ChatInboxPage extends Component
 
         $user = auth()->user();
         $channels = app(\App\Services\Chat\ChatChannelAvailabilityService::class)->getAvailableWhatsAppNumbersForUser($user);
-        // Leave selectedPhoneNumberId null by default so it shows all company numbers in the inbox
 
         if ($this->initiateContactId) {
             try {
                 $actionService = app(\App\Services\Chat\ChatConversationActionService::class);
-                $conversation = $actionService->startConversation($user, $this->initiateContactId, $this->selectedPhoneNumberId);
+                $conversation = $actionService->startConversation($user, (int) $this->initiateContactId, $this->selectedPhoneNumberId);
                 if ($conversation) {
                     $this->selectedConversationId = $conversation->id;
                 }
@@ -717,6 +739,7 @@ class ChatInboxPage extends Component
         $latestNote = $conversation?->notes()->latest()->first();
         $this->noteText = $latestNote?->note ?? '';
     }
+
 
     private function resetMessages()
     {

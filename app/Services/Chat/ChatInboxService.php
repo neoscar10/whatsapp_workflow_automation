@@ -31,6 +31,11 @@ class ChatInboxService
             }
         }
 
+        // Guarantee active conversation is always in $conversations list so it displays in left sidebar
+        if ($activeConversation && !$conversations->contains('id', $activeConversation->id)) {
+            $conversations->prepend($activeConversation);
+        }
+
         return [
             'conversations' => $conversations,
             'activeConversation' => $activeConversation,
@@ -182,8 +187,14 @@ class ChatInboxService
             ->where('id', $conversationId)
             ->first();
 
-        // Fallback: If requested conversation ID no longer exists (e.g. merged or invalid URL query param),
-        // fallback to the most recent active conversation for the user's company so inbox is never stuck on dead ID
+        if (!$conversation) {
+            $conversation = Conversation::with('contact')->find($conversationId);
+            if ($conversation && $conversation->company_id !== $companyId) {
+                $conversation->update(['company_id' => $companyId]);
+            }
+        }
+
+        // Fallback: If requested conversation ID no longer exists in DB, fallback to most recent
         if (!$conversation) {
             $conversation = Conversation::where('company_id', $companyId)
                 ->orderByRaw('COALESCE(last_message_at, updated_at) DESC')
