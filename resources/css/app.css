@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #00a884;
-  --color-primary-rgb: 0, 168, 132;
+  --color-primary: #25D366;
+  --color-primary-rgb: 37, 211, 102;
 }
 
 @theme {
-  --color-primary: #00a884;
-  --color-primary-hover: #008f70;
-  --color-primary-dark: #005c4b;
-  --color-primary-deep: #0b141a;
-  --color-primary-rgb: 0, 168, 132;
-  --color-background-light: #f0f2f5;
-  --color-background-dark: #111b21;
+  --color-primary: #25D366;
+  --color-primary-hover: #1fbd5a;
+  --color-primary-dark: #128C7E;
+  --color-primary-deep: #075E54;
+  --color-primary-rgb: 37, 211, 102;
+  --color-background-light: #f6f6f8;
+  --color-background-dark: #111621;
   --font-display: "Inter", sans-serif;
   --font-sans: "Inter", sans-serif;
   --radius-default: 0.5rem;
@@ -31,30 +31,6 @@
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
   }
-
-  /* WhatsApp Official Theme Helpers */
-  .bg-wa-dark { background-color: #111b21 !important; }
-  .bg-wa-panel { background-color: #202c33 !important; }
-  .bg-wa-chat { background-color: #0b141a !important; }
-  .bg-wa-outbound { background-color: #005c4b !important; }
-  .bg-wa-inbound { background-color: #202c33 !important; }
-  .bg-wa-active { background-color: #2a3942 !important; }
-  .bg-wa-hover { background-color: #202c33 !important; }
-  .bg-wa-green { background-color: #00a884 !important; }
-
-  .text-wa-primary { color: #e9edef !important; }
-  .text-wa-secondary { color: #8696a0 !important; }
-  .text-wa-green { color: #00a884 !important; }
-  .text-wa-blue { color: #53bdeb !important; }
-
-  .border-wa { border-color: #222d34 !important; }
-  .border-wa-active { border-color: #00a884 !important; }
-
-  .wa-chat-pattern {
-    background-color: #0b141a;
-    background-image: radial-gradient(rgba(134, 150, 160, 0.08) 1px, transparent 0);
-    background-size: 24px 24px;
-  }
 }
 
 /* Fix for invisible text on autofilled/pasted fields */
@@ -63,7 +39,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px white inset !important;
-    -webkit-text-fill-color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important; /* slate-900 */
 }
 
 .dark input[type="time"]::-webkit-calendar-picker-indicator {
@@ -75,6 +51,6 @@ input:-webkit-autofill:active {
 .dark input:-webkit-autofill:hover, 
 .dark input:-webkit-autofill:focus,
 .dark input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #111b21 inset !important;
-    -webkit-text-fill-color: #e9edef !important;
+    -webkit-box-shadow: 0 0 0 30px #020617 inset !important; /* slate-950 */
+    -webkit-text-fill-color: white !important;
 }

@@ -2,28 +2,28 @@
     <div class="fixed inset-0 z-[100] p-4">
         {{-- Backdrop --}}
         <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-slate-900/50 backdrop-blur-md"
             wire:click="closeTemplateSendModal"
         ></div>
 
         {{-- Modal --}}
-        <div class="relative mx-auto flex h-[92vh] max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#222d34] bg-[#111b21] shadow-2xl text-[#e9edef]">
+        <div class="relative mx-auto flex h-[92vh] max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2.5rem] border border-white/10 bg-white shadow-2xl dark:border-slate-800/60 dark:bg-[#0B0F1A]">
             {{-- Header --}}
-            <div class="shrink-0 border-b border-[#222d34] bg-[#202c33] px-6 py-4">
+            <div class="shrink-0 border-b border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-xl dark:border-slate-800/50 dark:bg-[#0B0F1A]/80">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 class="text-xl font-bold tracking-tight text-[#e9edef]">Select Template</h2>
-                        <p class="mt-0.5 text-xs font-medium text-[#8696a0]">
-                            Choose a pre-approved WhatsApp message template
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Select Template</h2>
+                        <p class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            Choose a pre-approved message with dynamic data
                         </p>
                     </div>
 
                     <button
                         type="button"
                         wire:click="closeTemplateSendModal"
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#202c33] text-[#8696a0] transition-all hover:bg-[#2a3942] hover:text-[#e9edef]"
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition-all hover:bg-slate-200 hover:text-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
                     >
-                        <span class="material-symbols-outlined text-xl">close</span>
+                        <span class="material-symbols-outlined text-[22px]">close</span>
                     </button>
                 </div>
             </div>

@@ -77,7 +77,7 @@
     }" 
     x-init="initEcho()"
     wire:poll.3s="refreshChatDataAfterRealtimeEvent"
-    class="flex flex-1 w-full relative overflow-hidden bg-[#111b21] text-[#e9edef] antialiased min-h-[500px]"
+    class="flex flex-1 w-full relative overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased min-h-[500px]"
 >
     <div class="flex min-w-0 flex-1 flex-col">
         {{-- Chat Area --}}
@@ -91,15 +91,15 @@
                 x-transition:leave="transition-all ease-in duration-200 origin-left"
                 x-transition:leave-start="opacity-100 translate-x-0 w-64 md:w-80"
                 x-transition:leave-end="opacity-0 -translate-x-4 w-0"
-                class="flex w-64 flex-shrink-0 flex-col border-r border-[#222d34] bg-[#111b21] md:w-80 override-transition"
+                class="flex w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 override-transition"
             >
-                <div class="border-b border-[#222d34] p-3.5 bg-[#202c33]">
-                    <div class="mb-3 flex gap-2">
+                <div class="border-b border-slate-200 p-4 dark:border-slate-800">
+                    <div class="mb-4 flex gap-2">
                         @if($hasAvailableChannels && !empty($channelAvailability['channels']))
                             <select 
                                 wire:model.live="selectedPhoneNumberId"
-                                class="flex-1 rounded-lg border border-[#2a3942] bg-[#111b21] py-2 pl-3 pr-8 text-xs font-semibold text-[#e9edef] transition-colors focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884] appearance-none outline-none"
-                                style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238696a0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;"
+                                class="flex-1 rounded-lg border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-xs font-bold text-slate-700 transition-colors focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 appearance-none outline-none"
+                                style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;"
                             >
                                 <option value="">All Phone Numbers</option>
                                 @foreach($channelAvailability['channels'] as $channel)
@@ -107,14 +107,14 @@
                                 @endforeach
                             </select>
                         @else
-                            <div class="flex flex-1 items-center justify-center rounded-lg border border-[#2a3942] bg-[#111b21] py-2 text-xs font-semibold text-[#8696a0]">
+                            <div class="flex flex-1 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 py-2 text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-900">
                                 No Active Numbers
                             </div>
                         @endif
 
                         <button
                             type="button"
-                            class="rounded-lg border border-[#2a3942] p-2 text-[#8696a0] transition-colors hover:bg-[#2a3942] hover:text-[#e9edef]"
+                            class="rounded-lg border border-slate-200 p-2 text-slate-500 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                         >
                             <span class="material-symbols-outlined text-sm">filter_list</span>
                         </button>
@@ -122,19 +122,19 @@
 
                     <div class="flex gap-2">
                         <div class="relative flex-1">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#8696a0]">search</span>
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">search</span>
                             <input
                                 wire:model.live.debounce.300ms="search"
                                 type="text"
-                                placeholder="Search or start new chat"
-                                class="w-full rounded-lg border-0 bg-[#111b21] py-2 pl-10 pr-4 text-xs text-[#e9edef] placeholder:text-[#8696a0] focus:ring-1 focus:ring-[#00a884] outline-none"
+                                placeholder="Search..."
+                                class="w-full rounded-xl border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-900"
                             />
                         </div>
                         
                         <button
                             type="button"
                             wire:click="openInitiateChatModal"
-                            class="flex shrink-0 items-center justify-center rounded-lg bg-[#00a884] px-3 text-white transition-colors hover:bg-[#008f70]"
+                            class="flex shrink-0 items-center justify-center rounded-xl bg-primary px-3 text-white transition-colors hover:bg-primary/90"
                             title="New Chat"
                         >
                             <span class="material-symbols-outlined text-sm">add_comment</span>
@@ -142,64 +142,80 @@
                     </div>
                 </div>
                 
-                <div class="no-scrollbar flex gap-2 border-b border-[#222d34] bg-[#111b21] px-3 py-2.5 shrink-0 overflow-x-auto">
+                <div class="no-scrollbar flex overflow-x-auto border-b border-slate-100 px-4 dark:border-slate-800 shrink-0">
                     <button
                         type="button"
                         wire:click="$set('tab', 'all')"
-                        class="whitespace-nowrap rounded-full px-3 py-1 text-xs transition-colors {{ $tab === 'all' ? 'bg-[#0a332c] text-[#00a884] font-semibold border border-[#00a884]/30' : 'bg-[#202c33] text-[#8696a0] font-medium hover:bg-[#2a3942] hover:text-[#e9edef]' }}"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'all' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
                     >
                         All
                     </button>
                     <button
                         type="button"
                         wire:click="$set('tab', 'active')"
-                        class="whitespace-nowrap rounded-full px-3 py-1 text-xs transition-colors {{ $tab === 'active' ? 'bg-[#0a332c] text-[#00a884] font-semibold border border-[#00a884]/30' : 'bg-[#202c33] text-[#8696a0] font-medium hover:bg-[#2a3942] hover:text-[#e9edef]' }}"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'active' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
                     >
                         Active (24h)
                     </button>
                     <button
                         type="button"
                         wire:click="$set('tab', 'inactive')"
-                        class="whitespace-nowrap rounded-full px-3 py-1 text-xs transition-colors {{ $tab === 'inactive' ? 'bg-[#0a332c] text-[#00a884] font-semibold border border-[#00a884]/30' : 'bg-[#202c33] text-[#8696a0] font-medium hover:bg-[#2a3942] hover:text-[#e9edef]' }}"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'inactive' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
                     >
                         Inactive
                     </button>
+                    {{-- 
+                    <button
+                        type="button"
+                        wire:click="$set('tab', 'assigned')"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'assigned' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
+                    >
+                        Assigned
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('tab', 'unassigned')"
+                        class="whitespace-nowrap px-4 py-3 text-sm transition-colors {{ $tab === 'unassigned' ? 'border-b-2 border-primary font-semibold text-primary' : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300' }}"
+                    >
+                        Unassigned
+                    </button>
+                    --}}
                 </div>
 
-                <div class="no-scrollbar flex-1 overflow-y-auto bg-[#111b21]">
+                <div class="no-scrollbar flex-1 overflow-y-auto">
                     @forelse($conversationList as $conversation)
                         <button
                             type="button"
                             wire:click="selectConversation({{ $conversation['id'] }})"
-                            class="flex w-full cursor-pointer gap-3 border-b border-[#222d34]/60 p-3.5 text-left transition-colors {{ (int) $selectedConversationId === (int) $conversation['id'] ? 'border-l-4 border-l-[#00a884] bg-[#2a3942]' : 'hover:bg-[#202c33] bg-[#111b21]' }}"
+                            class="flex w-full cursor-pointer gap-3 border-b border-slate-100 p-4 text-left transition-colors dark:border-slate-800 {{ (int) $selectedConversationId === (int) $conversation['id'] ? 'border-l-4 border-l-primary bg-primary/5 dark:bg-primary/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800' }}"
                         >
                             <div class="relative flex-shrink-0">
                                 @if(!empty($conversation['avatar_url']))
-                                    <div class="h-12 w-12 rounded-full bg-[#202c33] bg-cover bg-center" style="background-image: url('{{ $conversation['avatar_url'] }}');"></div>
+                                    <div class="h-12 w-12 rounded-full bg-slate-200 bg-cover bg-center" style="background-image: url('{{ $conversation['avatar_url'] }}');"></div>
                                 @else
-                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#202c33] text-[#8696a0]">
-                                        <span class="material-symbols-outlined text-2xl">person</span>
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-400 dark:bg-slate-700">
+                                        <span class="material-symbols-outlined">person</span>
                                     </div>
                                 @endif
 
                                 @if(!empty($conversation['is_session_active']))
-                                    <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#111b21] bg-[#00a884]" title="Active Window"></span>
+                                    <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-900" title="Active Window"></span>
                                 @endif
                             </div>
 
                             <div class="min-w-0 flex-1">
                                 <div class="mb-1 flex items-start justify-between">
-                                    <h3 class="truncate text-sm font-semibold text-[#e9edef]">{{ $conversation['name'] }}</h3>
-                                    <span class="text-[11px] {{ ($conversation['unread_count'] ?? 0) > 0 ? 'text-[#00a884] font-semibold' : 'text-[#8696a0]' }}">{{ $conversation['time_label'] }}</span>
+                                    <h3 class="truncate text-sm font-semibold">{{ $conversation['name'] }}</h3>
+                                    <span class="text-[10px] text-slate-400">{{ $conversation['time_label'] }}</span>
                                 </div>
 
-                                <div class="flex items-center justify-between gap-2">
-                                    <p class="truncate text-xs text-[#8696a0]">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="truncate text-xs text-slate-500">
                                         {{ $conversation['preview'] }}
                                     </p>
 
                                     @if(($conversation['unread_count'] ?? 0) > 0)
-                                        <span class="flex h-5 min-w-[20px] px-1.5 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-[11px] font-bold text-[#111b21]">
+                                        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] text-white">
                                             {{ $conversation['unread_count'] }}
                                         </span>
                                     @endif
@@ -207,7 +223,7 @@
                             </div>
                         </button>
                     @empty
-                        <div class="p-8 text-center text-xs text-[#8696a0]">
+                        <div class="p-8 text-center text-sm text-slate-500">
                             No conversations match your criteria.
                         </div>
                     @endforelse
@@ -216,29 +232,29 @@
 
             @if($activeConversation)
                 {{-- Column 2: Chat Window --}}
-                <section class="flex flex-1 flex-col border-r border-[#222d34] bg-[#0b141a]">
-                    <header class="flex h-16 shrink-0 items-center justify-between border-b border-[#222d34] bg-[#202c33] px-4 md:px-6">
+                <section class="flex flex-1 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <header class="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 px-6 dark:border-slate-800">
                         <div class="flex items-center gap-3">
-                            <button @click="showLeftSidebar = !showLeftSidebar" class="p-2 text-[#8696a0] transition-colors hover:text-[#e9edef] rounded-lg hover:bg-[#2a3942]">
+                            <button @click="showLeftSidebar = !showLeftSidebar" class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                                 <span class="material-symbols-outlined" x-text="showLeftSidebar ? 'keyboard_double_arrow_left' : 'keyboard_double_arrow_right'"></span>
                             </button>
                             <div>
-                                <h2 class="leading-none font-bold text-[#e9edef] text-base">{{ $activeConversation['name'] }}</h2>
+                                <h2 class="leading-none font-bold text-slate-900 dark:text-white">{{ $activeConversation['name'] }}</h2>
                                 <div class="mt-1 flex items-center gap-2">
-                                    <span class="text-xs text-[#8696a0]">{{ $activeConversation['phone'] }}</span>
+                                    <span class="text-xs text-slate-500">{{ $activeConversation['phone'] }}</span>
                                     @if(!empty($activeConversation['is_session_active']))
-                                        <span class="h-1.5 w-1.5 rounded-full bg-[#00a884]"></span>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#00a884]">Active Session</span>
+                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-green-600">Active Session</span>
                                     @else
-                                        <span class="h-1.5 w-1.5 rounded-full bg-[#8696a0]"></span>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#8696a0]">Session Expired</span>
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Session Expired</span>
                                     @endif
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <button @click="showRightSidebar = !showRightSidebar" class="p-2 text-[#8696a0] transition-colors hover:text-[#e9edef] rounded-lg hover:bg-[#2a3942]" title="Toggle Sidebar">
+                            <button @click="showRightSidebar = !showRightSidebar" class="p-2 text-slate-400 transition-colors hover:text-primary rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Toggle Sidebar">
                                 <span class="material-symbols-outlined">view_sidebar</span>
                             </button>
                         </div>
@@ -256,23 +272,23 @@
                             });
                             observer.observe($el, { childList: true, subtree: true });
                         "
-                        class="no-scrollbar relative flex flex-1 flex-col gap-3 overflow-y-auto bg-[#0b141a] wa-chat-pattern p-4 md:p-6"
+                        class="no-scrollbar relative flex flex-1 flex-col gap-6 overflow-y-auto bg-slate-100 p-8 dark:bg-slate-950/40"
                     >
                         @foreach($messages as $message)
                             @if($message['message_type'] === 'card')
                                 <div class="my-2 flex justify-center">
-                                    <div class="w-full max-w-[320px] overflow-hidden rounded-lg border border-[#222d34] bg-[#182229] shadow-md text-[#e9edef]">
-                                        <div class="flex items-center gap-2.5 bg-[#005c4b]/30 px-4 py-2.5 border-b border-[#222d34]">
-                                            <span class="material-symbols-outlined text-[#00a884] text-sm">shopping_bag</span>
-                                            <h4 class="text-xs font-bold uppercase tracking-wider text-[#00a884]">
+                                    <div class="w-full max-w-[320px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                        <div class="flex items-center gap-3 bg-primary/5 px-4 py-3 dark:bg-primary/10">
+                                            <span class="material-symbols-outlined text-primary">shopping_bag</span>
+                                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                                                 {{ $message['card_title'] ?? 'Card' }}
                                             </h4>
                                         </div>
                                         <div class="p-4">
-                                            <p class="mb-1 text-sm font-semibold text-[#e9edef]">{{ $message['card_heading'] ?? '' }}</p>
-                                            <p class="mb-4 text-xs text-[#8696a0]">{{ $message['card_subtext'] ?? '' }}</p>
+                                            <p class="mb-1 text-sm font-semibold">{{ $message['card_heading'] ?? '' }}</p>
+                                            <p class="mb-4 text-xs text-slate-500">{{ $message['card_subtext'] ?? '' }}</p>
                                             @if(!empty($message['card_button_text']))
-                                                <button class="w-full rounded-lg bg-[#005c4b] py-2 text-xs font-bold text-white transition-colors hover:bg-[#008f70]">
+                                                <button class="w-full rounded-lg bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90">
                                                     {{ $message['card_button_text'] }}
                                                 </button>
                                             @endif
@@ -280,90 +296,90 @@
                                     </div>
                                 </div>
                             @elseif(in_array($message['message_type'], ['image', 'video', 'audio', 'document']))
-                                <div class="flex max-w-[75%] md:max-w-[65%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
-                                    <div class="rounded-lg {{ $message['direction'] === 'outbound' ? 'rounded-tr-none bg-[#005c4b]' : 'rounded-tl-none bg-[#202c33]' }} p-1.5 shadow-sm border border-[#222d34]/40">
+                                <div class="flex max-w-[80%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
+                                    <div class="rounded-2xl {{ $message['direction'] === 'outbound' ? 'rounded-tr-none' : 'rounded-tl-none' }} border border-slate-100 bg-white p-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                                         
                                         @if($message['message_type'] === 'image')
-                                            <div class="w-72 overflow-hidden rounded-lg bg-[#111b21] aspect-video group relative">
+                                            <div class="w-72 overflow-hidden rounded-xl bg-slate-100 aspect-video group relative">
                                                 @if(!empty($message['resolved_media_url']))
                                                     <img 
                                                         src="{{ $message['resolved_media_url'] }}" 
                                                         alt="Message image" 
                                                         class="h-full w-full object-cover"
-                                                        onerror="this.onerror=null; this.src='https://placehold.co/400x300/111b21/8696a0?text=Image+Unavailable'; this.parentElement.classList.add('opacity-50');"
+                                                        onerror="this.onerror=null; this.src='https://placehold.co/400x300/1e293b/64748b?text=Image+Unavailable'; this.parentElement.classList.add('opacity-50');"
                                                     >
-                                                    <a href="{{ $message['resolved_media_url'] }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <a href="{{ $message['resolved_media_url'] }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <span class="material-symbols-outlined text-white">open_in_new</span>
                                                     </a>
                                                 @else
-                                                    <div class="flex h-full w-full items-center justify-center bg-[#111b21]">
+                                                    <div class="flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-800">
                                                         <div class="text-center p-4">
-                                                            <span class="material-symbols-outlined text-[#8696a0]">image_not_supported</span>
-                                                            <p class="text-[10px] text-[#8696a0] font-bold uppercase mt-1">Image unavailable</p>
+                                                            <span class="material-symbols-outlined text-slate-400">image_not_supported</span>
+                                                            <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Image unavailable</p>
                                                         </div>
                                                     </div>
                                                 @endif
                                             </div>
                                         @elseif($message['message_type'] === 'video')
-                                            <div class="w-72 overflow-hidden rounded-lg bg-[#111b21] aspect-video relative group flex items-center justify-center">
+                                            <div class="w-72 overflow-hidden rounded-xl bg-slate-900 aspect-video relative group flex items-center justify-center">
                                                 @if(!empty($message['resolved_media_url']))
                                                     <video class="h-full w-full object-cover opacity-60">
                                                         <source src="{{ $message['resolved_media_url'] }}">
                                                     </video>
                                                     <a href="{{ $message['resolved_media_url'] }}" target="_blank" class="absolute inset-0 flex items-center justify-center transition-transform hover:scale-110">
-                                                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#00a884] text-white shadow-lg">
+                                                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg">
                                                             <span class="material-symbols-outlined text-3xl">play_arrow</span>
                                                         </div>
                                                     </a>
                                                 @else
                                                     <div class="text-center p-4">
-                                                        <span class="material-symbols-outlined text-[#8696a0]">videocam_off</span>
-                                                        <p class="text-[10px] text-[#8696a0] font-bold uppercase mt-1">Video unavailable</p>
+                                                        <span class="material-symbols-outlined text-slate-400">videocam_off</span>
+                                                        <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Video unavailable</p>
                                                     </div>
                                                 @endif
                                             </div>
                                         @elseif($message['message_type'] === 'audio')
-                                            <div class="w-72 p-2.5 bg-[#111b21]/60 rounded-lg flex items-center gap-3 border border-[#222d34]">
-                                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#00a884]/20 text-[#00a884]">
-                                                    <span class="material-symbols-outlined text-lg">audiotrack</span>
+                                            <div class="w-72 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800">
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                                    <span class="material-symbols-outlined">audiotrack</span>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="text-[10px] font-bold uppercase text-[#8696a0] tracking-wider leading-none">Voice Memo</p>
+                                                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">Voice Memo / Audio</p>
                                                     @if(!empty($message['resolved_media_url']))
-                                                        <audio controls class="mt-1.5 h-7 w-full scale-95 -ml-[2%]">
+                                                        <audio controls class="mt-2 h-8 w-full scale-90 -ml-[5%]">
                                                             <source src="{{ $message['resolved_media_url'] }}">
                                                         </audio>
                                                     @else
-                                                        <p class="text-[10px] font-bold text-[#8696a0] mt-1">AUDIO UNAVAILABLE</p>
+                                                        <p class="text-[10px] font-bold text-slate-500 mt-2">AUDIO UNAVAILABLE</p>
                                                     @endif
                                                 </div>
                                             </div>
                                         @elseif($message['message_type'] === 'document')
-                                            <a href="{{ $message['resolved_media_url'] ?? '#' }}" target="_blank" class="w-72 p-3 bg-[#111b21]/60 rounded-lg flex items-center gap-3 border border-[#222d34] hover:bg-[#111b21] transition-colors group">
-                                                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#202c33] text-[#00a884] border border-[#222d34]">
-                                                    <span class="material-symbols-outlined text-2xl">description</span>
+                                            <a href="{{ $message['resolved_media_url'] ?? '#' }}" target="_blank" class="w-72 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl flex items-center gap-4 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
+                                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-primary shadow-sm border border-slate-100 dark:border-slate-700">
+                                                    <span class="material-symbols-outlined text-3xl">description</span>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="text-[11px] font-bold text-[#e9edef] truncate pr-2">{{ $message['media_meta']['filename'] ?? 'document.pdf' }}</p>
-                                                    <p class="text-[10px] font-bold text-[#8696a0] mt-0.5">{{ strtoupper(isset($message['media_meta']['filename']) ? pathinfo($message['media_meta']['filename'], PATHINFO_EXTENSION) : 'PDF') }}</p>
+                                                    <p class="text-[11px] font-black uppercase text-slate-700 dark:text-slate-200 truncate pr-4">{{ $message['media_meta']['filename'] ?? 'document.pdf' }}</p>
+                                                    <p class="text-[10px] font-bold text-slate-400 mt-0.5">{{ strtoupper(isset($message['media_meta']['filename']) ? pathinfo($message['media_meta']['filename'], PATHINFO_EXTENSION) : 'PDF') }}</p>
                                                 </div>
                                                 @if(!empty($message['resolved_media_url']))
-                                                    <span class="material-symbols-outlined text-[#8696a0] group-hover:text-[#00a884] transition-colors pr-1">download</span>
+                                                    <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors pr-2">download</span>
                                                 @endif
                                             </a>
                                         @endif
 
                                         @if(!empty($message['body']))
-                                            <div class="px-2 py-1.5">
-                                                <p class="text-sm text-[#e9edef] leading-relaxed">{{ $message['body'] }}</p>
+                                            <div class="px-2.5 py-2">
+                                                <p class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{{ $message['body'] }}</p>
                                             </div>
                                         @endif
                                     </div>
                                     <div class="mt-1 {{ $message['direction'] === 'outbound' ? 'mr-1 flex items-center gap-1' : 'ml-1' }}">
-                                        <span class="text-[10px] text-[#8696a0]">{{ $message['time_label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $message['time_label'] }}</span>
                                         @if($message['direction'] === 'outbound' && !empty($message['status_icon']))
                                             <span 
-                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] === 'text-primary' || $message['status_icon'] === 'done_all' ? 'text-[#53bdeb]' : 'text-[#8696a0]' }}"
+                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] ?? 'text-slate-400' }}"
                                                 @if(!empty($message['failure_message'])) title="{{ $message['failure_message'] }}" @endif
                                             >
                                                 {{ $message['status_icon'] }}
@@ -372,22 +388,22 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="flex max-w-[75%] md:max-w-[65%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
-                                    <div class="{{ $message['direction'] === 'outbound' ? 'rounded-lg rounded-tr-none bg-[#005c4b] text-[#e9edef]' : 'rounded-lg rounded-tl-none bg-[#202c33] text-[#e9edef]' }} px-3 py-2 shadow-sm">
+                                <div class="flex max-w-[80%] flex-col {{ $message['direction'] === 'outbound' ? 'self-end items-end' : 'items-start' }}">
+                                    <div class="{{ $message['direction'] === 'outbound' ? 'rounded-2xl rounded-tr-none bg-gradient-to-br from-primary to-blue-700 text-white shadow-md shadow-primary/20' : 'rounded-2xl rounded-tl-none border border-slate-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800' }} px-4 py-3">
                                         @if($message['message_type'] === 'template')
-                                            <div class="mb-1 flex items-center gap-1.5 text-[#00a884] opacity-90">
+                                            <div class="mb-2 flex items-center gap-2 opacity-80">
                                                 <span class="material-symbols-outlined text-xs">auto_awesome</span>
                                                 <span class="text-[10px] font-bold uppercase tracking-wider">WhatsApp Template</span>
                                             </div>
                                         @endif
-                                        <p class="text-sm leading-relaxed text-[#e9edef] select-text">{{ $message['body'] }}</p>
+                                        <p class="text-sm leading-relaxed">{{ $message['body'] }}</p>
                                     </div>
 
                                     <div class="mt-1 {{ $message['direction'] === 'outbound' ? 'mr-1 flex items-center gap-1' : 'ml-1' }}">
-                                        <span class="text-[10px] text-[#8696a0]">{{ $message['time_label'] }}</span>
+                                        <span class="text-[10px] text-slate-400">{{ $message['time_label'] }}</span>
                                         @if($message['direction'] === 'outbound' && !empty($message['status_icon']))
                                             <span 
-                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] === 'text-primary' || $message['status_icon'] === 'done_all' ? 'text-[#53bdeb]' : 'text-[#8696a0]' }}"
+                                                class="material-symbols-outlined text-[14px] {{ $message['status_color'] ?? 'text-slate-400' }}"
                                                 @if(!empty($message['failure_message'])) title="{{ $message['failure_message'] }}" @endif
                                             >
                                                 {{ $message['status_icon'] }}
@@ -407,80 +423,90 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-4"
-                            class="sticky bottom-4 right-4 z-20 flex justify-end pr-2"
+                            class="sticky bottom-4 right-4 z-20 flex justify-end pr-4"
                         >
                             <button 
                                 @click="scrollToBottom()"
-                                class="flex h-9 w-9 items-center justify-center rounded-full bg-[#202c33] text-[#00a884] shadow-xl border border-[#222d34] transition-all hover:bg-[#2a3942] active:scale-95"
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-lg ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 dark:bg-slate-800 dark:text-primary dark:ring-slate-700"
                             >
-                                <span class="material-symbols-outlined text-xl">keyboard_double_arrow_down</span>
+                                <span class="material-symbols-outlined">keyboard_double_arrow_down</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="border-t border-[#222d34] bg-[#202c33] p-3 md:p-4">
+                    <div class="border-t border-transparent bg-white p-6 dark:border-transparent dark:bg-slate-900">
                         @if($errorMessage)
-                            <div class="mb-3 rounded-lg border border-red-500/30 bg-red-950/40 px-3 py-2 text-xs text-red-300">
+                            <div class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                                 {{ $errorMessage }}
                             </div>
                         @endif
 
                         @if($successMessage)
-                            <div class="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-950/40 px-3 py-2 text-xs text-emerald-300">
+                            <div class="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
                                 {{ $successMessage }}
                             </div>
                         @endif
 
                         {{-- Media Preview Tray --}}
                         @if(!empty($composerMediaMetadata))
-                            <div class="mb-3 animate-in fade-in slide-in-from-bottom-2">
-                                <div class="relative flex items-center gap-3 rounded-lg border border-[#222d34] bg-[#111b21] p-3 shadow-md">
-                                    <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#202c33] flex items-center justify-center border border-[#222d34]">
+                            <div class="mb-4 animate-in fade-in slide-in-from-bottom-2">
+                                <div class="relative flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                    {{-- Preview Image/Icon --}}
+                                    <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-800">
                                         @if($composerMediaMetadata['preview_url'])
                                             <img src="{{ $composerMediaMetadata['preview_url'] }}" class="h-full w-full object-cover">
                                         @else
-                                            <span class="material-symbols-outlined text-[#00a884] text-[28px]">
+                                            <span class="material-symbols-outlined text-primary text-[32px]">
                                                 {{ str_starts_with($composerMediaMetadata['mime'], 'video/') ? 'movie' : (str_starts_with($composerMediaMetadata['mime'], 'audio/') ? 'audiotrack' : 'description') }}
                                             </span>
                                         @endif
                                     </div>
 
+                                    {{-- File Info --}}
                                     <div class="min-w-0 flex-1">
-                                        <p class="truncate text-xs font-bold text-[#e9edef]">
+                                        <p class="truncate text-[11px] font-black uppercase tracking-tight text-slate-700 dark:text-slate-200">
                                             {{ $composerMediaMetadata['name'] }}
                                         </p>
                                         <div class="mt-1 flex items-center gap-2">
-                                            <span class="rounded bg-[#202c33] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#8696a0]">
+                                            <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:bg-slate-800">
                                                 {{ explode('/', $composerMediaMetadata['mime'])[1] ?? 'File' }}
                                             </span>
-                                            <span class="text-[10px] font-medium text-[#8696a0]">
+                                            <span class="text-[10px] font-bold text-slate-400">
                                                 {{ number_format($composerMediaMetadata['size'] / 1024, 1) }} KB
                                             </span>
                                         </div>
                                     </div>
 
+                                    {{-- Note: Main input acts as caption --}}
+                                    <div class="absolute -top-2 -right-2 transform translate-x-1/4 -translate-y-1/4">
+                                        <div class="rounded-full bg-primary px-2 py-0.5 text-[8px] font-black uppercase text-white shadow-lg">
+                                            Adding Caption Below
+                                        </div>
+                                    </div>
+
+                                    {{-- Remove Button --}}
                                     <button 
                                         type="button" 
                                         wire:click="removeComposerMedia"
-                                        class="flex h-7 w-7 items-center justify-center rounded-full bg-[#202c33] text-[#8696a0] transition-all hover:bg-red-900/30 hover:text-red-400"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all hover:bg-red-50 hover:text-red-500 dark:bg-slate-800 dark:hover:bg-red-900/30"
                                     >
-                                        <span class="material-symbols-outlined text-[18px]">close</span>
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
                                     </button>
                                 </div>
                             </div>
                         @endif
 
                         @if($activeConversation['is_session_active'])
-                            <div class="flex items-center gap-2 rounded-lg bg-[#2a3942] p-1.5 pl-3 border border-transparent focus-within:border-[#00a884]/50 transition-colors">
+                            <div class="flex items-center gap-3 rounded-xl bg-slate-100 p-2 dark:bg-slate-800">
                                 <div x-data="{ showEmoji: false }" class="relative flex items-center">
-                                    <button @click="showEmoji = !showEmoji" type="button" class="p-1.5 text-[#8696a0] transition-colors hover:text-[#e9edef]" title="Emoji">
-                                        <span class="material-symbols-outlined text-2xl">sentiment_satisfied</span>
+                                    <button @click="showEmoji = !showEmoji" type="button" class="p-2 text-slate-500 transition-colors hover:text-primary">
+                                        <span class="material-symbols-outlined">sentiment_satisfied</span>
                                     </button>
                                     
                                     <div 
                                         x-show="showEmoji" 
                                         @click.away="showEmoji = false" 
-                                        class="absolute bottom-full left-0 mb-3 z-50 shadow-2xl rounded-xl overflow-hidden border border-[#222d34]"
+                                        class="absolute bottom-full left-0 mb-4 z-50 shadow-2xl rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700"
                                         style="display: none;"
                                     >
                                         <emoji-picker 
@@ -500,55 +526,55 @@
                                 <button 
                                     type="button" 
                                     onclick="document.getElementById('composerMediaInput').click()"
-                                    class="p-1.5 text-[#8696a0] transition-colors hover:text-[#e9edef] {{ !empty($composerMediaMetadata) ? 'text-[#00a884] bg-[#00a884]/10 rounded-lg' : '' }}"
+                                    class="p-2 text-slate-500 transition-colors hover:text-primary {{ !empty($composerMediaMetadata) ? 'text-primary bg-primary/10 rounded-lg' : '' }}"
                                     title="Attach File"
                                 >
-                                    <span class="material-symbols-outlined text-2xl">attach_file</span>
+                                    <span class="material-symbols-outlined">attach_file</span>
                                 </button>
 
                                 <button 
                                     type="button" 
                                     wire:click="openTemplateSendModal"
-                                    class="p-1.5 text-[#8696a0] transition-colors hover:text-[#00a884]"
+                                    class="p-2 text-slate-500 transition-colors hover:text-primary"
                                     title="Send Template"
                                 >
-                                    <span class="material-symbols-outlined text-2xl">auto_awesome</span>
+                                    <span class="material-symbols-outlined">auto_awesome</span>
                                 </button>
 
                                 <input id="messageInput"
                                     wire:model.defer="messageText"
                                     type="text"
-                                    placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message' }}"
-                                    class="flex-1 border-0 border-transparent bg-transparent px-2 text-sm text-[#e9edef] placeholder:text-[#8696a0] focus:border-transparent focus:ring-0 outline-none shadow-none"
+                                    placeholder="{{ !empty($composerMediaMetadata) ? 'Add a caption...' : 'Type a message...' }}"
+                                    class="flex-1 border-0 border-transparent bg-transparent px-2 text-sm placeholder:text-slate-500 focus:border-transparent focus:ring-0 outline-none shadow-none"
                                     wire:keydown.enter="sendMessage"
                                 />
 
                                 <button
                                     type="button"
                                     wire:click="sendMessage"
-                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00a884] text-white shadow-md transition-all hover:bg-[#008f70] active:scale-95"
+                                    class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90"
                                     wire:loading.attr="disabled"
                                     wire:target="sendMessage, composerMedia"
                                 >
-                                    <span class="material-symbols-outlined text-xl" wire:loading.remove wire:target="sendMessage, composerMedia">send</span>
+                                    <span class="material-symbols-outlined" wire:loading.remove wire:target="sendMessage, composerMedia">send</span>
                                     <div wire:loading wire:target="sendMessage, composerMedia" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                                 </button>
                             </div>
                         @else
-                            <div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#2a3942] bg-[#111b21] p-5 text-center">
-                                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-amber-500/10 text-amber-400">
-                                    <span class="material-symbols-outlined text-2xl">history_toggle_off</span>
+                            <div class="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500 dark:bg-amber-900/20">
+                                    <span class="material-symbols-outlined">history_toggle_off</span>
                                 </div>
                                 <div class="text-center">
-                                    <h4 class="text-xs font-bold text-[#e9edef]">Messaging Window Closed</h4>
-                                    <p class="mt-1 text-xs text-[#8696a0]">It's been more than 24 hours since the user last messaged you. Send a pre-approved template to re-engage.</p>
+                                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">Messaging Window Closed</h4>
+                                    <p class="mt-1 text-xs text-slate-500">It's been more than 24 hours since the user last messaged you. To restart the conversation, you must send a pre-approved template.</p>
                                 </div>
                                 <button 
                                     type="button" 
                                     wire:click="openTemplateSendModal"
-                                    class="flex items-center gap-2 rounded-lg bg-[#00a884] px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:bg-[#008f70] active:scale-95"
+                                    class="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-95"
                                 >
-                                    <span class="material-symbols-outlined text-base">auto_awesome</span>
+                                    <span class="material-symbols-outlined text-lg">auto_awesome</span>
                                     Send WhatsApp Template
                                 </button>
                             </div>
@@ -565,47 +591,96 @@
                     x-transition:leave="transition-all ease-in duration-200 origin-right"
                     x-transition:leave-start="opacity-100 translate-x-0 w-64 md:w-80"
                     x-transition:leave-end="opacity-0 translate-x-4 w-0"
-                    class="no-scrollbar w-64 shrink-0 overflow-y-auto border-l border-[#222d34] bg-[#111b21] md:w-80 flex flex-col override-transition"
+                    class="no-scrollbar w-64 shrink-0 overflow-y-auto border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:w-80 flex flex-col override-transition"
                 >
-                    <div class="border-b border-[#222d34] p-8 text-center bg-[#111b21]">
-                        <div class="mb-4 overflow-hidden rounded-full border-4 border-[#202c33] bg-[#202c33] shadow-lg mx-auto h-24 w-24">
+                    <div class="border-b border-slate-200 p-10 text-center dark:border-slate-800">
+                        <div class="mb-6 overflow-hidden rounded-full border-4 border-white bg-slate-200 shadow-xl dark:border-slate-800 mx-auto h-28 w-28">
                             @if(!empty($activeConversation['avatar_url']))
                                 <img src="{{ $activeConversation['avatar_url'] }}" alt="{{ $activeConversation['name'] }}" class="h-full w-full object-cover">
-                            @else
-                                <div class="flex h-full w-full items-center justify-center bg-[#202c33] text-[#8696a0]">
-                                    <span class="material-symbols-outlined text-4xl">person</span>
-                                </div>
                             @endif
                         </div>
 
-                        <h2 class="text-lg font-bold text-[#e9edef]">{{ $activeConversation['name'] }}</h2>
-                        <p class="mb-2 text-xs text-[#8696a0]">{{ $activeConversation['phone'] }}</p>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ $activeConversation['name'] }}</h2>
+                        <p class="mb-3 text-sm text-slate-500">{{ $activeConversation['phone'] }}</p>
 
                         @if(!empty($activeConversation['location']))
-                            <div class="inline-flex items-center gap-1.5 rounded-full bg-[#202c33] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-[#8696a0]">
+                            <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                                 <span class="material-symbols-outlined text-[14px]">location_on</span>
                                 {{ $activeConversation['location'] }}
                             </div>
                         @endif
                     </div>
 
-                    <div class="flex flex-1 flex-col gap-6 p-6">
+                    <div class="flex flex-1 flex-col gap-8 p-8">
+                        {{-- 
                         <div>
-                            <h4 class="mb-3 text-[10px] font-bold uppercase tracking-widest text-[#8696a0]">Team Notes</h4>
+                            <h4 class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Management</h4>
+                            <div class="flex flex-col gap-3">
+                                @if(!empty($sidebarData['assignment']))
+                                    <button
+                                        type="button"
+                                        wire:click="openAssignAgentModal"
+                                        class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:bg-slate-800"
+                                    >
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary dark:bg-slate-700">
+                                                {{ \Illuminate\Support\Str::substr($sidebarData['assignment']['name'], 0, 1) }}
+                                            </div>
+                                            <div class="text-left">
+                                                <p class="text-[10px] uppercase text-slate-400">Assigned To</p>
+                                                <p class="font-semibold leading-tight text-slate-900 dark:text-slate-100">{{ $sidebarData['assignment']['name'] }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="material-symbols-outlined text-[18px] text-slate-400">edit</span>
+                                    </button>
+                                @else
+                                    <button
+                                        type="button"
+                                        wire:click="openAssignAgentModal"
+                                        class="flex w-full items-center justify-between rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm font-medium transition-all hover:border-primary hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary"
+                                    >
+                                        <span class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[20px]">person_add</span>
+                                            Assign Agent
+                                        </span>
+                                        <span class="material-symbols-outlined text-[18px]">add</span>
+                                    </button>
+                                @endif
+
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($sidebarData['labels'] ?? [] as $label)
+                                        <div class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold {{ $label['class'] ?? 'bg-primary/10 text-primary' }}">
+                                            {{ $label['name'] }}
+                                            <span class="material-symbols-outlined cursor-pointer text-[14px]">close</span>
+                                        </div>
+                                    @endforeach
+
+                                    @if(!empty($sidebarData['labels']) && count($sidebarData['labels']) > 0)
+                                        <button type="button" class="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-400 transition-all hover:border-primary hover:text-primary dark:border-slate-600">
+                                            <span class="material-symbols-outlined text-[18px]">add</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        --}}
+
+                        <div>
+                            <h4 class="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">Team Notes</h4>
                             <div class="flex flex-col gap-3">
                                 <textarea
                                     wire:model.defer="noteText"
                                     placeholder="Add a private note for the team..."
-                                    class="h-32 w-full resize-none rounded-lg border border-[#222d34] bg-[#202c33] p-3 text-xs text-[#e9edef] placeholder:text-[#8696a0] focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884] outline-none"
+                                    class="h-32 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs focus:border-primary focus:ring-primary dark:border-slate-800 dark:bg-slate-800/50"
                                 ></textarea>
 
                                 <div class="flex justify-end">
                                     <button
                                         type="button"
                                         wire:click="saveNote"
-                                        class="flex items-center gap-2 rounded-lg bg-[#00a884] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#008f70] active:scale-95"
+                                        class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-primary/90 active:scale-95"
                                     >
-                                        <span class="material-symbols-outlined text-[16px]">save</span>
+                                        <span class="material-symbols-outlined text-[18px]">save</span>
                                         Save Note
                                     </button>
                                 </div>
@@ -616,9 +691,9 @@
                             <button
                                 type="button"
                                 wire:click="closeChat"
-                                class="flex w-full items-center justify-center gap-2 rounded-lg border border-[#222d34] bg-[#202c33] px-4 py-3 text-xs font-bold text-[#e9edef] transition-all hover:bg-[#2a3942]"
+                                class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-600 transition-all hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50"
                             >
-                                <span class="material-symbols-outlined text-lg">check_circle</span>
+                                <span class="material-symbols-outlined">check_circle</span>
                                 Close Chat
                             </button>
                         </div>
@@ -626,42 +701,47 @@
                 </section>
             @else
                 {{-- Empty State Main Area --}}
-                <section class="relative flex flex-1 items-center justify-center bg-[#0b141a] wa-chat-pattern p-8">
-                    <div class="z-10 w-full max-w-md space-y-5 text-center">
-                        <div class="relative inline-flex items-center justify-center rounded-full bg-[#202c33] p-8 shadow-2xl border border-[#222d34]">
-                            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#00a884]/10 text-[#00a884]">
-                                <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'wght' 300">chat_bubble</span>
+                <section class="relative flex flex-1 items-center justify-center bg-background-light p-8 dark:bg-background-dark">
+                    <div class="pointer-events-none absolute inset-0 overflow-hidden opacity-20 dark:opacity-10">
+                        <div class="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
+                        <div class="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl"></div>
+                    </div>
+
+                    <div class="z-10 w-full max-w-md space-y-6 text-center">
+                        <div class="relative inline-flex items-center justify-center rounded-full bg-white p-8 shadow-xl shadow-primary/5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                            <div class="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined text-6xl" style="font-variation-settings: 'wght' 300">chat_bubble</span>
                             </div>
 
-                            <div class="absolute -right-1 -top-1 flex h-9 w-9 items-center justify-center rounded-full border border-[#222d34] bg-[#202c33] text-[#00a884] shadow-lg">
-                                <span class="material-symbols-outlined text-lg">forum</span>
+                            <div class="absolute -right-1 -top-1 flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-white text-primary shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                                <span class="material-symbols-outlined text-xl">forum</span>
                             </div>
 
-                            <div class="absolute -left-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#00a884] text-[#111b21] shadow-lg">
-                                <span class="material-symbols-outlined text-base">edit</span>
+                            <div class="absolute -left-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg">
+                                <span class="material-symbols-outlined text-lg">edit</span>
                             </div>
                         </div>
 
                         <div class="space-y-2">
                             @if($hasAvailableChannels)
-                                <h2 class="text-xl font-bold text-[#e9edef]">
+                                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">
                                     Select a conversation to start messaging
                                 </h2>
-                                <p class="text-xs leading-relaxed text-[#8696a0]">
+                                <p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                                     Choose a contact from the list on the left to view the chat history or start a new conversation.
                                 </p>
                             @else
-                                <h2 class="text-xl font-bold text-[#e9edef]">
+                                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">
                                     No Messaging Channels Configured
                                 </h2>
-                                <p class="text-xs leading-relaxed text-[#8696a0] mb-5">
+                                <p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400 mb-6">
                                     You haven't set up any active WhatsApp phone numbers yet. Configure your first number to start receiving and sending messages.
                                 </p>
-                                <div class="flex justify-center pt-2">
+                                <div class="flex justify-center pt-4">
                                     <a href="{{ route('whatsapp.setup.phone-numbers') }}" 
                                        wire:navigate
-                                       class="inline-flex items-center gap-2 rounded-lg bg-[#00a884] px-6 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:bg-[#008f70] active:scale-95">
-                                        <span class="material-symbols-outlined text-base">add_call</span>
+                                       class="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-primary/90 active:scale-95">
+                                        <span class="material-symbols-outlined text-lg">add_call</span>
                                         Configure WhatsApp Number
                                     </a>
                                 </div>
@@ -669,13 +749,13 @@
                         </div>
 
                         @if($hasAvailableChannels)
-                            <div class="flex items-center justify-center gap-3 pt-2">
-                                <div class="flex items-center gap-1.5 rounded-full bg-[#202c33] border border-[#222d34] px-3 py-1 text-xs font-medium text-[#8696a0]">
+                            <div class="flex items-center justify-center gap-4 pt-4">
+                                <div class="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-400 dark:bg-slate-800">
                                     <span class="material-symbols-outlined text-sm">lock</span>
                                     End-to-end encrypted
                                 </div>
 
-                                <div class="flex items-center gap-1.5 rounded-full bg-[#202c33] border border-[#222d34] px-3 py-1 text-xs font-medium text-[#8696a0]">
+                                <div class="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-400 dark:bg-slate-800">
                                     <span class="material-symbols-outlined text-sm">cloud_done</span>
                                     Cloud Synced
                                 </div>
