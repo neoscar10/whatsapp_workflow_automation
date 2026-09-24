@@ -79,31 +79,37 @@ class WhatsAppWebhookEventService
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
         $account = null;
 
+        // 1. Primary lookup: find WhatsAppPhoneNumber by exact phone_number_id first
         if ($phoneNumberId) {
-            $account = WhatsAppAccount::whereHas('phoneNumbers', function ($q) use ($phoneNumberId) {
-                $q->where('phone_number_id', $phoneNumberId);
-            })->orderBy('id', 'desc')->first();
-        }
+            $phoneRecord = WhatsAppPhoneNumber::with('account')
+                ->where('phone_number_id', $phoneNumberId)
+                ->orderBy('id', 'asc')
+                ->first();
 
-        if (!$account && $wabaId) {
-            $account = WhatsAppAccount::where('waba_id', $wabaId)->orderBy('id', 'desc')->first();
-        }
-
-        if (!$account && $phoneNumberId) {
-            $companyId = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)->value('company_id');
-            if ($companyId) {
-                $account = WhatsAppAccount::where('company_id', $companyId)->first();
+            if ($phoneRecord && $phoneRecord->account) {
+                $account = $phoneRecord->account;
+            } elseif ($phoneRecord && $phoneRecord->company_id) {
+                $account = WhatsAppAccount::where('company_id', $phoneRecord->company_id)->first();
             }
         }
 
-        if (!$account) {
-            $account = WhatsAppAccount::orderBy('id', 'desc')->first();
+        // 2. Secondary lookup: match by WABA ID
+        if (!$account && $wabaId) {
+            $account = WhatsAppAccount::where('waba_id', $wabaId)->orderBy('id', 'asc')->first();
         }
-        
+
+        // 3. Fallback lookup by phone_number_id in phoneNumbers relationship
+        if (!$account && $phoneNumberId) {
+            $account = WhatsAppAccount::whereHas('phoneNumbers', function ($q) use ($phoneNumberId) {
+                $q->where('phone_number_id', $phoneNumberId);
+            })->orderBy('id', 'asc')->first();
+        }
+
         Log::info('WEBHOOK_ACCOUNT_LOOKUP', [
             'phone_number_id' => $phoneNumberId,
             'waba_id' => $wabaId,
             'found_account_id' => $account?->id,
+            'company_id' => $account?->company_id,
         ]);
 
         return $account;
@@ -113,39 +119,24 @@ class WhatsAppWebhookEventService
     {
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
 
-        // 1. Try to find local number for this specific account first
+        // 1. Try to find local number by phone_number_id globally first
         $localNumber = null;
         if ($phoneNumberId) {
             $localNumber = WhatsAppPhoneNumber::with('account')
-                ->where('whatsapp_account_id', $account->id)
                 ->where('phone_number_id', $phoneNumberId)
+                ->orderBy('id', 'asc')
                 ->first();
-
-            // 2. Fallback: find by company_id and phone_number_id
-            if (!$localNumber) {
-                $localNumber = WhatsAppPhoneNumber::with('account')
-                    ->where('company_id', $account->company_id)
-                    ->where('phone_number_id', $phoneNumberId)
-                    ->first();
-            }
-
-            // 3. Last fallback: global search by phone_number_id
-            if (!$localNumber) {
-                $localNumber = WhatsAppPhoneNumber::with('account')
-                    ->where('phone_number_id', $phoneNumberId)
-                    ->first();
-            }
         }
 
-        // 4. Ultimate Failsafe Fallback: Find active phone number for the matched account or company
-        if (!$localNumber) {
+        // 2. Fallback: match by account or company active phone number
+        if (!$localNumber && $account) {
             $localNumber = WhatsAppPhoneNumber::with('account')
                 ->where('whatsapp_account_id', $account->id)
                 ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
                 ->first();
         }
 
-        if (!$localNumber) {
+        if (!$localNumber && $account) {
             $localNumber = WhatsAppPhoneNumber::with('account')
                 ->where('company_id', $account->company_id)
                 ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
@@ -162,7 +153,7 @@ class WhatsAppWebhookEventService
 
         // Consolidation: If duplicate records exist for this phone_number_id in company, merge them into $localNumber
         try {
-            $otherNumberIds = WhatsAppPhoneNumber::where('company_id', $account->company_id)
+            $otherNumberIds = WhatsAppPhoneNumber::where('company_id', $localNumber->company_id)
                 ->where('phone_number_id', $phoneNumberId)
                 ->where('id', '!=', $localNumber->id)
                 ->pluck('id');
@@ -177,17 +168,6 @@ class WhatsAppWebhookEventService
             }
         } catch (\Exception $e) {
             Log::warning("WEBHOOK_CONSOLIDATION: Exception during consolidation", ['error' => $e->getMessage()]);
-        }
-
-        // Failsafe: Ensure local number's company_id is synchronized with its parent WhatsAppAccount's company_id
-        if ($account && $localNumber->company_id !== $account->company_id) {
-            try {
-                Log::info("WEBHOOK_AUTO_REPAIR: Updating local number {$localNumber->id} company_id from {$localNumber->company_id} to {$account->company_id}");
-                $localNumber->update(['company_id' => $account->company_id]);
-                $localNumber->refresh();
-            } catch (\Exception $e) {
-                Log::warning("WEBHOOK_AUTO_REPAIR: Could not update company_id due to existing record", ['error' => $e->getMessage()]);
-            }
         }
 
         Log::info('WEBHOOK_STAGE_4: Local number matched successfully', [
