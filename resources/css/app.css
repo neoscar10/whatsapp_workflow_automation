@@ -15,46 +15,146 @@
   --color-background-dark: #111b21;
   --font-display: "Inter", sans-serif;
   --font-sans: "Inter", sans-serif;
-  --radius-default: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-full: 9999px;
 }
 
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
+/* WhatsApp Official Dark Theme - Pure CSS Rules (Prevents Tailwind v4 border override issues) */
+.wa-page-root {
+  background-color: #111b21 !important;
+  color: #e9edef !important;
+}
 
-  /* WhatsApp Official Theme Helpers */
-  .bg-wa-dark { background-color: #111b21 !important; }
-  .bg-wa-panel { background-color: #202c33 !important; }
-  .bg-wa-chat { background-color: #0b141a !important; }
-  .bg-wa-outbound { background-color: #005c4b !important; }
-  .bg-wa-inbound { background-color: #202c33 !important; }
-  .bg-wa-active { background-color: #2a3942 !important; }
-  .bg-wa-hover { background-color: #202c33 !important; }
-  .bg-wa-green { background-color: #00a884 !important; }
+.wa-sidebar {
+  background-color: #111b21 !important;
+  border-color: #222d34 !important;
+}
 
-  .text-wa-primary { color: #e9edef !important; }
-  .text-wa-secondary { color: #8696a0 !important; }
-  .text-wa-green { color: #00a884 !important; }
-  .text-wa-blue { color: #53bdeb !important; }
+.wa-header, .wa-panel {
+  background-color: #202c33 !important;
+  border-color: #222d34 !important;
+}
 
-  .border-wa { border-color: #222d34 !important; }
-  .border-wa-active { border-color: #00a884 !important; }
+.wa-chat-container {
+  background-color: #0b141a !important;
+  border-color: #222d34 !important;
+}
 
-  .wa-chat-pattern {
-    background-color: #0b141a;
-    background-image: radial-gradient(rgba(134, 150, 160, 0.08) 1px, transparent 0);
-    background-size: 24px 24px;
-  }
+.wa-chat-bg {
+  background-color: #0b141a !important;
+  background-image: radial-gradient(rgba(134, 150, 160, 0.18) 1.2px, transparent 0) !important;
+  background-size: 24px 24px !important;
+}
+
+/* WhatsApp Message Bubbles - NO WHITE BORDERS EVER */
+.wa-bubble-outbound {
+  background-color: #005c4b !important;
+  color: #e9edef !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13) !important;
+}
+
+.wa-bubble-inbound {
+  background-color: #202c33 !important;
+  color: #e9edef !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13) !important;
+}
+
+.wa-bubble-outbound p, .wa-bubble-inbound p {
+  color: #e9edef !important;
+}
+
+/* Chat Input Field */
+.wa-composer-pill {
+  background-color: #2a3942 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.wa-composer-input {
+  background-color: transparent !important;
+  color: #e9edef !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.wa-composer-input::placeholder {
+  color: #8696a0 !important;
+}
+
+/* Conversation Item Active & Hover */
+.wa-item-active {
+  background-color: #2a3942 !important;
+  border-left: 4px solid #00a884 !important;
+}
+
+.wa-item-hover:hover {
+  background-color: #202c33 !important;
+}
+
+.wa-border-subtle {
+  border-color: #222d34 !important;
+}
+
+.wa-no-border {
+  border: none !important;
+  outline: none !important;
+}
+
+.wa-text-primary { color: #e9edef !important; }
+.wa-text-secondary { color: #8696a0 !important; }
+.wa-text-accent { color: #00a884 !important; }
+.wa-text-blue { color: #53bdeb !important; }
+
+/* Filter Pill Buttons */
+.wa-filter-active {
+  background-color: #0a332c !important;
+  color: #00a884 !important;
+  border: 1px solid rgba(0, 168, 132, 0.3) !important;
+}
+
+.wa-filter-inactive {
+  background-color: #202c33 !important;
+  color: #8696a0 !important;
+  border: none !important;
+}
+
+.wa-filter-inactive:hover {
+  background-color: #2a3942 !important;
+  color: #e9edef !important;
+}
+
+/* Buttons Reset */
+.wa-btn-primary {
+  background-color: #00a884 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.wa-btn-primary:hover {
+  background-color: #008f70 !important;
+}
+
+.wa-btn-secondary {
+  background-color: #202c33 !important;
+  color: #e9edef !important;
+  border: 1px solid #222d34 !important;
+}
+
+.wa-btn-secondary:hover {
+  background-color: #2a3942 !important;
+}
+
+/* Scrollbar styling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Fix for invisible text on autofilled/pasted fields */
