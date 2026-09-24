@@ -217,6 +217,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/{id}/ping', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'ping'])->name('ping');
         Route::get('/{id}/logs', [\App\Http\Controllers\Api\V1\Webhook\CompanyWebhookController::class, 'logs'])->name('logs');
     });
+
+    // Super Admin Diagnostics & Audit
+    Route::prefix('super-admin')->name('super-admin.')->middleware('auth:sanctum')->group(function () {
+        Route::get('/phone-numbers-audit', [\App\Http\Controllers\Api\V1\SuperAdmin\SuperAdminDiagnosticController::class, 'auditPhoneNumbers'])->name('phone-numbers-audit');
+        Route::post('/cleanup-duplicate-phone-number', [\App\Http\Controllers\Api\V1\SuperAdmin\SuperAdminDiagnosticController::class, 'cleanupDuplicatePhoneNumber'])->name('cleanup-duplicate-phone-number');
+    });
 });
 
 
