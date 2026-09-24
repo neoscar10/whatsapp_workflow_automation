@@ -79,11 +79,12 @@ class WhatsAppWebhookEventService
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
         $account = null;
 
-        // 1. Primary lookup: find WhatsAppPhoneNumber by exact phone_number_id first
+        // 1. Primary lookup: find active WhatsAppPhoneNumber by exact phone_number_id first (prefer active status, latest company)
         if ($phoneNumberId) {
             $phoneRecord = WhatsAppPhoneNumber::with('account')
                 ->where('phone_number_id', $phoneNumberId)
-                ->orderBy('id', 'asc')
+                ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+                ->orderBy('id', 'desc')
                 ->first();
 
             if ($phoneRecord && $phoneRecord->account) {
@@ -95,14 +96,18 @@ class WhatsAppWebhookEventService
 
         // 2. Secondary lookup: match by WABA ID
         if (!$account && $wabaId) {
-            $account = WhatsAppAccount::where('waba_id', $wabaId)->orderBy('id', 'asc')->first();
+            $account = WhatsAppAccount::where('waba_id', $wabaId)
+                ->orderBy('id', 'desc')
+                ->first();
         }
 
         // 3. Fallback lookup by phone_number_id in phoneNumbers relationship
         if (!$account && $phoneNumberId) {
             $account = WhatsAppAccount::whereHas('phoneNumbers', function ($q) use ($phoneNumberId) {
                 $q->where('phone_number_id', $phoneNumberId);
-            })->orderBy('id', 'asc')->first();
+            })
+            ->orderBy('id', 'desc')
+            ->first();
         }
 
         Log::info('WEBHOOK_ACCOUNT_LOOKUP', [
@@ -119,12 +124,13 @@ class WhatsAppWebhookEventService
     {
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
 
-        // 1. Try to find local number by phone_number_id globally first
+        // 1. Try to find local number by phone_number_id globally first (prefer active status, latest company)
         $localNumber = null;
         if ($phoneNumberId) {
             $localNumber = WhatsAppPhoneNumber::with('account')
                 ->where('phone_number_id', $phoneNumberId)
-                ->orderBy('id', 'asc')
+                ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+                ->orderBy('id', 'desc')
                 ->first();
         }
 
@@ -151,23 +157,28 @@ class WhatsAppWebhookEventService
             return;
         }
 
-        // Consolidation: If duplicate records exist for this phone_number_id in company, merge them into $localNumber
+        // Consolidation: If duplicate records exist for this phone_number_id across ANY company, merge & reassign into $localNumber
         try {
-            $otherNumberIds = WhatsAppPhoneNumber::where('company_id', $localNumber->company_id)
-                ->where('phone_number_id', $phoneNumberId)
+            $otherNumbers = WhatsAppPhoneNumber::where('phone_number_id', $phoneNumberId)
                 ->where('id', '!=', $localNumber->id)
-                ->pluck('id');
+                ->get();
 
-            if ($otherNumberIds->isNotEmpty()) {
+            if ($otherNumbers->isNotEmpty()) {
+                $otherNumberIds = $otherNumbers->pluck('id');
+
+                // Reassign conversations to the active local number and target company
                 \App\Models\Chat\Conversation::whereIn('whatsapp_phone_number_id', $otherNumberIds)
-                    ->update(['whatsapp_phone_number_id' => $localNumber->id]);
+                    ->update([
+                        'whatsapp_phone_number_id' => $localNumber->id,
+                        'company_id' => $localNumber->company_id,
+                    ]);
 
                 WhatsAppPhoneNumber::whereIn('id', $otherNumberIds)->delete();
                 
-                Log::info("WEBHOOK_CONSOLIDATION: Merged duplicate phone numbers " . implode(',', $otherNumberIds->toArray()) . " into active number {$localNumber->id}");
+                Log::info("WEBHOOK_GLOBAL_CONSOLIDATION: Merged duplicate phone numbers [" . implode(',', $otherNumberIds->toArray()) . "] into active number {$localNumber->id} (Company {$localNumber->company_id})");
             }
         } catch (\Exception $e) {
-            Log::warning("WEBHOOK_CONSOLIDATION: Exception during consolidation", ['error' => $e->getMessage()]);
+            Log::warning("WEBHOOK_GLOBAL_CONSOLIDATION: Exception during consolidation", ['error' => $e->getMessage()]);
         }
 
         Log::info('WEBHOOK_STAGE_4: Local number matched successfully', [
