@@ -72,7 +72,7 @@ class SuperAdminDiagnosticController extends Controller
         }
 
         // List all companies
-        $companies = Company::with(['whatsappAccount', 'phoneNumbers'])
+        $companies = Company::with(['whatsappAccount', 'whatsappPhoneNumbers'])
             ->orderBy('id', 'asc')
             ->get()
             ->map(function ($comp) {
@@ -82,7 +82,7 @@ class SuperAdminDiagnosticController extends Controller
                     'primary_email' => $comp->primary_email,
                     'status' => $comp->status,
                     'waba_id' => $comp->whatsappAccount?->waba_id,
-                    'phone_numbers' => $comp->phoneNumbers->map(fn($pn) => [
+                    'phone_numbers' => $comp->whatsappPhoneNumbers->map(fn($pn) => [
                         'id' => $pn->id,
                         'phone_number_id' => $pn->phone_number_id,
                         'phone_number' => $pn->phone_number,
