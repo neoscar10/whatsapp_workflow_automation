@@ -82,7 +82,10 @@
                                     <div class="flex items-center gap-1.5 truncate">
                                         <p class="truncate text-[13px] font-bold text-slate-900 dark:text-white">{{ $template['name'] }}</p>
                                         @if(!empty($template['is_default']))
-                                            <span class="inline-flex shrink-0 items-center rounded-full bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide text-amber-700 dark:text-amber-300">Default</span>
+                                            <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/30">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                Default
+                                            </span>
                                         @endif
                                     </div>
                                     <p class="truncate text-[11px] font-medium text-slate-400">{{ $template['subtitle'] }}</p>
