@@ -223,6 +223,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/phone-numbers-audit', [\App\Http\Controllers\Api\V1\SuperAdmin\SuperAdminDiagnosticController::class, 'auditPhoneNumbers'])->name('phone-numbers-audit');
         Route::post('/cleanup-duplicate-phone-number', [\App\Http\Controllers\Api\V1\SuperAdmin\SuperAdminDiagnosticController::class, 'cleanupDuplicatePhoneNumber'])->name('cleanup-duplicate-phone-number');
     });
+
+    // Admin Production Jobs
+    Route::prefix('admin/production/jobs')->name('admin.production.jobs.')->middleware('auth:sanctum')->group(function () {
+        Route::get('/options', [\App\Http\Controllers\Api\V1\Admin\ProductionJobController::class, 'options'])->name('options');
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\ProductionJobController::class, 'show'])->name('show')->where('id', '[0-9]+');
+    });
 });
 
 
