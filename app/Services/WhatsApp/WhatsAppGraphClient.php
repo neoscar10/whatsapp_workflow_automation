@@ -445,6 +445,14 @@ class WhatsAppGraphClient
     }
 
     /**
+     * Send a sticker message.
+     */
+    public function sendSticker(string $phoneNumberId, string $accessToken, string $to, string $mediaId, string $correlationId = 'N/A'): array
+    {
+        return $this->sendMediaMessage($phoneNumberId, $accessToken, $to, 'sticker', ['id' => $mediaId], $correlationId);
+    }
+
+    /**
      * Internal helper to send media messages.
      */
     protected function sendMediaMessage(string $phoneNumberId, string $accessToken, string $to, string $type, array $mediaData, string $correlationId): array

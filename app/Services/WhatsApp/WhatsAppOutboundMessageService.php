@@ -238,7 +238,7 @@ class WhatsAppOutboundMessageService
             return $this->graphClient->sendTemplate($phoneNumberId, $accessToken, $to, $templateName, $languageCode, $components, $correlationId);
         }
 
-        if (in_array($message->message_type, ['image', 'video', 'audio', 'document'])) {
+        if (in_array($message->message_type, ['image', 'video', 'audio', 'document', 'sticker'])) {
             $mediaMeta = $message->media_meta ?? [];
             $mediaId = $mediaMeta['media_id'] ?? null;
             $caption = $message->body; // Using body as caption for direct media
@@ -255,6 +255,7 @@ class WhatsAppOutboundMessageService
                 'video' => $this->graphClient->sendVideo($phoneNumberId, $accessToken, $to, $mediaId, $caption, $correlationId),
                 'audio' => $this->graphClient->sendAudio($phoneNumberId, $accessToken, $to, $mediaId, $correlationId),
                 'document' => $this->graphClient->sendDocument($phoneNumberId, $accessToken, $to, $mediaId, $mediaMeta['filename'] ?? null, $caption, $correlationId),
+                'sticker' => $this->graphClient->sendSticker($phoneNumberId, $accessToken, $to, $mediaId, $correlationId),
                 default => ['success' => false, 'error' => "Unsupported media type: {$message->message_type}"]
             };
         }

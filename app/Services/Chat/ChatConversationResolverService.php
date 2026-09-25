@@ -180,17 +180,18 @@ class ChatConversationResolverService
             } elseif ($interactive['type'] === 'list_reply') {
                 $body = $interactive['list_reply']['title'] ?? '[List Reply]';
             }
-        } elseif (in_array($type, ['image', 'video', 'audio', 'document'])) {
+        } elseif (in_array($type, ['image', 'video', 'audio', 'document', 'sticker'])) {
             $mediaData = $messageData[$type] ?? [];
             $mediaId = $mediaData['id'] ?? null;
-            $mimeType = $mediaData['mime_type'] ?? '';
+            $mimeType = $mediaData['mime_type'] ?? ($type === 'sticker' ? 'image/webp' : '');
             $caption = $mediaData['caption'] ?? ($mediaData['filename'] ?? null);
 
-            $body = $caption ?: ucfirst($type);
+            $body = $caption ?: ($type === 'sticker' ? 'Sticker' : ucfirst($type));
+            $ext = $type === 'sticker' ? 'webp' : (explode('/', $mimeType)[1] ?? 'bin');
             $mediaMeta = [
                 'media_id' => $mediaId,
                 'mime_type' => $mimeType,
-                'filename' => $mediaData['filename'] ?? (time() . '.' . (explode('/', $mimeType)[1] ?? 'bin')),
+                'filename' => $mediaData['filename'] ?? (time() . '.' . $ext),
             ];
 
             // Download and save to disk so it can be served directly (like outbound media)
@@ -325,7 +326,7 @@ class ChatConversationResolverService
             $msg = $conversation->messages()->create([
                 'external_message_id' => $messageId,
                 'direction' => 'inbound',
-                'message_type' => in_array($type, ['text', 'image', 'video', 'audio', 'document']) ? $type : 'other',
+                'message_type' => in_array($type, ['text', 'image', 'video', 'audio', 'document', 'sticker']) ? $type : 'other',
                 'body' => $body,
                 'status' => 'received',
                 'media_url' => $mediaUrl,
