@@ -172,11 +172,21 @@
 
                             <tr class="transition hover:bg-slate-50/70 dark:hover:bg-slate-800/50">
                                 <td class="px-6 py-5">
-                                    <div class="flex flex-col">
-                                        <span class="text-sm font-bold text-slate-900 dark:text-white">
-                                            {{ $template->display_title ?: $template->remote_template_name }}
-                                        </span>
-                                        <span class="mt-0.5 text-xs italic text-slate-400 dark:text-slate-500">
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-bold text-slate-900 dark:text-white">
+                                                {{ $template->display_title ?: $template->remote_template_name }}
+                                            </span>
+                                            @if($template->is_default)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 border border-amber-300/40">
+                                                    <svg class="h-3 w-3 fill-amber-500 text-amber-500" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                    Default
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <span class="text-xs italic text-slate-400 dark:text-slate-500">
                                             Updated {{ $template->updated_at?->diffForHumans() ?: 'Never' }}
                                         </span>
                                     </div>
@@ -220,6 +230,29 @@
 
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex justify-end gap-2">
+                                        @if($template->is_default)
+                                            <button
+                                                type="button"
+                                                class="rounded p-1.5 text-amber-500 dark:text-amber-400 cursor-default"
+                                                title="Current Default Template"
+                                            >
+                                                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                </svg>
+                                            </button>
+                                        @else
+                                            <button
+                                                wire:click="setDefaultTemplate({{ $template->id }})"
+                                                type="button"
+                                                class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-amber-500 dark:hover:text-amber-400"
+                                                title="Set as Default Template"
+                                            >
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+
                                         <a href="{{ route('whatsapp.templates.show', $template->id) }}" class="rounded p-1.5 text-slate-400 dark:text-slate-500 transition hover:text-primary dark:hover:text-primary" title="View">
                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />

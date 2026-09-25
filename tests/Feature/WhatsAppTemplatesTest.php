@@ -311,4 +311,104 @@ class WhatsAppTemplatesTest extends TestCase
             ->assertSee('alt="Header image preview"', false)
             ->assertSee('preview_banner.png');
     }
+
+    public function test_can_set_default_template_and_auto_select_in_chat()
+    {
+        Http::fake(['*' => Http::response(['data' => []])]);
+
+        $template1 = WhatsAppTemplate::create([
+            'company_id' => $this->company->id,
+            'whatsapp_account_id' => $this->account->id,
+            'remote_template_name' => 'first_template',
+            'display_title' => 'First Template',
+            'category' => 'marketing',
+            'language_code' => 'en_US',
+            'status' => 'approved',
+            'body_text' => 'First template body',
+            'is_default' => false,
+        ]);
+
+        $template2 = WhatsAppTemplate::create([
+            'company_id' => $this->company->id,
+            'whatsapp_account_id' => $this->account->id,
+            'remote_template_name' => 'second_template',
+            'display_title' => 'Second Template',
+            'category' => 'utility',
+            'language_code' => 'en_US',
+            'status' => 'approved',
+            'body_text' => 'Second template body',
+            'is_default' => false,
+        ]);
+
+        // Set template2 as default
+        Livewire::actingAs($this->user)
+            ->test(TemplatesIndexPage::class)
+            ->call('setDefaultTemplate', $template2->id);
+
+        $this->assertDatabaseHas('whatsapp_templates', [
+            'id' => $template2->id,
+            'is_default' => true,
+        ]);
+
+        $this->assertDatabaseHas('whatsapp_templates', [
+            'id' => $template1->id,
+            'is_default' => false,
+        ]);
+
+        // Verify directory service orders default template first
+        $directoryService = app(\App\Services\Template\ChatTemplateDirectoryService::class);
+        $templates = $directoryService->getChatEligibleTemplatesForUser($this->user);
+
+        $this->assertEquals($template2->id, $templates[0]['id']);
+        $this->assertTrue($templates[0]['is_default']);
+    }
+
+    public function test_chat_modal_preselects_default_template()
+    {
+        Http::fake(['*' => Http::response(['data' => []])]);
+
+        $contact = \App\Models\Contact\Contact::create([
+            'company_id' => $this->company->id,
+            'name' => 'John Doe',
+            'phone' => '+1234567890',
+        ]);
+
+        $conversation = \App\Models\Chat\Conversation::create([
+            'company_id' => $this->company->id,
+            'contact_id' => $contact->id,
+            'contact_name' => $contact->name,
+            'contact_phone' => $contact->phone,
+            'status' => 'open',
+        ]);
+
+        $template1 = WhatsAppTemplate::create([
+            'company_id' => $this->company->id,
+            'whatsapp_account_id' => $this->account->id,
+            'remote_template_name' => 'template_one',
+            'display_title' => 'Template One',
+            'category' => 'marketing',
+            'language_code' => 'en_US',
+            'status' => 'approved',
+            'body_text' => 'Hello One',
+            'is_default' => false,
+        ]);
+
+        $template2 = WhatsAppTemplate::create([
+            'company_id' => $this->company->id,
+            'whatsapp_account_id' => $this->account->id,
+            'remote_template_name' => 'template_two',
+            'display_title' => 'Template Two',
+            'category' => 'marketing',
+            'language_code' => 'en_US',
+            'status' => 'approved',
+            'body_text' => 'Hello Two',
+            'is_default' => true,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(\App\Livewire\Web\Chats\ChatInboxPage::class)
+            ->set('selectedConversationId', $conversation->id)
+            ->call('openTemplateSendModal')
+            ->assertSet('selectedTemplateId', $template2->id);
+    }
 }

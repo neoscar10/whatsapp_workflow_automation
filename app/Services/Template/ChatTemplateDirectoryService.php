@@ -45,10 +45,12 @@ class ChatTemplateDirectoryService
         // Apply filters
         if ($filter === 'approved') {
             $query->where('status', 'approved');
-        } elseif ($filter === 'recent') {
-            $query->orderByDesc('last_synced_at'); // Simplified for now, can use usage logs later
+        }
+
+        if ($filter === 'recent') {
+            $query->orderByDesc('is_default')->orderByDesc('last_synced_at');
         } else {
-            $query->orderBy('display_title');
+            $query->orderByDesc('is_default')->orderBy('display_title');
         }
 
         // Only show approved or pending templates for sending in chat usually
@@ -71,6 +73,7 @@ class ChatTemplateDirectoryService
             'icon' => $this->getIconForCategory($template->category),
             'status' => $template->status,
             'category' => $template->category,
+            'is_default' => (bool) $template->is_default,
         ];
     }
 

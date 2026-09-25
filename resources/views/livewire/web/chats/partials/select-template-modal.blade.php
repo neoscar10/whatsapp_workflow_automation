@@ -79,7 +79,12 @@
                                 </div>
 
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-[13px] font-bold text-slate-900 dark:text-white">{{ $template['name'] }}</p>
+                                    <div class="flex items-center gap-1.5 truncate">
+                                        <p class="truncate text-[13px] font-bold text-slate-900 dark:text-white">{{ $template['name'] }}</p>
+                                        @if(!empty($template['is_default']))
+                                            <span class="inline-flex shrink-0 items-center rounded-full bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide text-amber-700 dark:text-amber-300">Default</span>
+                                        @endif
+                                    </div>
                                     <p class="truncate text-[11px] font-medium text-slate-400">{{ $template['subtitle'] }}</p>
                                 </div>
 

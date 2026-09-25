@@ -24,6 +24,7 @@ class WhatsAppTemplate extends Model
         'category',
         'language_code',
         'status',
+        'is_default',
         'meta_status',
         'quality_rating',
         'namespace',
@@ -45,6 +46,7 @@ class WhatsAppTemplate extends Model
     ];
 
     protected $casts = [
+        'is_default' => 'boolean',
         'example_payload' => 'array',
         'meta_payload' => 'array',
         'last_synced_at' => 'datetime',

@@ -400,9 +400,11 @@ class ChatInboxPage extends Component
         
         $this->systemVariableOptions = app(\App\Services\WhatsApp\WhatsAppTemplateVariableResolver::class)->getAvailableSystemVariables();
         
-        // Auto-select first if available
+        // Auto-select default template if available, otherwise first template
         if (!empty($this->availableTemplates)) {
-            $this->selectTemplate($this->availableTemplates[0]['id'], $directoryService);
+            $defaultTemplate = collect($this->availableTemplates)->firstWhere('is_default', true);
+            $templateToSelect = $defaultTemplate ? $defaultTemplate['id'] : $this->availableTemplates[0]['id'];
+            $this->selectTemplate($templateToSelect, $directoryService);
         }
     }
 

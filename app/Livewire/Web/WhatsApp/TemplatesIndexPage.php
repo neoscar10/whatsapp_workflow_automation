@@ -87,6 +87,24 @@ class TemplatesIndexPage extends Component
         }
     }
 
+    public function setDefaultTemplate(int $templateId)
+    {
+        $companyId = auth()->user()->company_id;
+        if (!$companyId) return;
+
+        $template = WhatsAppTemplate::where('company_id', $companyId)->find($templateId);
+        if (!$template) return;
+
+        // Reset previous default templates for this company
+        WhatsAppTemplate::where('company_id', $companyId)->where('is_default', true)->update(['is_default' => false]);
+
+        // Set target template as default
+        $template->update(['is_default' => true]);
+
+        $title = $template->display_title ?: $template->remote_template_name;
+        $this->syncMessage = "'{$title}' has been set as the default template.";
+    }
+
     public function confirmDelete($id)
     {
         $this->templateToDelete = $id;
